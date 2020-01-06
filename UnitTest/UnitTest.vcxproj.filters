@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Main.h" />
+    <ClInclude Include="Demo\TerrainLodDemo.h">
+      <Filter>Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="Editors\AnimationEditor.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Demo\TerrainLodDemo.cpp">
+      <Filter>Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="Editors\AnimationEditor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Editors">
+      <UniqueIdentifier>{6f40e157-5250-44af-b319-114c8bd90549}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Demo">
+      <UniqueIdentifier>{c089e441-ed25-4768-aebe-fbd70c88fb8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Practice">
+      <UniqueIdentifier>{7bd18b95-929f-4ec2-a548-ec620bee8968}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

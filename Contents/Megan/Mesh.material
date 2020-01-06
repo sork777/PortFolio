@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Materials xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <Material>
+        <Name>Ch22_body</Name>
+        <DiffuseFile>Ch22_1001_Diffuse.png</DiffuseFile>
+        <SpecularFile>Ch22_1001_Specular.png</SpecularFile>
+        <NormalFile>Ch22_1001_Normal.png</NormalFile>
+        <Ambient R="0" G="0" B="0" A="1"/>
+        <Diffuse R="0.80000001" G="0.80000001" B="0.80000001" A="1"/>
+        <Specular R="0.5" G="0.5" B="0.5" A="20"/>
+        <Emissive R="0" G="0" B="0" A="1"/>
+    </Material>
+    <Material>
+        <Name>Ch22_hair</Name>
+        <DiffuseFile>Ch22_1002_Diffuse.png</DiffuseFile>
+        <SpecularFile>Ch22_1002_Diffuse.png</SpecularFile>
+        <NormalFile>Ch22_1002_Normal.png</NormalFile>
+        <Ambient R="0" G="0" B="0" A="1"/>
+        <Diffuse R="0.80000001" G="0.80000001" B="0.80000001" A="1"/>
+        <Specular R="0" G="0" B="0" A="77.833"/>
+        <Emissive R="0" G="0" B="0" A="1"/>
+    </Material>
+</Materials>
