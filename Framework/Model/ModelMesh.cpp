@@ -18,7 +18,6 @@ ModelMesh::ModelMesh()
 
 ModelMesh::~ModelMesh()
 {
-	//SafeDelete(transform);
 	SafeDelete(perFrame);
 
 	SafeDeleteArray(vertices);
@@ -36,7 +35,6 @@ void ModelMesh::Binding(Model * model)
 	vertexBuffer = new VertexBuffer(vertices, vertexCount, sizeof(Model::ModelVertex));
 	indexBuffer = new IndexBuffer(indices, indexCount);
 
-	//Material* srcMaterial = model->MaterialByName(materialName);
 	SafeDelete(material);
 	material = model->MaterialByName(materialName);
 }
@@ -44,9 +42,6 @@ void ModelMesh::Binding(Model * model)
 void ModelMesh::SetShader(Shader * shader)
 {
 	this->shader = shader;
-
-	//SafeDelete(transform);
-	//transform = new Transform(shader);
 
 	SafeDelete(perFrame);
 	perFrame = new PerFrame(shader);
@@ -62,7 +57,6 @@ void ModelMesh::Update()
 	boneDesc.Index = boneIndex;
 
 	perFrame->Update();
-	//transform->Update();
 }
 
 void ModelMesh::Render(UINT drawCount)
@@ -71,7 +65,6 @@ void ModelMesh::Render(UINT drawCount)
 	sBoneBuffer->SetConstantBuffer(boneBuffer->Buffer());
 
 	perFrame->Render();
-	//transform->Render();
 	material->Render();
 
 	if (transformsSRV != NULL)
@@ -84,16 +77,6 @@ void ModelMesh::Render(UINT drawCount)
 
 	shader->DrawIndexedInstanced(tech, pass, indexCount, drawCount);
 }
-
-//void ModelMesh::Transforms(Matrix * transforms)
-//{
-//	memcpy(boneDesc.Transforms, transforms, sizeof(Matrix) * MAX_MODEL_TRANSFORMS);
-//}
-//
-//void ModelMesh::SetTransform(Transform * transform)
-//{
-//	this->transform->Set(transform);
-//}
 
 void ModelMesh::TransformsSRV(ID3D11ShaderResourceView * srv)
 {

@@ -18,7 +18,7 @@ struct ModelKeyframe
 class ModelClip
 {
 public:
-	friend class Model;
+	friend class ModelAnimator;
 
 private:
 	ModelClip();

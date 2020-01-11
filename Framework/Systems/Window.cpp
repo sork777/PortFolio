@@ -202,8 +202,8 @@ void Window::MainRender()
 
 		mainExecute->Render();
 		DebugLine::Get()->Render();
-		mainExecute->PostRender();
 		Gui::Get()->Render();
+		mainExecute->PostRender();
 	}
 	D3D::Get()->Present();
 }

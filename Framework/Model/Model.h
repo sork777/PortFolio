@@ -6,7 +6,8 @@
 
 class ModelBone;
 class ModelMesh;
-class ModelClip;
+
+//TODO: 어태치 관련 전부 액터로 빼기
 
 enum ModelType
 {
@@ -32,8 +33,6 @@ public:
 	Model(Shader* shader);
 	~Model();
 
-#pragma region Render와Animator에 있던 공용함수 
-
 	void Update();
 	virtual void Render();
 	
@@ -41,28 +40,18 @@ public:
 	void Tech(UINT tech);
 
 	void UpdateTransforms();
-	//void UpdateMaterial();
+	
+	virtual void AddInstance();
+	virtual void DelInstance(UINT instance);
+
 
 	UINT GetInstSize() { return transforms.size(); }
-	Transform* AddTransform();
 	Transform* GetTransform(UINT instance) { return transforms[instance]; }
-	
 	virtual Matrix GetboneTransform(UINT instance, UINT boneIndex) = 0;
+
 protected:
+	void AddTransform();
 	virtual void CreateTexture() = 0;
-
-protected:
-	Shader* shader;
-
-	vector<Transform *> transforms;
-	Matrix worlds[MAX_MODEL_INSTANCE];
-
-	VertexBuffer* instanceBuffer;
-
-	ID3D11Texture2D* texture = NULL;
-	ID3D11ShaderResourceView* srv;
-
-#pragma endregion
 
 public:
 	UINT MaterialCount() { return materials.size(); }
@@ -80,22 +69,15 @@ public:
 	ModelMesh* MeshByIndex(UINT index) { return meshes[index]; }
 	ModelMesh* MeshByName(wstring name);
 
-	UINT ClipCount() { return clips.size(); }
-	vector<ModelClip *>& Clips() { return clips; }
-	ModelClip* ClipByIndex(UINT index) { return clips[index]; }
-	ModelClip* ClipByName(wstring name);
-
 public:
 	void ReadMaterial(wstring file, wstring directoryPath = L"../../_Textures/");
 	void ReadMesh(wstring file, wstring directoryPath = L"../../_Models/");
-	void ReadClip(wstring file, wstring directoryPath = L"../../_Models/");
 
 private:
 	void BindBone();
 	void BindMesh();
 
 public:
-	//void Attach(Model* model, int parentBoneIndex, Transform* transform = NULL);
 	void Attach(Model* model, int parentBoneIndex, UINT instanceIndex, Transform* transform = NULL);
 
 	void AddSocket(int parentBoneIndex, wstring bonename = L"");
@@ -105,7 +87,18 @@ private:
 	ModelBone* rootBone;
 	vector<ModelBone *> bones;
 	vector<ModelMesh *> meshes;
-	vector<ModelClip *> clips;
-	
+		
 	vector< AttachModelData * > attaches;
+
+protected:
+	Shader* shader;
+
+	vector<Transform *> transforms;
+	Matrix worlds[MAX_MODEL_INSTANCE];
+
+	VertexBuffer* instanceBuffer;
+
+	ID3D11Texture2D* texture = NULL;
+	ID3D11ShaderResourceView* srv;
+
 };

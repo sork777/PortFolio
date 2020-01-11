@@ -66,17 +66,18 @@ void TerrainLodDemo::PreRender()
 	sky->PreRender();
 	sky->Render();
 	//shadow->Set();
-	
+
 	SetGBuffer();
 	shader->AsSRV("AtmosphereMap")->SetResource(sky->GetAtmoSRV());
 	ssao->Compute(gBuffer->GetDepthSrv(), gBuffer->GetNormalSrv());
 	shader->AsSRV("AOTexture")->SetResource(ssao->GetSSAOSRV());
+
+	
 }
 
 
 void TerrainLodDemo::Render()
 {
-
 	gBuffer->Tech(1);
 	gBuffer->Render();
 	
@@ -92,6 +93,7 @@ void TerrainLodDemo::SetGBuffer()
 	
 	terrainMat->Render();
 	terrain->Tech(1);
+	//terrain->Pass(0);
 	terrain->Render();
 
 }

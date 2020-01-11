@@ -56,7 +56,7 @@ void InstanceColliderDemo::Update()
 	AnimationController();
 	ImGUIController();
 	NotifyController();
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < kachujin->GetInstSize(); i++)
 	{
 		Matrix attach = kachujin->GetboneTransform(i,11);
 		colliders[i].Collider->GetTransform()->Parent(attach);
@@ -152,7 +152,7 @@ void InstanceColliderDemo::ModelLoad()
 	kachujin = new ModelAnimator(shader);
 	kachujin->ReadMaterial(L"Megan/Mesh");
 	kachujin->ReadMesh(L"Megan/Mesh");
-	//kachujin->ReadClip(L"Megan/Mesh");
+	kachujin->ReadClip(L"Megan/Mesh");
 	kachujin->ReadClip(L"Megan/Taunt");
 	kachujin->ReadClip(L"Megan/Dancing");
 	//kachujin->ReadClip(L"Kachujin/Running");
@@ -160,7 +160,8 @@ void InstanceColliderDemo::ModelLoad()
 	//kachujin->ReadClip(L"Kachujin/Hip_Hop_Dancing");
 
 	kachujin->Attach((Model*)sword, 11, sword->GetInstSize());
-	Transform* attachTransform = sword->AddTransform();
+	sword->AddInstance();
+	Transform* attachTransform = sword->GetTransform(0);
 	attachTransform->Position(10, -5, -15);
 	attachTransform->Scale(1.0f, 1.0f, 1.0f);
 	attachTransform->RotationDegree(180.0f, 0.0f, 0.0f);
@@ -168,18 +169,20 @@ void InstanceColliderDemo::ModelLoad()
 
 
 	Transform* transform = NULL;
-
-	transform = kachujin->AddTransform();
+	kachujin->AddInstance();
+	transform = kachujin->GetTransform(0);
 	transform->Position(-25, 0, 0);
 	transform->Scale(0.075f, 0.075f, 0.075f);
 	kachujin->PlayClip(0, 0, 1.0f);
 
-	transform = kachujin->AddTransform();
+	kachujin->AddInstance();
+	transform = kachujin->GetTransform(1);
 	transform->Position(0, 0, 0);
 	transform->Scale(0.075f, 0.075f, 0.075f);
 	kachujin->PlayClip(1, 1, 1.0f);
 
-	transform = kachujin->AddTransform();
+	kachujin->AddInstance();
+	transform = kachujin->GetTransform(2);
 	transform->Position(25, 0, 0);
 	transform->Scale(0.075f, 0.075f, 0.075f);
 	kachujin->PlayClip(2, 2, 0.75f);
@@ -253,9 +256,8 @@ void InstanceColliderDemo::ImGUIController()
 			/* 변형 */
 			if (bPlay != true)
 			{
-								
+				//TODO: 파츠별 기즈모 변동은 일단 패스
 				transform = (keyframes[selectedFrame].partsTrans[selected]);
-				Gui::Get()->SetGizmo(transform);
 
 				transform->Scale(&S);
 				transform->Rotation(&R);
@@ -270,7 +272,8 @@ void InstanceColliderDemo::ImGUIController()
 				transform->Scale(S);
 				transform->Rotation(R);
 				transform->Position(T);
-				if(bChange)
+
+				//if(bChange)
 					kachujin->UpdateInstTransform(instance, selected + 1,transform->World());
 			}
 			/* 재생중일때 정보 표기 */
@@ -372,6 +375,11 @@ void InstanceColliderDemo::AnimationController()
 			kachujin->AddClip(L"Kachujin/Jump");
 			kachujin->AddClip(L"Kachujin/Hip_Hop_Dancing");
 		}
+		if (ImGui::Button("Del"))
+		{
+			kachujin->DelInstance(instance);
+			instance %= kachujin->GetInstSize();
+		}
 	}
 	ImGui::End();
 }
@@ -469,7 +477,7 @@ void InstanceColliderDemo::ModelsViewer()
 	{
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf;
 
-		for (UINT i = 0; i < ModelList[selectedModel]->boneNames.size(); i++)
+		for (UINT i = 0; i < ModelList.size(); i++)
 		{
 			if (i == selectedModel)
 				flags |= ImGuiTreeNodeFlags_Selected;

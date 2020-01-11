@@ -20,13 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Demo\TerrainLodDemo.h" />
-    <ClInclude Include="Editors\AnimationEditor.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Demo\TerrainLodDemo.cpp" />
-    <ClCompile Include="Editors\AnimationEditor.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -26,6 +26,9 @@ ModelAnimator::~ModelAnimator()
 	SafeDelete(csOutput);
 	SafeDelete(csInput);
 
+	for (ModelClip* clip : clips)
+		SafeDelete(clip);
+
 	SafeDelete(frameBuffer);
 	SafeDeleteArray(clipTransforms);
 }
@@ -63,9 +66,55 @@ void ModelAnimator::Render()
 
 #pragma region 데이터 추가
 
-void ModelAnimator::AddClip(wstring file)
+void ModelAnimator::ReadClip(wstring file, wstring directoryPath)
 {
-	ReadClip(file);
+	if (clips.size() >= MAX_ANIMATION_CLIPS)
+		return;
+
+	file = directoryPath + file + L".clip";
+
+	BinaryReader* r = new BinaryReader();
+	r->Open(file);
+
+
+	ModelClip* clip = new ModelClip();
+
+	clip->name = String::ToWString(r->String());
+	clip->duration = r->Float();
+	clip->frameRate = r->Float();
+	clip->frameCount = r->UInt();
+
+	UINT keyframesCount = r->UInt();
+	for (UINT i = 0; i < keyframesCount; i++)
+	{
+		ModelKeyframe* keyframe = new ModelKeyframe();
+		keyframe->BoneName = String::ToWString(r->String());
+		int index = keyframe->BoneName.find(L":", 0);
+		if (index >= 0)
+			keyframe->BoneName = keyframe->BoneName.substr(index + 1, keyframe->BoneName.length());
+
+
+		UINT size = r->UInt();
+		if (size > 0)
+		{
+			keyframe->Transforms.assign(size, ModelKeyframeData());
+
+			void* ptr = (void *)&keyframe->Transforms[0];
+			r->Byte(&ptr, sizeof(ModelKeyframeData) * size);
+		}
+
+		clip->keyframeMap[keyframe->BoneName] = keyframe;
+	}
+
+	r->Close();
+	SafeDelete(r);
+
+	clips.push_back(clip);
+}
+
+void ModelAnimator::AddClip(wstring file, wstring directoryPath)
+{
+	ReadClip(file, directoryPath);
 
 	int addClipIndex = ClipCount() - 1;
 	CreateClipTransform(addClipIndex);
@@ -96,6 +145,19 @@ void ModelAnimator::AddClip(wstring file)
 			0
 		);
 	}
+}
+
+void ModelAnimator::AddInstance()
+{
+	Super::AddTransform();
+	InstState* state = new InstState();
+	states.emplace_back(state);
+}
+
+void ModelAnimator::DelInstance(UINT instance)
+{
+	Super::DelInstance(instance);
+	states.erase(states.begin() + instance);
 }
 
 void ModelAnimator::AddSocket(int parentBoneIndex, wstring bonename)
@@ -229,6 +291,17 @@ UINT ModelAnimator::GetFrameCount(UINT instance)
 	if(tweenDesc[instance].Next.Clip>-1)
 		resultClip = ClipByIndex(tweenDesc[instance].Next.Clip);
 	return resultClip->FrameCount();
+}
+
+ModelClip * ModelAnimator::ClipByName(wstring name)
+{
+	for (ModelClip* clip : clips)
+	{
+		if (clip->name == name)
+			return clip;
+	}
+
+	return NULL;
 }
 
 #pragma endregion

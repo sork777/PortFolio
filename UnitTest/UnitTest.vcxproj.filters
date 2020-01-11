@@ -6,14 +6,12 @@
     <ClInclude Include="Demo\TerrainLodDemo.h">
       <Filter>Demo</Filter>
     </ClInclude>
-    <ClInclude Include="Editors\AnimationEditor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Demo\TerrainLodDemo.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
-    <ClCompile Include="Editors\AnimationEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Editors">

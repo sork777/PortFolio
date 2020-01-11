@@ -107,6 +107,7 @@
     <ClCompile Include="Viewer\Projector.cpp" />
     <ClCompile Include="Viewer\RenderTarget.cpp" />
     <ClCompile Include="Viewer\Viewport.cpp" />
+    <ClCompile Include="ImguiWidget\Widget_Hierarchy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImguiWidget\IWidget.h" />
@@ -204,6 +205,7 @@
     <ClInclude Include="Viewer\Projector.h" />
     <ClInclude Include="Viewer\RenderTarget.h" />
     <ClInclude Include="Viewer\Viewport.h" />
+    <ClInclude Include="ImguiWidget\Widget_Hierarchy.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9047D20F-2706-40F3-B45C-13694DC02536}</ProjectGuid>

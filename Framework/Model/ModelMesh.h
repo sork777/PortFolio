@@ -12,7 +12,6 @@ private:
 public:
 	const int& Index() { return index; }
 	const int& ParentIndex() { return parentIndex; }
-	//const UINT& AttachModelID() { return attachModelID; }
 
 	wstring Name() { return name; }
 
@@ -28,7 +27,6 @@ private:
 
 	int parentIndex;
 	ModelBone* parent;
-	//UINT attachModelID;			//0ÀÌ¸é º» ¸ðµ¨, 1~ ºÙ¿©Áø ¸ðµ¨
 
 	Matrix transform;
 	vector<ModelBone *> childs;
@@ -52,7 +50,6 @@ public:
 	void SetShader(Shader* shader);
 	
 	void Update();
-	//void Render();
 	void Render(UINT drawCount);
 
 	wstring Name() { return name; }
@@ -60,8 +57,6 @@ public:
 	int BoneIndex() { return boneIndex; }
 	class ModelBone* Bone() { return bone; }
 
-	//void Transforms(Matrix* transforms);
-	//void SetTransform(Transform* transform);
 
 	void TransformsSRV(ID3D11ShaderResourceView* srv);
 
@@ -72,8 +67,6 @@ private:
 
 	struct BoneDesc
 	{
-		//Matrix Transforms[MAX_MODEL_TRANSFORMS];
-
 		UINT Index;
 		float Padding[3];
 	} boneDesc;
@@ -85,7 +78,6 @@ private:
 	UINT tech = 0;
 	UINT pass = 0;
 
-	//Transform* transform = NULL;
 	PerFrame* perFrame = NULL;
 
 

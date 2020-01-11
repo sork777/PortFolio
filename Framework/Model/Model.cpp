@@ -24,10 +24,6 @@ Model::~Model()
 	for (ModelMesh* mesh : meshes)
 		SafeDelete(mesh);
 
-	for (ModelClip* clip : clips)
-		SafeDelete(clip);
-
-
 	for (Transform* transform : transforms)
 		SafeDelete(transform);
 
@@ -52,8 +48,10 @@ void Model::Update()
 			//인스턴스 갯수 안맞는 경우.
 			if (data->AttachInstances.size() == i)
 			{
-				data->AttachInstances.emplace_back(data->model->GetInstSize());
-				data->model->AddTransform()->World(
+				int size = data->model->GetInstSize();
+				data->AttachInstances.emplace_back(size);
+				data->model->AddInstance();
+				data->model->GetTransform(size)->World(
 					data->model->GetTransform(data->AttachInstances[0])->World()
 				);
 			}
@@ -115,7 +113,25 @@ void Model::UpdateTransforms()
 	}
 }
 
-Transform * Model::AddTransform()
+void Model::AddInstance()
+{
+	AddTransform();
+}
+
+void Model::DelInstance(UINT instance)
+{
+	if (instance >= transforms.size())
+		return;
+	transforms.erase(transforms.begin() + instance);
+	for (AttachModelData* data : attaches)
+	{
+		UINT attachinst = data->AttachInstances[instance];
+		data->AttachInstances.erase(data->AttachInstances.begin() + instance);
+		data->model->DelInstance(attachinst);
+	}
+}
+
+void Model::AddTransform()
 {
 	Transform* transform = new Transform();
 	transforms.push_back(transform);
@@ -124,14 +140,14 @@ Transform * Model::AddTransform()
 	{
 		if (data->AttachInstances.size() < GetInstSize())
 		{
-			data->AttachInstances.emplace_back(data->model->GetInstSize());
-			data->model->AddTransform()->World(
+			int size = data->model->GetInstSize();
+			data->AttachInstances.emplace_back(size);
+			data->model->AddInstance();
+			data->model->GetTransform(size)->World(
 				data->model->GetTransform(data->AttachInstances[0])->World()
 			);
 		}
 	}
-
-	return transform;
 }
 
 #pragma endregion
@@ -172,16 +188,8 @@ ModelMesh * Model::MeshByName(wstring name)
 	return NULL;
 }
 
-ModelClip * Model::ClipByName(wstring name)
-{
-	for (ModelClip* clip : clips)
-	{
-		if (clip->name == name)
-			return clip;
-	}
 
-	return NULL;
-}
+#pragma endregion
 
 
 #pragma region ReadData
@@ -270,9 +278,9 @@ void Model::ReadMaterial(wstring file, wstring directoryPath)
 
 void Model::ReadMesh(wstring file, wstring directoryPath)
 {
-	wstring clipfile = directoryPath + file + L".clip";
-	bool bReadClip = Path::ExistFile(clipfile);
-	clipfile = file;
+	//wstring clipfile = directoryPath + file + L".clip";
+	//bool bReadClip = Path::ExistFile(clipfile);
+	//clipfile = file;
 	file = directoryPath + file + L".mesh";
 
 
@@ -361,8 +369,8 @@ void Model::ReadMesh(wstring file, wstring directoryPath)
 	
 	for (ModelMesh* mesh : meshes)
 		mesh->SetShader(shader);
-	if(bReadClip)
-		ReadClip(clipfile);
+	/*if(bReadClip)
+		ReadClip(clipfile);*/
 
 }
 
@@ -399,52 +407,6 @@ void Model::BindMesh()
 	}
 }
 
-void Model::ReadClip(wstring file, wstring directoryPath)
-{
-	if (clips.size() >= MAX_ANIMATION_CLIPS)
-		return;
-
-	file = directoryPath + file + L".clip";
-
-	BinaryReader* r = new BinaryReader();
-	r->Open(file);
-
-
-	ModelClip* clip = new ModelClip();
-
-	clip->name = String::ToWString(r->String());
-	clip->duration = r->Float();
-	clip->frameRate = r->Float();
-	clip->frameCount = r->UInt();
-
-	UINT keyframesCount = r->UInt();
-	for (UINT i = 0; i < keyframesCount; i++)
-	{
-		ModelKeyframe* keyframe = new ModelKeyframe();
-		keyframe->BoneName = String::ToWString(r->String());
-		int index = keyframe->BoneName.find(L":", 0);
-		if (index >= 0)
-			keyframe->BoneName = keyframe->BoneName.substr(index + 1, keyframe->BoneName.length());
-
-
-		UINT size = r->UInt();
-		if (size > 0)
-		{
-			keyframe->Transforms.assign(size, ModelKeyframeData());
-
-			void* ptr = (void *)&keyframe->Transforms[0];
-			r->Byte(&ptr, sizeof(ModelKeyframeData) * size);
-		}
-
-		clip->keyframeMap[keyframe->BoneName] = keyframe;
-	}
-
-	r->Close();
-	SafeDelete(r);
-
-	clips.push_back(clip);
-}
-
 #pragma endregion
 
 void Model::Attach(Model * model, int parentBoneIndex, UINT instanceIndex, Transform* transform)
@@ -469,8 +431,10 @@ void Model::Attach(Model * model, int parentBoneIndex, UINT instanceIndex, Trans
 
 	while (GetInstSize() > data->AttachInstances.size())
 	{
-		data->AttachInstances.emplace_back(data->model->GetInstSize());
-		data->model->AddTransform()->World(
+		int size = data->model->GetInstSize();
+		data->AttachInstances.emplace_back(size);
+		data->model->AddInstance();
+		data->model->GetTransform(size)->World(
 			data->model->GetTransform(data->AttachInstances[0])->World()
 		);
 	}

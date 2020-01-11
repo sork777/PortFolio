@@ -1,5 +1,12 @@
 #pragma once
 
+enum class AnimationState
+{
+	Stop,
+	Play,
+	Pause
+};
+
 class ModelAnimator : public Model
 {
 public:
@@ -10,8 +17,10 @@ public:
 	virtual void Render() override;
 
 public:
-	void AddClip(wstring file);
+	virtual void AddInstance() override;
+	virtual void DelInstance(UINT instance) override;
 	void AddSocket(int parentBoneIndex, wstring bonename = L"");
+
 public:
 	void PlayAnim(UINT instance=-1);
 	void PlayClip(UINT instance, UINT clip, float speed = 1.0f, float takeTime = 1.0f);
@@ -25,6 +34,14 @@ public:
 	virtual Matrix GetboneTransform(UINT instance, UINT boneIndex) override;
 	void UpdateInstTransform(UINT instance, UINT part, Matrix trans);
 	void UpdateChildTransform(UINT parentID,UINT childID,UINT clipID,UINT frameID, Matrix trans);
+public:	
+	void AddClip(wstring file, wstring directoryPath = L"../../_Models/");
+	void ReadClip(wstring file, wstring directoryPath = L"../../_Models/");
+
+	UINT ClipCount() { return clips.size(); }
+	vector<ModelClip *>& Clips() { return clips; }
+	ModelClip* ClipByIndex(UINT index) { return clips[index]; }
+	ModelClip* ClipByName(wstring name);
 
 private:
 	virtual void CreateTexture() override;
@@ -55,7 +72,8 @@ private:
 	};
 	ClipTransform* clipTransforms = NULL;
 	ClipTransform* boneAinTransforms = NULL;
-	
+
+	vector<ModelClip *> clips;
 private:
 	struct KeyframeDesc
 	{
@@ -89,9 +107,20 @@ private:
 		}
 	} tweenDesc[MAX_MODEL_INSTANCE];
 
+	struct InstState
+	{
+		AnimationState state;
+		bool bPlay;
+		InstState()
+		{
+			state = AnimationState::Play;
+			bPlay = true;
+		}
+	};
 	ConstantBuffer* frameBuffer;
 	ID3DX11EffectConstantBuffer* sFrameBuffer;
 
+	vector<InstState*> states;
 private:
 	struct CS_InputDesc
 	{

@@ -259,6 +259,7 @@
     </ClCompile>
     <ClCompile Include="ImguiWidget\Widget_Contents.cpp" />
     <ClCompile Include="ImguiWidget\WidgetUtility\IconProvider.cpp" />
+    <ClCompile Include="ImguiWidget\Widget_Hierarchy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -582,5 +583,6 @@
     </ClInclude>
     <ClInclude Include="ImguiWidget\Widget_Contents.h" />
     <ClInclude Include="ImguiWidget\WidgetUtility\IconProvider.h" />
+    <ClInclude Include="ImguiWidget\Widget_Hierarchy.h" />
   </ItemGroup>
 </Project>

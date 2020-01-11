@@ -261,7 +261,7 @@ void Gui::ApplyStyle()
 
 
 	float fontSize = 15.0f;
-	float roundness = 2.0f;
+	float roundness = 5.0f;
 	ImVec4 white = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 	ImVec4 text = ImVec4(0.76f, 0.77f, 0.8f, 1.0f);
 	ImVec4 black = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);

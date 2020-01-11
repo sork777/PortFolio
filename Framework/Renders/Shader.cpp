@@ -2,7 +2,7 @@
 #include "Shader.h"
 
 Shader::Shader(wstring file)
-	: file(L"../../_Shaders/" + file)
+	: file(L"../_Shaders/" + file)
 {
 	initialStateBlock = new StateBlock();
 	{
