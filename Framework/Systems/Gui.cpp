@@ -187,9 +187,10 @@ void Gui::RenderGUITexture(Vector2 position, Vector2 size, D3DXCOLOR color, Text
 	RenderGUITexture(text);
 }
 
-void Gui::SetGizmo(Transform * selectedTransform)
-{
+void Gui::SetGizmo(Transform * selectedTransform, class Transform* vTransform)
+{	
 	this->selectedTransform = selectedTransform;
+	this->vTransform = vTransform;
 }
 
 void Gui::RenderGizmo()
@@ -204,12 +205,26 @@ void Gui::RenderGizmo()
 	if (ImGui::IsKeyPressed(82)) // r
 		operation = ImGuizmo::SCALE;
 
+	Matrix vMatrix,InvMat;
 	Matrix matrix = selectedTransform->World();
+	if (vTransform == NULL)
+	{
+		vMatrix = matrix;
+		D3DXMatrixIdentity(&InvMat);
+	}
+	else
+	{
+		vTransform->Parent(matrix);
+		vMatrix = vTransform->Local();
+		D3DXMatrixInverse(&InvMat,NULL, &vMatrix);
+		vMatrix = vTransform->World();
+	}
 
 	float width = D3D::Get()->Width();
 	float height = D3D::Get()->Height();
 	Matrix view = Context::Get()->View();
 	Matrix proj = Context::Get()->Projection();
+
 
 	ImGuizmo::SetOrthographic(true);
 	ImGuizmo::SetDrawlist();
@@ -220,10 +235,12 @@ void Gui::RenderGizmo()
 		proj,
 		operation,
 		mode,
-		matrix
+		vMatrix
 	);
-
+	matrix = InvMat * vMatrix;
 	selectedTransform->World(matrix);	
+
+	int a = 0;
 }
 
 Gui::Gui()

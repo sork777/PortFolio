@@ -163,9 +163,6 @@
     <ClCompile Include="Renders\Buffers.cpp">
       <Filter>Renders</Filter>
     </ClCompile>
-    <ClCompile Include="Renders\Material.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
     <ClCompile Include="Viewer\DepthStencil.cpp">
       <Filter>Renders</Filter>
     </ClCompile>
@@ -217,9 +214,6 @@
     <ClCompile Include="Environment\Ocean\FFTOceanSimulator.cpp">
       <Filter>Environment\FFTOcean</Filter>
     </ClCompile>
-    <ClCompile Include="Renders\GBuffer.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
     <ClCompile Include="Utilities\ImGuizmo.cpp">
       <Filter>Utilities</Filter>
@@ -229,18 +223,6 @@
     </ClCompile>
     <ClCompile Include="Model\AnimationUtility\AnimationNotify.cpp">
       <Filter>Model</Filter>
-    </ClCompile>
-    <ClCompile Include="Renders\Renderer.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
-    <ClCompile Include="Renders\Transform.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
-    <ClCompile Include="Renders\PerFrame.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
-    <ClCompile Include="Renders\Render2D.cpp">
-      <Filter>Renders</Filter>
     </ClCompile>
     <ClCompile Include="Objects\Shadow.cpp">
       <Filter>Objects</Filter>
@@ -254,12 +236,31 @@
     <ClCompile Include="Viewer\Camera.cpp">
       <Filter>Viewer</Filter>
     </ClCompile>
-    <ClCompile Include="Renders\DebugLine.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
     <ClCompile Include="ImguiWidget\Widget_Contents.cpp" />
     <ClCompile Include="ImguiWidget\WidgetUtility\IconProvider.cpp" />
-    <ClCompile Include="ImguiWidget\Widget_Hierarchy.cpp" />
+    <ClCompile Include="Utilities\DebugLine.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenSpace\Render2D.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenSpace\GBuffer.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Material.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\PerFrame.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Renderer.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Transform.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\AnimationEditor.cpp" />
+    <ClCompile Include="Components\Actor\ActorComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -475,9 +476,6 @@
     <ClInclude Include="Renders\Buffers.h">
       <Filter>Renders</Filter>
     </ClInclude>
-    <ClInclude Include="Renders\Material.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
     <ClInclude Include="Viewer\DepthStencil.h">
       <Filter>Renders</Filter>
     </ClInclude>
@@ -529,9 +527,6 @@
     <ClInclude Include="Environment\Ocean\FFTOceanSimulator.h">
       <Filter>Environment\FFTOcean</Filter>
     </ClInclude>
-    <ClInclude Include="Renders\GBuffer.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
     <ClInclude Include="ParticleSystem\ParticleSystem.h" />
     <ClInclude Include="Utilities\ImGuizmo.h">
       <Filter>Utilities</Filter>
@@ -554,18 +549,6 @@
     <ClInclude Include="Model\AnimationUtility\AnimationNotify.h">
       <Filter>Model</Filter>
     </ClInclude>
-    <ClInclude Include="Renders\Renderer.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
-    <ClInclude Include="Renders\Transform.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
-    <ClInclude Include="Renders\PerFrame.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
-    <ClInclude Include="Renders\Render2D.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
     <ClInclude Include="Objects\Shadow.h">
       <Filter>Objects</Filter>
     </ClInclude>
@@ -578,11 +561,31 @@
     <ClInclude Include="Viewer\Camera.h">
       <Filter>Viewer</Filter>
     </ClInclude>
-    <ClInclude Include="Renders\DebugLine.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
     <ClInclude Include="ImguiWidget\Widget_Contents.h" />
     <ClInclude Include="ImguiWidget\WidgetUtility\IconProvider.h" />
-    <ClInclude Include="ImguiWidget\Widget_Hierarchy.h" />
+    <ClInclude Include="Components\BaseComponent.h" />
+    <ClInclude Include="Utilities\DebugLine.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenSpace\Render2D.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenSpace\GBuffer.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Material.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\PerFrame.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Renderer.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Transform.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\AnimationEditor.h" />
+    <ClInclude Include="Components\Actor\ActorComponent.h" />
   </ItemGroup>
 </Project>

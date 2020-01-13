@@ -159,7 +159,12 @@ void InstanceColliderDemo::ModelLoad()
 	//kachujin->ReadClip(L"Kachujin/Jump");
 	//kachujin->ReadClip(L"Kachujin/Hip_Hop_Dancing");
 
-	kachujin->Attach((Model*)sword, 11, sword->GetInstSize());
+	int arms = kachujin->BoneIndexByName(L"LeftHand");
+	/*if(arms<0)
+		kachujin->Attach((Model*)sword, 11, sword->GetInstSize());
+	else
+		kachujin->Attach((Model*)sword, arms, sword->GetInstSize());
+*/
 	sword->AddInstance();
 	Transform* attachTransform = sword->GetTransform(0);
 	attachTransform->Position(10, -5, -15);
@@ -239,7 +244,9 @@ void InstanceColliderDemo::ImGUIController()
 		{
 			Transform* transform = new Transform();
 			Matrix transMat = boneNames[selected]->Transform();
-			transform->World(transMat);
+			Matrix mat = kachujin->GetboneTransform(instance, selected + 1);
+
+			transform->World(mat);
 			Vector3 S, R, T;
 			/* 파츠의 기본 좌표 출력 */
 			{
@@ -257,24 +264,20 @@ void InstanceColliderDemo::ImGUIController()
 			if (bPlay != true)
 			{
 				//TODO: 파츠별 기즈모 변동은 일단 패스
-				transform = (keyframes[selectedFrame].partsTrans[selected]);
+				//transform->Parent();
+				//transform->World(transMat);
+				//Gui::Get()->SetGizmo(keyframes[selectedFrame].partsTrans[selected],transform);
 
-				transform->Scale(&S);
-				transform->Rotation(&R);
-				transform->Position(&T);
-
-				
-				bChange |= ImGui::SliderFloat3("Scale", (float*)&S, 0.01f, 100.0f);
-				bChange |= ImGui::SliderFloat3("Rotation", (float*)&R, -Math::PI*0.9f, Math::PI*0.9f);
-				bChange |= ImGui::SliderFloat3("Position", (float*)&T, -100.0f, 100.0f);
+				bChange |= keyframes[selectedFrame].partsTrans[selected]->Property();
+				keyframes[selectedFrame].partsTrans[selected]->Position(&T);
 				T.y = T.y > 0 ? T.y : 0;
-
-				transform->Scale(S);
-				transform->Rotation(R);
-				transform->Position(T);
-
-				//if(bChange)
-					kachujin->UpdateInstTransform(instance, selected + 1,transform->World());
+				keyframes[selectedFrame].partsTrans[selected]->Position(T);
+				
+				//if (bChange)
+				//{
+				//	keyframes[selectedFrame].partsTrans[selected]->Update();
+				//	kachujin->UpdateInstTransform(instance, selected + 1, keyframes[selectedFrame].partsTrans[selected]->World());
+				//}
 			}
 			/* 재생중일때 정보 표기 */
 			else
@@ -513,12 +516,18 @@ void InstanceColliderDemo::PartsViewer()
 
 void InstanceColliderDemo::ChildViewer(ModelBone * bone)
 {
+	//아이템 시작지점
+	ImVec2 pos = ImGui::GetItemRectMin()- ImGui::GetWindowPos();
+	//윈도우 사이즈
+	ImVec2 wSize = ImGui::GetWindowSize();
+	if (wSize.y < pos.y) return;
+	if (wSize.x < pos.x) return;
+	
 	auto childs = bone->Childs();
-	ImGuiTreeNodeFlags flags = childs.empty() ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+	ImGuiTreeNodeFlags flags = childs.empty() ? ImGuiTreeNodeFlags_Leaf :ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
 	if (bone->Index() - 1 == selected)
 		flags |= ImGuiTreeNodeFlags_Selected;
-	
 	ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 10.0f);
 
 	if (ImGui::TreeNodeEx(String::ToString(bone->Name()).c_str(), flags))

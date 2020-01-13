@@ -38,29 +38,6 @@ void Model::Update()
 	for (ModelMesh* mesh : meshes)
 		mesh->Update();
 	UpdateTransforms();
-	
-	for (AttachModelData* data : attaches)
-	{
-		UINT attachbone = data->AttachedBoneIndex;
-		for (int i = 0; i < GetInstSize(); i++)
-		{
-			Matrix mat = GetboneTransform(i, attachbone);
-			//인스턴스 갯수 안맞는 경우.
-			if (data->AttachInstances.size() == i)
-			{
-				int size = data->model->GetInstSize();
-				data->AttachInstances.emplace_back(size);
-				data->model->AddInstance();
-				data->model->GetTransform(size)->World(
-					data->model->GetTransform(data->AttachInstances[0])->World()
-				);
-			}
-			int attachInstance = data->AttachInstances[i];
-
-			data->model->GetTransform(i)->Parent(mat);
-		}
-		data->model->Update();
-	}
 }
 
 void Model::Render()
@@ -71,11 +48,7 @@ void Model::Render()
 	instanceBuffer->Render();
 
 	for (ModelMesh* mesh : meshes)
-		mesh->Render(transforms.size());
-
-	//Attach
-	for (AttachModelData* data : attaches)
-		data->model->Render();
+		mesh->Render(transforms.size());	
 }
 
 void Model::Pass(UINT pass)
@@ -115,7 +88,7 @@ void Model::UpdateTransforms()
 
 void Model::AddInstance()
 {
-	AddTransform();
+	AddTransform();	
 }
 
 void Model::DelInstance(UINT instance)
@@ -123,31 +96,13 @@ void Model::DelInstance(UINT instance)
 	if (instance >= transforms.size())
 		return;
 	transforms.erase(transforms.begin() + instance);
-	for (AttachModelData* data : attaches)
-	{
-		UINT attachinst = data->AttachInstances[instance];
-		data->AttachInstances.erase(data->AttachInstances.begin() + instance);
-		data->model->DelInstance(attachinst);
-	}
+	
 }
 
 void Model::AddTransform()
 {
 	Transform* transform = new Transform();
 	transforms.push_back(transform);
-
-	for (AttachModelData* data : attaches)
-	{
-		if (data->AttachInstances.size() < GetInstSize())
-		{
-			int size = data->model->GetInstSize();
-			data->AttachInstances.emplace_back(size);
-			data->model->AddInstance();
-			data->model->GetTransform(size)->World(
-				data->model->GetTransform(data->AttachInstances[0])->World()
-			);
-		}
-	}
 }
 
 #pragma endregion
@@ -175,6 +130,19 @@ ModelBone * Model::BoneByName(wstring name)
 	}
 
 	return NULL;
+}
+
+int Model::BoneIndexByName(wstring name)
+{
+	int result = -1;
+	for (ModelBone* bone : bones)
+	{
+		result++;
+		if (bone->Name() == name)
+			return result;
+	}
+
+	return -1;
 }
 
 ModelMesh * Model::MeshByName(wstring name)
@@ -408,39 +376,6 @@ void Model::BindMesh()
 }
 
 #pragma endregion
-
-void Model::Attach(Model * model, int parentBoneIndex, UINT instanceIndex, Transform* transform)
-{
-	class ModelRender* render = dynamic_cast<class ModelRender*>(model);
-	class ModelAnimator* animator = dynamic_cast<class ModelAnimator*>(model);
-
-	AttachModelData* data = new AttachModelData();
-	data->AttachedBoneIndex = parentBoneIndex;
-	if (transform != NULL)
-		model->GetTransform(instanceIndex)->Local(transform->World());
-	data->AttachInstances.emplace_back(instanceIndex);
-	data->model = model;
-	if (render)
-	{
-		data->type = ModelType::Model_Render;
-	}
-	else if (animator)
-	{
-		data->type = ModelType::Model_Animator;
-	}
-
-	while (GetInstSize() > data->AttachInstances.size())
-	{
-		int size = data->model->GetInstSize();
-		data->AttachInstances.emplace_back(size);
-		data->model->AddInstance();
-		data->model->GetTransform(size)->World(
-			data->model->GetTransform(data->AttachInstances[0])->World()
-		);
-	}
-	attaches.emplace_back(data);
-
-}
 
 void Model::AddSocket(int parentBoneIndex, wstring bonename)
 {

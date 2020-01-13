@@ -7,31 +7,13 @@
 class ModelBone;
 class ModelMesh;
 
-//TODO: 어태치 관련 전부 액터로 빼기
-
-enum ModelType
-{
-	Model_None,
-	Model_Render,
-	Model_Animator
-};
-
-struct AttachModelData
-{
-	ModelType type = ModelType::Model_None;
-	UINT AttachedBoneIndex = -1;
-	vector<UINT> AttachInstances;
-	class Model* model = NULL;
-};
-
-
 class Model
 {
 public:
 	typedef VertexTextureNormalTangentBlend ModelVertex;
 
 	Model(Shader* shader);
-	~Model();
+	virtual~Model();
 
 	void Update();
 	virtual void Render();
@@ -63,6 +45,7 @@ public:
 	vector<ModelBone *>& Bones() { return bones; }
 	ModelBone* BoneByIndex(UINT index) { return bones[index]; }
 	ModelBone* BoneByName(wstring name);
+	int BoneIndexByName(wstring name);
 
 	UINT MeshCount() { return meshes.size(); }
 	vector<ModelMesh *>& Meshes() { return meshes; }
@@ -78,8 +61,6 @@ private:
 	void BindMesh();
 
 public:
-	void Attach(Model* model, int parentBoneIndex, UINT instanceIndex, Transform* transform = NULL);
-
 	void AddSocket(int parentBoneIndex, wstring bonename = L"");
 private:
 	vector<Material *> materials;
@@ -87,9 +68,6 @@ private:
 	ModelBone* rootBone;
 	vector<ModelBone *> bones;
 	vector<ModelMesh *> meshes;
-		
-	vector< AttachModelData * > attaches;
-
 protected:
 	Shader* shader;
 

@@ -46,10 +46,6 @@ Context::Context()
 	lightSpecular = Color(1, 1, 1, 1);
 	lightDirection = Vector3(-1, -1, 1);
 	lightPosition = Vector3(0, 0, 0);
-
-	pointLightCount = 0;
-	spotLightCount = 0;
-	capsuleLightCount = 0;
 }
 
 Context::~Context()
@@ -116,73 +112,4 @@ Matrix Context::Projection()
 	perspective->GetMatrix(&projection);
 
 	return projection;
-}
-
-UINT Context::PointLights(OUT PointLight * lights)
-{
-	memcpy(lights, pointLights, sizeof(PointLight) * pointLightCount);
-
-	return pointLightCount;
-}
-
-UINT Context::PointLightsCount()
-{
-	return pointLightCount;
-}
-
-void Context::AddPointLight(PointLight & light)
-{
-	pointLights[pointLightCount] = light;
-	pointLightCount++;
-}
-
-PointLight & Context::GetPointLight(UINT index)
-{
-	return pointLights[index];
-}
-
-UINT Context::SpotLights(OUT SpotLight * lights)
-{
-	memcpy(lights, spotLights, sizeof(SpotLight) * spotLightCount);
-
-	return spotLightCount;
-}
-
-UINT Context::SpotLightsCount()
-{
-	return spotLightCount;
-}
-
-void Context::AddSpotLight(SpotLight & light)
-{
-	spotLights[spotLightCount] = light;
-	spotLightCount++;
-}
-
-SpotLight & Context::GetSpotLight(UINT index)
-{
-	return spotLights[index];
-}
-
-UINT Context::CapsuleLights(OUT CapsuleLight * lights)
-{
-	memcpy(lights, capsuleLights, sizeof(CapsuleLight) * capsuleLightCount);
-
-	return capsuleLightCount;
-}
-
-UINT Context::CapsuleLightsCount()
-{
-	return capsuleLightCount;
-}
-
-void Context::AddCapsuleLight(CapsuleLight & light)
-{
-	capsuleLights[capsuleLightCount] = light;
-	capsuleLightCount++;
-}
-
-CapsuleLight & Context::GetCapsuleLight(UINT index)
-{
-	return capsuleLights[index];
 }

@@ -50,7 +50,7 @@ public:
 	void RenderGUITexture(float x, float y, float u, float v, D3DXCOLOR color, Texture* content);
 	void RenderGUITexture(Vector2 position, Vector2 size, D3DXCOLOR color, Texture* content);
 	
-	void SetGizmo(class Transform* selectedTransform);
+	void SetGizmo(class Transform* selectedTransform, class Transform* vTransform = NULL);
 	void RenderGizmo();
 private:
 	Gui();
@@ -70,4 +70,5 @@ private:
 	ImGuizmo::OPERATION operation=ImGuizmo::TRANSLATE;
 	ImGuizmo::MODE mode=ImGuizmo::WORLD;
 	class Transform* selectedTransform=NULL;
+	class Transform* vTransform=NULL;
 };

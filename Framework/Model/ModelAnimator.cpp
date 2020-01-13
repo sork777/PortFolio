@@ -149,7 +149,7 @@ void ModelAnimator::AddClip(wstring file, wstring directoryPath)
 
 void ModelAnimator::AddInstance()
 {
-	Super::AddTransform();
+	Super::AddInstance();
 	InstState* state = new InstState();
 	states.emplace_back(state);
 }

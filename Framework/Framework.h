@@ -88,14 +88,13 @@ typedef D3DXPLANE Plane;
 #include "Renders/Texture.h"
 #include "Renders/VertexLayouts.h"
 #include "Renders/Context.h"
-#include "Renders/Material.h"	
-#include "Renders/PerFrame.h"
-#include "Renders/Transform.h"
-#include "Renders/Renderer.h"
-#include "Renders/DebugLine.h"
-#include "Renders/Render2D.h"
-#include "Renders/GBuffer.h"
 
+#include "Components/Material.h"	
+#include "Components/PerFrame.h"
+#include "Components/Transform.h"
+#include "Components/Renderer.h"
+
+#include "Utilities/DebugLine.h"
 #include "Utilities/Math.h"
 #include "Utilities/String.h"
 #include "Utilities/Path.h"
@@ -113,6 +112,8 @@ typedef D3DXPLANE Plane;
 #include "Objects/Shadow.h"
 #include "Objects/Light.h"
 
+#include "ScreenSpace/Render2D.h"
+#include "ScreenSpace/GBuffer.h"
 #include "ScreenSpace/SSAO.h"
 #include "ScreenSpace/SSLR.h"
 

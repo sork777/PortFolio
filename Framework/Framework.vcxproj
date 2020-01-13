@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Components\Actor\ActorComponent.cpp" />
+    <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="ImguiWidget\WidgetUtility\IconProvider.cpp" />
     <ClCompile Include="ImguiWidget\Widget_Contents.cpp" />
     <ClCompile Include="Model\AnimationUtility\AnimationNotify.cpp" />
@@ -52,7 +54,7 @@
     <ClCompile Include="Utilities\ImGuizmo.cpp" />
     <ClCompile Include="Utilities\Perlin.cpp" />
     <ClCompile Include="PostEffects\HDR_Tone.cpp" />
-    <ClCompile Include="Renders\GBuffer.cpp" />
+    <ClCompile Include="ScreenSpace\GBuffer.cpp" />
     <ClCompile Include="Objects\Collider.cpp" />
     <ClCompile Include="Objects\CSM.cpp" />
     <ClCompile Include="Objects\Light.cpp" />
@@ -72,11 +74,11 @@
     <ClCompile Include="Utilities\FFT.cpp" />
     <ClCompile Include="Utilities\QuadTree.cpp" />
     <ClCompile Include="Renders\Buffers.cpp" />
-    <ClCompile Include="Renders\DebugLine.cpp" />
-    <ClCompile Include="Renders\Material.cpp" />
-    <ClCompile Include="Renders\Render2D.cpp" />
-    <ClCompile Include="Renders\Renderer.cpp" />
-    <ClCompile Include="Renders\PerFrame.cpp" />
+    <ClCompile Include="Utilities\DebugLine.cpp" />
+    <ClCompile Include="Components\Material.cpp" />
+    <ClCompile Include="ScreenSpace\Render2D.cpp" />
+    <ClCompile Include="Components\Renderer.cpp" />
+    <ClCompile Include="Components\PerFrame.cpp" />
     <ClCompile Include="Renders\Context.cpp" />
     <ClCompile Include="Renders\Shader.cpp" />
     <ClCompile Include="Renders\Texture.cpp" />
@@ -89,7 +91,7 @@
     <ClCompile Include="Systems\Time.cpp" />
     <ClCompile Include="Systems\Window.cpp" />
     <ClCompile Include="Environment\Terrain.cpp" />
-    <ClCompile Include="Renders\Transform.cpp" />
+    <ClCompile Include="Components\Transform.cpp" />
     <ClCompile Include="Utilities\BinaryFile.cpp" />
     <ClCompile Include="Utilities\Math.cpp" />
     <ClCompile Include="Utilities\Path.cpp" />
@@ -107,9 +109,11 @@
     <ClCompile Include="Viewer\Projector.cpp" />
     <ClCompile Include="Viewer\RenderTarget.cpp" />
     <ClCompile Include="Viewer\Viewport.cpp" />
-    <ClCompile Include="ImguiWidget\Widget_Hierarchy.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Components\Actor\ActorComponent.h" />
+    <ClInclude Include="Editor\AnimationEditor.h" />
+    <ClInclude Include="Components\BaseComponent.h" />
     <ClInclude Include="ImguiWidget\IWidget.h" />
     <ClInclude Include="ImguiWidget\WidgetUtility\DragDrop.h" />
     <ClInclude Include="ImguiWidget\WidgetUtility\EditorHelper.h" />
@@ -148,7 +152,7 @@
     <ClInclude Include="Utilities\ImGuizmo.h" />
     <ClInclude Include="Utilities\Perlin.h" />
     <ClInclude Include="PostEffects\HDR_Tone.h" />
-    <ClInclude Include="Renders\GBuffer.h" />
+    <ClInclude Include="ScreenSpace\GBuffer.h" />
     <ClInclude Include="Objects\Collider.h" />
     <ClInclude Include="Objects\CSM.h" />
     <ClInclude Include="Objects\Light.h" />
@@ -168,11 +172,11 @@
     <ClInclude Include="Utilities\FFT.h" />
     <ClInclude Include="Utilities\QuadTree.h" />
     <ClInclude Include="Renders\Buffers.h" />
-    <ClInclude Include="Renders\DebugLine.h" />
-    <ClInclude Include="Renders\Material.h" />
-    <ClInclude Include="Renders\Render2D.h" />
-    <ClInclude Include="Renders\Renderer.h" />
-    <ClInclude Include="Renders\PerFrame.h" />
+    <ClInclude Include="Utilities\DebugLine.h" />
+    <ClInclude Include="Components\Material.h" />
+    <ClInclude Include="ScreenSpace\Render2D.h" />
+    <ClInclude Include="Components\Renderer.h" />
+    <ClInclude Include="Components\PerFrame.h" />
     <ClInclude Include="Renders\Context.h" />
     <ClInclude Include="Renders\Shader.h" />
     <ClInclude Include="Renders\Texture.h" />
@@ -187,7 +191,7 @@
     <ClInclude Include="Systems\Time.h" />
     <ClInclude Include="Systems\Window.h" />
     <ClInclude Include="Environment\Terrain.h" />
-    <ClInclude Include="Renders\Transform.h" />
+    <ClInclude Include="Components\Transform.h" />
     <ClInclude Include="Utilities\BinaryFile.h" />
     <ClInclude Include="Utilities\Math.h" />
     <ClInclude Include="Utilities\Path.h" />
@@ -205,7 +209,6 @@
     <ClInclude Include="Viewer\Projector.h" />
     <ClInclude Include="Viewer\RenderTarget.h" />
     <ClInclude Include="Viewer\Viewport.h" />
-    <ClInclude Include="ImguiWidget\Widget_Hierarchy.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9047D20F-2706-40F3-B45C-13694DC02536}</ProjectGuid>
