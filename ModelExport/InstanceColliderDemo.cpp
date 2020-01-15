@@ -22,16 +22,12 @@ void InstanceColliderDemo::Initialize()
 		boneNames.emplace_back(bone);
 	}
 
-	for (UINT i = 0; i < MAX_MODEL_KEYFRAMES; i++)
+	
+	for (UINT j = 0; j < boneNames.size(); j++)
 	{
-		Keyframe frame;
-
-		for (UINT j = 0; j < boneNames.size(); j++)
-		{
-			frame.partsTrans.emplace_back(new Transform());
-		}
-		keyframes.emplace_back(frame);
+		boneTrans.emplace_back(new Transform());
 	}
+	
 	Widget_Contents* wContents = new Widget_Contents();
 	wContents->SetImport(bind(&InstanceColliderDemo::ImportModel,this,placeholders::_1));
 	widgets.emplace_back(wContents);
@@ -58,7 +54,7 @@ void InstanceColliderDemo::Update()
 	NotifyController();
 	for (int i = 0; i < kachujin->GetInstSize(); i++)
 	{
-		Matrix attach = kachujin->GetboneTransform(i,11);
+		Matrix attach = kachujin->GetboneWorld(i,11);
 		colliders[i].Collider->GetTransform()->Parent(attach);
 		colliders[i].Collider->Update();
 	}	
@@ -145,19 +141,19 @@ void InstanceColliderDemo::Mesh()
 void InstanceColliderDemo::ModelLoad()
 {
 	sword = new ModelRender(shader);
-	sword->ReadMaterial(L"Weapon/Sword");
-	sword->ReadMesh(L"Weapon/Sword");
+	sword->ReadMaterial(L"Weapon/Sword",  L"../../_Textures/");
+	sword->ReadMesh(L"Weapon/Sword", L"../../_Models/");
 	
 
 	kachujin = new ModelAnimator(shader);
-	kachujin->ReadMaterial(L"Megan/Mesh");
-	kachujin->ReadMesh(L"Megan/Mesh");
-	kachujin->ReadClip(L"Megan/Mesh");
-	kachujin->ReadClip(L"Megan/Taunt");
-	kachujin->ReadClip(L"Megan/Dancing");
-	//kachujin->ReadClip(L"Kachujin/Running");
-	//kachujin->ReadClip(L"Kachujin/Jump");
-	//kachujin->ReadClip(L"Kachujin/Hip_Hop_Dancing");
+	kachujin->ReadMaterial(L"Kachujin/Mesh", L"../../_Textures/");
+	kachujin->ReadMesh(L"Kachujin/Mesh", L"../../_Models/");
+	kachujin->ReadClip(L"Kachujin/Mesh", L"../../_Models/");
+	//kachujin->ReadClip(L"Megan/Taunt", L"../../_Models/");
+	//kachujin->ReadClip(L"Megan/Dancing");
+	kachujin->ReadClip(L"Kachujin/Running", L"../../_Models/");
+	kachujin->ReadClip(L"Kachujin/Jump", L"../../_Models/");
+	kachujin->ReadClip(L"Kachujin/Hip_Hop_Dancing", L"../../_Models/");
 
 	int arms = kachujin->BoneIndexByName(L"LeftHand");
 	/*if(arms<0)
@@ -243,9 +239,8 @@ void InstanceColliderDemo::ImGUIController()
 		if (ImGui::CollapsingHeader("Selected_Parts", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			Transform* transform = new Transform();
-			Matrix transMat = boneNames[selected]->Transform();
-			Matrix mat = kachujin->GetboneTransform(instance, selected + 1);
-
+			Matrix transMat = boneNames[selected]->BoneWorld();
+			Matrix mat = kachujin->BoneByIndex(selected + 1)->BoneWorld();
 			transform->World(mat);
 			Vector3 S, R, T;
 			/* 파츠의 기본 좌표 출력 */
@@ -259,30 +254,31 @@ void InstanceColliderDemo::ImGUIController()
 
 				ImGui::Separator();
 			}
-
 			/* 변형 */
 			if (bPlay != true)
 			{
 				//TODO: 파츠별 기즈모 변동은 일단 패스
 				//transform->Parent();
 				//transform->World(transMat);
-				//Gui::Get()->SetGizmo(keyframes[selectedFrame].partsTrans[selected],transform);
+				//Gui::Get()->SetGizmo(keyframes[selected],transform);
 
-				bChange |= keyframes[selectedFrame].partsTrans[selected]->Property();
-				keyframes[selectedFrame].partsTrans[selected]->Position(&T);
+				bChange |= boneTrans[selected]->Property();
+				boneTrans[selected]->Position(&T);
 				T.y = T.y > 0 ? T.y : 0;
-				keyframes[selectedFrame].partsTrans[selected]->Position(T);
+				boneTrans[selected]->Position(T);
 				
-				//if (bChange)
-				//{
-				//	keyframes[selectedFrame].partsTrans[selected]->Update();
-				//	kachujin->UpdateInstTransform(instance, selected + 1, keyframes[selectedFrame].partsTrans[selected]->World());
-				//}
+				if (bChange)
+				{
+					UINT clip = kachujin->GetCurrClip(instance);
+					boneTrans[selected]->Update();
+					//kachujin->UpdateInstTransform(instance, selected + 1, boneTrans[selected]->World());
+					kachujin->UpdateBoneTransform(selected + 1,clip, boneTrans[selected]);
+				}
 			}
 			/* 재생중일때 정보 표기 */
 			else
 			{
-				transform = (keyframes[selectedFrame].partsTrans[selected]);
+				transform = (boneTrans[selected]);
 				transform->Scale(&S);
 				transform->Rotation(&R);
 				transform->Position(&T);
@@ -340,16 +336,11 @@ void InstanceColliderDemo::ImGUIController()
 
 		if (ImGui::Button("Reset"))
 		{
-			keyframes.clear();
-			keyframes.shrink_to_fit();
-			for (UINT i = 0; i < MAX_MODEL_KEYFRAMES; i++)
-			{
-				Keyframe frame;
+			boneTrans.clear();
+			boneTrans.shrink_to_fit();
 
-				for (UINT j = 0; j < boneNames.size(); j++)
-					frame.partsTrans.emplace_back(new Transform());
-				keyframes.emplace_back(frame);
-			}
+			for (UINT j = 0; j < boneNames.size(); j++)
+				boneTrans.emplace_back(new Transform());
 		}
 
 	}
@@ -460,7 +451,7 @@ void InstanceColliderDemo::SelectedPartsViewer()
 	P = Context::Get()->Projection();
 	Vector3 textPos, pos;
 	
-	Matrix mat = kachujin->GetboneTransform(instance, selected + 1);
+	Matrix mat = kachujin->GetboneWorld(instance, selected + 1);
 	selectedTransform->World(mat);
 	selectedTransform->Position(&pos);
 	Context::Get()->GetViewport()->Project(&textPos, pos, W, V, P);
@@ -524,7 +515,7 @@ void InstanceColliderDemo::ChildViewer(ModelBone * bone)
 	if (wSize.x < pos.x) return;
 	
 	auto childs = bone->Childs();
-	ImGuiTreeNodeFlags flags = childs.empty() ? ImGuiTreeNodeFlags_Leaf :ImGuiTreeNodeFlags_OpenOnDoubleClick;
+	ImGuiTreeNodeFlags flags = childs.empty() ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_DefaultOpen |ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
 	if (bone->Index() - 1 == selected)
 		flags |= ImGuiTreeNodeFlags_Selected;
@@ -588,10 +579,8 @@ void InstanceColliderDemo::AddSocket()
 			ModelBone* bone = kachujin->BoneByIndex(boneIdx);
 			boneNames.emplace_back(bone);
 
-			for (UINT i = 0; i < MAX_MODEL_KEYFRAMES; i++)
-			{
-				keyframes[i].partsTrans.emplace_back(new Transform());
-			}
+			boneTrans.emplace_back(new Transform());
+
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::SetItemDefaultFocus();

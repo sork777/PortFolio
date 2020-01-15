@@ -25,11 +25,11 @@ private:
 
 	Render2D* render2D;
 	Texture* cloud;
-	UINT domeCount=64;
-	UINT planeRes = 64;
-	float skyTop = 16.50f;
-	float skyBottom = -3.50f;
-
+	UINT domeCount=32;
+	UINT planeRes = 32;
+	float skyTop = 15.00f;
+	float skyBottom = -3.00f;
+	float multi = 10.0f;
 
 	VertexBuffer* domeVertexBuffer;
 	IndexBuffer* domeIndexBuffer;

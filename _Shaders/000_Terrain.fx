@@ -208,15 +208,6 @@ float4 VS_AllLight_Terrain(TerrainOutput input)
 
     ComputeLight(output, input.Normal, input.wPosition);
     AddMaterial(result, output);
-
-    ComputePointLights(output, input.Normal, input.wPosition);
-    AddMaterial(result, output);
-
-    ComputeSpotLights(output, input.Normal, input.wPosition);
-    AddMaterial(result, output);
-
-    ComputeCapsuleLights(output, input.Normal, input.wPosition);
-    AddMaterial(result, output);
     
     return float4(MaterialToColor(result), 1) + float4(gridColor, 1);
 }

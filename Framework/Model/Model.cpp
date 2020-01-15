@@ -28,6 +28,8 @@ Model::~Model()
 		SafeDelete(transform);
 
 	SafeDelete(shader);
+	SafeDelete(bonebuffer);
+	SafeDelete(texture);
 	SafeDelete(instanceBuffer);
 
 }
@@ -44,6 +46,10 @@ void Model::Render()
 {
 	if (texture == NULL)
 		CreateTexture();
+	
+	if (bonebuffer == NULL)
+		CreateBuffer();
+
 
 	instanceBuffer->Render();
 
@@ -186,7 +192,7 @@ void Model::ReadMaterial(wstring file, wstring directoryPath)
 
 
 		wstring directory = Path::GetDirectoryName(file);
-		String::Replace(&directory, L"../../_Textures", L"");
+		String::Replace(&directory, directoryPath, L"");
 
 
 		wstring texture = L"";
@@ -194,17 +200,17 @@ void Model::ReadMaterial(wstring file, wstring directoryPath)
 		node = node->NextSiblingElement();
 		texture = String::ToWString(node->GetText());
 		if (texture.length() > 0)
-			material->DiffuseMap(directory + texture);
+			material->DiffuseMap(directory + texture, directoryPath);
 
 		node = node->NextSiblingElement();
 		texture = String::ToWString(node->GetText());
 		if (texture.length() > 0)
-			material->SpecularMap(directory + texture);
+			material->SpecularMap(directory + texture, directoryPath);
 
 		node = node->NextSiblingElement();
 		texture = String::ToWString(node->GetText());
 		if (texture.length() > 0)
-			material->NormalMap(directory + texture);
+			material->NormalMap(directory + texture, directoryPath);
 
 
 		D3DXCOLOR color;
@@ -269,7 +275,7 @@ void Model::ReadMesh(wstring file, wstring directoryPath)
 			bone->name = bone->name.substr(index + 1, bone->name.length());
 
 		bone->parentIndex = r->Int();
-		bone->transform = r->Matrix();
+		bone->world = r->Matrix();
 		//bone->attachID = 0;
 		bones.push_back(bone);
 	}
@@ -337,9 +343,23 @@ void Model::ReadMesh(wstring file, wstring directoryPath)
 	
 	for (ModelMesh* mesh : meshes)
 		mesh->SetShader(shader);
-	/*if(bReadClip)
-		ReadClip(clipfile);*/
+	
+	CreateBuffer();
+}
 
+void Model::AddSocket(int parentBoneIndex, wstring bonename)
+{
+	ModelBone* parentBone = BoneByIndex(parentBoneIndex);
+	ModelBone* newBone = new ModelBone();
+	newBone->name = bonename;
+	newBone->transform = parentBone->transform;
+	newBone->parentIndex = parentBoneIndex;
+	newBone->parent = parentBone;
+	newBone->parent->childs.push_back(newBone);
+
+	newBone->index = bones.size();
+
+	bones.push_back(newBone);
 }
 
 void Model::BindBone()
@@ -350,6 +370,8 @@ void Model::BindBone()
 		if (bone->parentIndex > -1)
 		{
 			bone->parent = bones[bone->parentIndex];
+			//애니메이션에 맞춰 변동줄 녀석
+			bone->GetTransform()->Parent(bone->parent->GetTransform());
 			bone->parent->childs.push_back(bone);
 		}
 		else
@@ -377,19 +399,57 @@ void Model::BindMesh()
 
 #pragma endregion
 
-void Model::AddSocket(int parentBoneIndex, wstring bonename)
-{
-	ModelBone* parentBone = BoneByIndex(parentBoneIndex);
-	ModelBone* newBone = new ModelBone();
-	newBone->name = bonename;
-	newBone->transform = parentBone->transform;
-	newBone->parentIndex = parentBoneIndex;
-	newBone->parent = parentBone;
-	newBone->parent->childs.push_back(newBone);
-
-	newBone->index = bones.size();
-
-	bones.push_back(newBone);
-}
-
 ///////////////////////////////////////////////////////////////////////////////
+
+void Model::CreateBuffer()
+{
+	// 값 할당
+	{
+		for (UINT b = 0; b < BoneCount(); b++)
+		{
+			ModelBone* bone = BoneByIndex(b);
+			Matrix InvGlobal = bone->BoneWorld();
+			D3DXMatrixInverse(&InvGlobal, NULL, &InvGlobal);
+			// 모델 본 그자체의 데이터
+			boneTrans[b] = InvGlobal;
+			
+		}//for(b)
+	}
+
+	//CreateTexture
+	{
+		D3D11_TEXTURE1D_DESC desc;
+		ZeroMemory(&desc, sizeof(D3D11_TEXTURE1D_DESC));
+		desc.Width = MAX_MODEL_TRANSFORMS * 4;
+		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+
+		D3D11_SUBRESOURCE_DATA subResource;
+		subResource.pSysMem = boneTrans;
+		subResource.SysMemPitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix);
+		subResource.SysMemSlicePitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix);
+
+		Check(D3D::GetDevice()->CreateTexture1D(&desc, &subResource, &bonebuffer));
+	}
+	
+
+	//Create SRV
+	{
+		D3D11_TEXTURE1D_DESC desc;
+		bonebuffer->GetDesc(&desc);
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		ZeroMemory(&srvDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
+		srvDesc.Texture1D.MipLevels = 1;
+		srvDesc.Format = desc.Format;
+
+		Check(D3D::GetDevice()->CreateShaderResourceView(bonebuffer, &srvDesc, &boneSrv));
+	}
+	
+	for (ModelMesh* mesh : Meshes())
+		mesh->BoneTransformsSRV(boneSrv);
+}

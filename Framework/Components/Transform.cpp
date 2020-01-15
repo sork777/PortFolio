@@ -154,18 +154,22 @@ Vector3 Transform::Right()
 
 void Transform::World(Matrix & matrix)
 {
+	if (parent != NULL)
+		pMatrix = parent->World();
+
 	preLocal = local;
-	
 	Matrix InvParent;
 	D3DXMatrixInverse(&InvParent, NULL, &pMatrix);
 
 	local = matrix*InvParent;
-	bufferDesc.World = matrix;
+	bufferDesc.World = local * pMatrix;
 	Math::MatrixDecompose(local, scale, rotation, position);
 }
 
 void Transform::Local(Matrix & matrix)
 {
+	if (parent != NULL)
+		pMatrix = parent->World();
 	preLocal = local;
 
 	local = matrix;
@@ -176,9 +180,11 @@ void Transform::Local(Matrix & matrix)
 
 void Transform::Parent(Transform * parent)
 {
+	this->parent = parent;	
 	prePMatrix = pMatrix;
-	this->parent = parent;
 	pMatrix = parent->World();
+
+	bufferDesc.World = local * pMatrix;
 }
 
 void Transform::Parent(Matrix &  matrix)
@@ -188,7 +194,8 @@ void Transform::Parent(Matrix &  matrix)
 
 	prePMatrix = pMatrix;
 	pMatrix = matrix;
-	parent->World(pMatrix);
+	parent->World(matrix);
+	
 	bufferDesc.World = local * pMatrix;
 }
 
@@ -201,6 +208,11 @@ void Transform::UpdateWorld()
 
 	local = S * R * T;
 
+	if (parent != NULL)
+	{
+		pMatrix = parent->World();
+	}
+
 	bufferDesc.World = local* pMatrix;
 }
 
@@ -208,7 +220,6 @@ void Transform::Update()
 {
 	preLocal = local;
 	prePMatrix = pMatrix;
-
 	UpdateWorld();
 }
 
@@ -226,9 +237,12 @@ bool Transform::Property()
 	
 	bChange |= (preLocal != local);
 	bChange |= (prePMatrix != pMatrix);
-	bChange |= ImGui::SliderFloat3("Scale", (float*)&scale, 0.01f, 1000.0f);
+	
+	bChange |= ImGui::SliderFloat3("Scale", (float*)&scale, 0.01f, 100.0f);
 	bChange |= ImGui::SliderFloat3("Rotation", (float*)&rotation, -Math::PI*0.9f, Math::PI*0.9f);
-	bChange |= ImGui::SliderFloat3("Position", (float*)&position, -1000.0f, 1000.0f);
-
+	bChange |= ImGui::SliderFloat3("Position", (float*)&position, -100.0f, 100.0f);
+	
+	Update();
+	
 	return bChange;
 }

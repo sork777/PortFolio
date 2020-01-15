@@ -23,27 +23,26 @@ void Converter::ReadFile(wstring file, wstring directory)
 		String::ToString(this->file),
 		aiProcess_ConvertToLeftHanded
 		| aiProcess_Triangulate					//삼각화
-		| aiProcess_GenUVCoords 				//uv를 우리의 형태로
+		| aiProcess_GenUVCoords					//비 uv 맵핑을 적절한 텍스쳐 좌표 채널로 변경
 		| aiProcess_GenNormals  				//normal이 없다면 계산
 		| aiProcess_CalcTangentSpace			//tangent계산
+		//////////////////////////////////////////////////
+		//| aiProcess_GenSmoothNormals  //메쉬의 모든 정점에서 부드러운 법선 생성
+		//| aiProcess_JoinIdenticalVertices  //모든 메쉬에서 동일한 정점 데이터 세트를 식별하고 조인-인덱스
+		//| aiProcess_OptimizeMeshes //메쉬의 수를 줄이기 위한 후처리 단계
+		//| aiProcess_ImproveCacheLocality //정점 캐쉬의 지역성을 높이기 위해 삼각형 재정리
+		//| aiProcess_LimitBoneWeights  //단일 정점에 동시에 영향을 미치는 본의 수를 제한
+		//| aiProcess_SplitLargeMeshes //큰메쉬를 작은 메쉬로 분할
+		//| aiProcess_SortByPType //점이나 선이 면 중간중간에있는 경우 없앤다.
+		//| aiProcess_FindDegenerates //점이나 선이 면 중간중간에있는 경우 없앤다.
+		//| aiProcess_FindInvalidData  //무효한 데이터를 찾아서 없앤다.
+		//| aiProcess_FindInstances  //실체화 중복된 메쉬를 제거한다.
+		//| aiProcess_ValidateDataStructure
+		//| aiProcess_Debone 
 		/*
-		   aiProcess_ConvertToLeftHanded|
-	  aiProcess_CalcTangentSpace | //가져온 메쉬의 접선공간 계산
-	  aiProcess_GenSmoothNormals | //메쉬의 모든 정점에서 부드러운 법선 생성
-	  aiProcess_JoinIdenticalVertices | //모든 메쉬에서 동일한 정점 데이터 세트를 식별하고 조인-인덱스
-	  aiProcess_OptimizeMeshes |//메쉬의 수를 줄이기 위한 후처리 단계
-	  aiProcess_ImproveCacheLocality |//정점 캐쉬의 지역성을 높이기 위해 삼각형 재정리
-	  aiProcess_LimitBoneWeights | //단일 정점에 동시에 영향을 미치는 본의 수를 제한
-	  aiProcess_SplitLargeMeshes |//큰메쉬를 작은 메쉬로 분할
-	  aiProcess_Triangulate | //삼각화
-	  aiProcess_GenUVCoords |//비 uv 맵핑을 적절한 텍스쳐 좌표 채널로 변경
-
-	  aiProcess_SortByPType |//점이나 선이 면 중간중간에있는 경우 없앤다.
-	  aiProcess_FindDegenerates |//점이나 선이 면 중간중간에있는 경우 없앤다.
-
-	  aiProcess_FindInvalidData | //무효한 데이터를 찾아서 없앤다.
-	  aiProcess_FindInstances | //실체화 중복된 메쉬를 제거한다.
-	  aiProcess_ValidateDataStructure
+		aiProcess_ConvertToLeftHanded|
+		aiProcess_CalcTangentSpace | //가져온 메쉬의 접선공간 계산
+		aiProcess_Triangulate | //삼각화
 		*/
 	);
 	assert(scene != NULL);
@@ -265,7 +264,7 @@ void Converter::ReadBoneData(aiNode * node, int index, int parent)
 
 	Matrix transform(node->mTransformation[0]);
 	D3DXMatrixTranspose(&bone->Transform, &transform);
-
+	
 
 	Matrix matParent;
 	if (parent < 0)
@@ -349,14 +348,13 @@ void Converter::ReadSkinData()
 		for (UINT b = 0; b < aiMesh->mNumBones; b++)
 		{
 			aiBone* aiBone = aiMesh->mBones[b];
-
+			
 			UINT boneIndex = 0;
 			for (asBone* bone : bones)
 			{
 				if (bone->Name == (string)aiBone->mName.C_Str())
 				{
 					boneIndex = bone->Index;
-
 					break;
 				}
 			}//for(bone)
@@ -470,7 +468,7 @@ asClip * Converter::ReadClipData(aiAnimation * animation)
 		{
 			bool bFound = false;
 			UINT t = aniNodeInfo.Keyframe.size();
-
+			
 			if (fabsf((float)aniNode->mPositionKeys[k].mTime - (float)t) <= D3DX_16F_EPSILON)
 			{
 				aiVectorKey key = aniNode->mPositionKeys[k];

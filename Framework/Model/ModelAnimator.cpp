@@ -31,6 +31,8 @@ ModelAnimator::~ModelAnimator()
 
 	SafeDelete(frameBuffer);
 	SafeDeleteArray(clipTransforms);
+
+	SafeDelete(globalTex);
 }
 
 void ModelAnimator::Update(UINT instance,bool bPlay)
@@ -46,23 +48,62 @@ void ModelAnimator::Render()
 	{
 		CreateComputeDesc();
 	}
+	if(globalTex == NULL)
+	{
+		CreateGlobalAnimTexture();
+	}
+
 
 	Super::Render();
 	frameBuffer->Apply();
 
 	sFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
-	if (computeBuffer != NULL)
+	if (computeBuffer != NULL || bChangeCS == true)
 	{
 		sComputeFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
 
 		computeShader->AsSRV("TransformsMap")->SetResource(srv);
+		computeShader->AsSRV("AnimationGlobalTransformMap")->SetResource(globalSrv);
 		sSrv->SetResource(computeBuffer->SRV());
 		sUav->SetUnorderedAccessView(computeBuffer->UAV());
 
 		computeShader->Dispatch(0, 0, GetInstSize(), 1, 1);
 		computeBuffer->Copy(csOutput, sizeof(CS_OutputDesc) * MAX_MODEL_TRANSFORMS*MAX_MODEL_INSTANCE);
+		bChangeCS = false;
 	}
+}
+
+void ModelAnimator::AddInstance()
+{
+	Super::AddInstance();
+	InstState* state = new InstState();
+	states.emplace_back(state);
+}
+
+void ModelAnimator::DelInstance(UINT instance)
+{
+	Super::DelInstance(instance);
+	states.erase(states.begin() + instance);
+}
+Matrix ModelAnimator::GetboneWorld(UINT instance, UINT boneIndex)
+{
+
+	if (csOutput == NULL)
+	{
+		Matrix temp;
+		D3DXMatrixIdentity(&temp);
+
+		return temp;
 	}
+
+	UINT index = instance * MAX_MODEL_TRANSFORMS + boneIndex;
+	Matrix result = csOutput[index].Result;
+
+
+	Matrix world = GetTransform(instance)->World();
+
+	return result * world;
+}
 
 #pragma region 데이터 추가
 
@@ -145,19 +186,6 @@ void ModelAnimator::AddClip(wstring file, wstring directoryPath)
 			0
 		);
 	}
-}
-
-void ModelAnimator::AddInstance()
-{
-	Super::AddInstance();
-	InstState* state = new InstState();
-	states.emplace_back(state);
-}
-
-void ModelAnimator::DelInstance(UINT instance)
-{
-	Super::DelInstance(instance);
-	states.erase(states.begin() + instance);
 }
 
 void ModelAnimator::AddSocket(int parentBoneIndex, wstring bonename)
@@ -293,6 +321,8 @@ UINT ModelAnimator::GetFrameCount(UINT instance)
 	return resultClip->FrameCount();
 }
 
+#pragma endregion
+
 ModelClip * ModelAnimator::ClipByName(wstring name)
 {
 	for (ModelClip* clip : clips)
@@ -304,145 +334,10 @@ ModelClip * ModelAnimator::ClipByName(wstring name)
 	return NULL;
 }
 
-#pragma endregion
-
-#pragma region TransformRegion
-
-Matrix ModelAnimator::GetboneTransform(UINT instance, UINT boneIndex)
-{
-
-	if (csOutput == NULL)
-	{
-		Matrix temp;
-		D3DXMatrixIdentity(&temp);
-
-		return temp;
-	}
-
-	UINT index = instance * MAX_MODEL_TRANSFORMS + boneIndex;
-	Matrix result = csOutput[index].Result;
-
-	Matrix transform = BoneByIndex(boneIndex)->Transform();
-	Matrix world = GetTransform(instance)->World();
-
-	return transform * result * world;
-}
-
-void ModelAnimator::UpdateInstTransform(UINT instance, UINT part, Matrix trans)
-{
-	if (texture == NULL)
-		return;
-
-	ModelBone* bone = BoneByIndex(part);
-	int clipIdx = tweenDesc[instance].Curr.Clip;
-	ModelClip* clip = ClipByIndex(clipIdx);
-	{
-		Matrix invGlobal = bone->Transform();
-		D3DXMatrixInverse(&invGlobal, NULL, &invGlobal);
-
-		for (int f = 0; f < clip->FrameCount(); f++)
-		{
-			{
-				Matrix parent;
-				int parentIndex = bone->ParentIndex();
-				if (parentIndex < 0)
-				{
-					D3DXMatrixIdentity(&parent);
-				}
-				else
-				{
-					parent = boneAinTransforms[clipIdx].Transform[f][parentIndex];
-				}
-
-				Matrix animation;
-				ModelKeyframe* frame = clip->Keyframe(bone->Name());
-				if (frame != NULL)
-				{
-					ModelKeyframeData data = frame->Transforms[f];
-
-					Matrix S, R, T;
-					D3DXMatrixScaling(&S, data.Scale.x, data.Scale.y, data.Scale.z);
-					D3DXMatrixRotationQuaternion(&R, &data.Rotation);
-					D3DXMatrixTranslation(&T, data.Translation.x, data.Translation.y, data.Translation.z);
-
-					animation = S * R * T;
-
-					clipTransforms[clipIdx].Transform[f][part] = invGlobal * trans * animation * parent;
-				}
-				else
-				{
-					clipTransforms[clipIdx].Transform[f][part] = bone->Transform() *trans* parent;
-				}
-
-				for (ModelBone* child: bone->Childs())
-				{
-					UpdateChildTransform(part,child->Index(), clipIdx, f, trans);
-				}
-			}
-			
-			/* 변환 해줄 텍스쳐 데이터의 박스 영역 */
-			D3D11_BOX destRegion;
-			/* 행 하나의 크기 */
-			destRegion.left = 0;
-			destRegion.right = 4 * MAX_MODEL_TRANSFORMS;
-			/* 빼올 인스턴스 행의 위치 */
-			destRegion.top = f;
-			destRegion.bottom = f + 1;
-			destRegion.front = clipIdx;
-			destRegion.back = clipIdx+1;
-
-			/* 업데이트 */
-			D3D::GetDC()->UpdateSubresource
-			(
-				texture,
-				0,
-				&destRegion,
-				clipTransforms[clipIdx].Transform[f],
-				sizeof(Matrix)*MAX_MODEL_TRANSFORMS,
-				0
-			);
-		}
-	}
-}
-
-void ModelAnimator::UpdateChildTransform(UINT parentID, UINT childID, UINT clipID, UINT frameID, Matrix trans)
-{
-	Matrix parent = boneAinTransforms[clipID].Transform[frameID][parentID];
-
-	Matrix animation;
-	ModelBone* bone = BoneByIndex(childID);
-	Matrix invGlobal = bone->Transform();
-	D3DXMatrixInverse(&invGlobal, NULL, &invGlobal);
-
-	ModelClip* clip = ClipByIndex(clipID);
-	ModelKeyframe* frame = clip->Keyframe(bone->Name());
-	if (frame != NULL)
-	{
-		ModelKeyframeData data = frame->Transforms[frameID];
-
-		Matrix S, R, T;
-		D3DXMatrixScaling(&S, data.Scale.x, data.Scale.y, data.Scale.z);
-		D3DXMatrixRotationQuaternion(&R, &data.Rotation);
-		D3DXMatrixTranslation(&T, data.Translation.x, data.Translation.y, data.Translation.z);
-
-		animation = S * R * T;
-
-		clipTransforms[clipID].Transform[frameID][childID] = invGlobal *  animation * parent*trans;
-	}
-	else
-	{
-		clipTransforms[clipID].Transform[frameID][childID] = bone->Transform()* parent*trans;
-	}
-
-	for (ModelBone* child: bone->Childs())
-	{
-		UpdateChildTransform(childID, child->Index(), clipID, frameID, trans);
-	}
-}
-
-#pragma endregion
-
 #pragma region CreateDataRegion
+/* 
+	이 함수가 만드는 텍스쳐는 오로지 애니메이션의 트랜스 폼만 갖게 할거임
+*/
 void ModelAnimator::CreateTexture()
 {
 	clipTransforms = new ClipTransform[MAX_ANIMATION_CLIPS];
@@ -527,8 +422,12 @@ void ModelAnimator::CreateClipTransform(UINT index)
 			ModelBone* bone = BoneByIndex(b);
 
 			Matrix parent;
-			Matrix invGlobal = bone->Transform();
-			D3DXMatrixInverse(&invGlobal, NULL, &invGlobal);
+			//Matrix invGlobal = bone->BoneWorld();
+			///* 
+			//	1. 애니메이션에서 역행렬로 들어옴 
+			//	2. 키프레임 데이터는 로컬임. 그래서 부모 본을 곱해주려는것
+			//*/
+			//D3DXMatrixInverse(&invGlobal, NULL, &invGlobal);
 
 			int parentIndex = bone->ParentIndex();
 			if (parentIndex < 0)
@@ -545,19 +444,21 @@ void ModelAnimator::CreateClipTransform(UINT index)
 				Matrix S, R, T;
 				D3DXMatrixScaling(&S, data.Scale.x, data.Scale.y, data.Scale.z);
 				D3DXMatrixRotationQuaternion(&R, &data.Rotation);
+			
+
 				D3DXMatrixTranslation(&T, data.Translation.x, data.Translation.y, data.Translation.z);
 
 				animation = S * R * T;
-				
+
 				bones[b] = animation * parent;
-				clipTransforms[index].Transform[f][b] = invGlobal * bones[b];
+				//clipTransforms[index].Transform[f][b] = invGlobal*bones[b];
 			}
 			else
 			{
 				bones[b] = parent;
-				clipTransforms[index].Transform[f][b] = bone->Transform() * bones[b];
+				//clipTransforms[index].Transform[f][b] = bone->BoneWorld()*bones[b];
 			}
-			boneAinTransforms[index].Transform[f][b] = bones[b];
+				clipTransforms[index].Transform[f][b] = bones[b];
 		}//for(b)
 	}//for(f)
 }
@@ -587,4 +488,110 @@ void ModelAnimator::CreateComputeDesc()
 			D3DXMatrixIdentity(&csOutput[i].Result);
 	}
 }
+#pragma endregion
+
+
+#pragma region 애니메이션 클립 변화 텍스쳐 생성 및 변화 구현 영역
+
+void ModelAnimator::CreateGlobalAnimTexture()
+{
+	// 해당 버퍼가 애니메이션의 변화를 담당한다.
+	// 기본 값은 identity
+	for (UINT b = 0; b < BoneCount(); b++)
+		for (UINT c = 0; c < MAX_ANIMATION_CLIPS; c++)
+			D3DXMatrixIdentity(&animGlobalTrans[c][b]);
+
+	//CreateTexture
+	{
+		D3D11_TEXTURE2D_DESC desc;
+		ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
+		desc.Width = MAX_MODEL_TRANSFORMS * 4;
+		desc.Height = MAX_ANIMATION_CLIPS;
+		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.SampleDesc.Count = 1;
+
+		D3D11_SUBRESOURCE_DATA subResource;
+		subResource.pSysMem = animGlobalTrans;
+		subResource.SysMemPitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix);
+		subResource.SysMemSlicePitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix)*MAX_ANIMATION_CLIPS;
+
+		Check(D3D::GetDevice()->CreateTexture2D(&desc, &subResource, &globalTex));
+	}
+
+	//Create SRV
+	{
+		D3D11_TEXTURE2D_DESC desc;
+		globalTex->GetDesc(&desc);
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		ZeroMemory(&srvDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = 1;
+		srvDesc.Format = desc.Format;
+
+		Check(D3D::GetDevice()->CreateShaderResourceView(globalTex, &srvDesc, &globalSrv));
+	}
+
+	for (ModelMesh* mesh : Meshes())
+		mesh->AnimGlobalsSrv(globalSrv);
+}
+
+void ModelAnimator::UpdateBoneTransform(UINT part, UINT clipID, Transform* transform)
+{
+	if (globalTex == NULL || bonebuffer == NULL)
+		return;
+	//클립 변화로 인한 본들의 위치 변화 재계산을 위해 CS를 다시 실행
+	bChangeCS = true;
+
+	ModelBone* bone = BoneByIndex(part);
+
+	Matrix trans = transform->World();
+	bone->GetTransform()->Local(trans);
+	Matrix global = bone->GetTransform()->World();
+
+	animGlobalTrans[clipID][part] = global;
+	for (ModelBone* child : bone->Childs())
+	{
+		UpdateChildBones(part, child->Index(), clipID);// , transform);
+	}
+
+	D3D11_BOX destRegion;
+	/* 행 하나의 크기 */
+	destRegion.left = 0;
+	destRegion.right = 4 * MAX_MODEL_TRANSFORMS;
+	/* 빼올 인스턴스 행의 위치 */
+	destRegion.top = clipID;
+	destRegion.bottom = clipID + 1;
+	destRegion.front = 0;
+	destRegion.back = 1;
+
+	/* 업데이트 */
+	D3D::GetDC()->UpdateSubresource
+	(
+		globalTex,
+		0,
+		&destRegion,
+		animGlobalTrans[clipID],
+		sizeof(Matrix)*MAX_MODEL_TRANSFORMS,
+		0
+	);
+}
+
+void ModelAnimator::UpdateChildBones(UINT parentID, UINT childID, UINT clipID)
+{
+	ModelBone* bone = BoneByIndex(childID);
+
+	bone->GetTransform()->Update();
+	Matrix global = bone->GetTransform()->World();
+	animGlobalTrans[clipID][childID] = global;
+	for (ModelBone* child : bone->Childs())
+	{
+		UpdateChildBones(childID, child->Index(), clipID);
+	}
+}
+
 #pragma endregion

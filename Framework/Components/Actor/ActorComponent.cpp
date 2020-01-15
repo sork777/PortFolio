@@ -22,7 +22,7 @@ void ActorComponent::Update()
 		UINT attachbone = data->AttachedBoneIndex;
 		for (int i = 0; i < mainModel->GetInstSize(); i++)
 		{
-			Matrix mat = mainModel->GetboneTransform(i, attachbone);
+			Matrix mat = mainModel->GetboneWorld(i, attachbone);
 			data->model->GetTransform(i)->Parent(mat);
 		}
 		data->model->Update();
@@ -58,7 +58,7 @@ void ActorComponent::AddInstance()
 	for (AttachModelData* data : attaches)
 	{
 		UINT attachbone = data->AttachedBoneIndex;
-		Matrix mat = mainModel->GetboneTransform(mainSize-1, attachbone);
+		Matrix mat = mainModel->GetboneWorld(mainSize-1, attachbone);
 
 		if (data->AttachInstances.size() < mainSize)
 		{
@@ -106,7 +106,7 @@ void ActorComponent::Attach(Model * model, int parentBoneIndex, UINT instanceInd
 		data->type = AttachModelType::Model_Animator;
 	}
 
-	Matrix mat = mainModel->GetboneTransform(mainModel->GetInstSize() - 1, parentBoneIndex);
+	Matrix mat = mainModel->GetboneWorld(mainModel->GetInstSize() - 1, parentBoneIndex);
 
 	while (mainModel->GetInstSize() > data->AttachInstances.size())
 	{

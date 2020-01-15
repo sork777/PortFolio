@@ -39,7 +39,7 @@ void ModelRender::UpdateTransform(UINT instanceId, UINT boneIndex, Transform & t
 	D3D::GetDC()->Unmap(texture, 0);
 }
 
-Matrix ModelRender::GetboneTransform(UINT instance, UINT boneIndex)
+Matrix ModelRender::GetboneWorld(UINT instance, UINT boneIndex)
 {
 	Matrix transform = boneTransforms[instance][boneIndex];
 	Matrix world = GetTransform(instance)->World();
@@ -77,7 +77,7 @@ void ModelRender::CreateTexture()
 				else
 					parent = bones[parentIndex];
 
-				Matrix matrix = bone->Transform();
+				Matrix matrix = bone->BoneWorld();
 				bones[b] = parent;
 				boneTransforms[i][b] = matrix * bones[b];
 			}//for(b)

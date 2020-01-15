@@ -89,6 +89,8 @@ float4 PS_Depth(DepthOutput input) : SV_Target0
 //상수로 크기를 가변으로 받아줄수 없어서?
 
 Texture2DArray TransformsMap;
+Texture1D BoneTransformsMap;
+Texture2D AnimationGlobalTransformMap;
 //애니메이션하고 통합해서 빌드 할거임?
 //인스터싱을 대비?
 struct VertexModel
@@ -109,7 +111,6 @@ cbuffer CB_Bone
     //만들때
     //단일 모델용, 나중에 따로 만들것
     //matrix TransformsMap[MAX_MODEL_TRANSFORMS];
-
     uint BoneIndex;
 };
 
@@ -273,6 +274,8 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
 
     float4 c0, c1, c2, c3;
     float4 n0, n1, n2, n3;
+    float4 b0, b1, b2, b3;
+    matrix bone = 0;
 
     [unroll(4)]
     for (int i = 0; i < 4; i++)
@@ -290,7 +293,14 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
         next = matrix(n0, n1, n2, n3);
 
         currAnim = lerp(curr, next, time[0]);
-
+        
+        b0 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 0, clip[0], 0));
+        b1 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 1, clip[0], 0));
+        b2 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 2, clip[0], 0));
+        b3 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 3, clip[0], 0));
+        
+        bone = matrix(b0, b1, b2, b3);
+        currAnim = mul(currAnim, bone);
         
         [flatten]
         if (clip[1] >= 0)
@@ -307,11 +317,28 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
             n3 = TransformsMap.Load(int4(indices[i] * 4 + 3, nextFrame[1], clip[1], 0));
             next = matrix(n0, n1, n2, n3);
 
-            nextAnim = lerp(curr, next, time[1]);
+            nextAnim = lerp(curr, next, time[1]);            
+            
+            /* 애니메이션 변화 부분 */
+            b0 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 0, clip[1], 0));
+            b1 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 1, clip[1], 0));
+            b2 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 2, clip[1], 0));
+            b3 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 3, clip[1], 0));
+        
+            bone = matrix(b0, b1, b2, b3);
+            nextAnim = mul(nextAnim, bone);
+            
 
             currAnim = lerp(currAnim, nextAnim, Tweenframes[input.InstID].TweenTime);
         }
-
+        
+        b0 = BoneTransformsMap.Load(int2(indices[i] * 4 + 0, 0));
+        b1 = BoneTransformsMap.Load(int2(indices[i] * 4 + 1, 0));
+        b2 = BoneTransformsMap.Load(int2(indices[i] * 4 + 2, 0));
+        b3 = BoneTransformsMap.Load(int2(indices[i] * 4 + 3, 0));
+        bone = matrix(b0, b1, b2, b3);
+        currAnim = mul(bone,currAnim);
+        
         transform += mul(weights[i], currAnim);
     }
 

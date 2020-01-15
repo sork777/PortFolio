@@ -10,6 +10,7 @@ struct ResultMatrix
 StructuredBuffer<ClipFrameBoneMatrix> Input;
 RWStructuredBuffer<ResultMatrix> Output;
 Texture2DArray TransformsMap;
+Texture2D AnimationGlobalTransformMap;
 
 #define MAX_MODEL_TRANSFORMS 250
 #define MAX_MODEL_INSTANCE 500
@@ -74,7 +75,9 @@ void CS(uint GroupIndex : SV_GroupIndex, uint3 GroupID : SV_GroupID)
     
     float4 c0, c1, c2, c3;
     float4 n0, n1, n2, n3;
-
+    float4 b0, b1, b2, b3;
+    matrix global = 0;
+    
     [unroll(4)]
     for (int i = 0; i < 4; i++)
     {
@@ -91,7 +94,13 @@ void CS(uint GroupIndex : SV_GroupIndex, uint3 GroupID : SV_GroupID)
         next = matrix(n0, n1, n2, n3);
 
         result = lerp(curr, next, time[0]);
-
+        b0 = AnimationGlobalTransformMap.Load(int3(bone * 4 + 0, clip[0], 0));
+        b1 = AnimationGlobalTransformMap.Load(int3(bone * 4 + 1, clip[0], 0));
+        b2 = AnimationGlobalTransformMap.Load(int3(bone * 4 + 2, clip[0], 0));
+        b3 = AnimationGlobalTransformMap.Load(int3(bone * 4 + 3, clip[0], 0));
+        
+        global = matrix(b0, b1, b2, b3);
+        result = mul(result, global);
         
         [flatten]
         if (clip[1] >= 0)
@@ -109,10 +118,18 @@ void CS(uint GroupIndex : SV_GroupIndex, uint3 GroupID : SV_GroupID)
             next = matrix(n0, n1, n2, n3);
 
             matrix nextAnim = lerp(curr, next, time[1]);
-
+            b0 = AnimationGlobalTransformMap.Load(int3(bone * 4 + 0, clip[1], 0));
+            b1 = AnimationGlobalTransformMap.Load(int3(bone * 4 + 1, clip[1], 0));
+            b2 = AnimationGlobalTransformMap.Load(int3(bone * 4 + 2, clip[1], 0));
+            b3 = AnimationGlobalTransformMap.Load(int3(bone * 4 + 3, clip[1], 0));
+        
+            global = matrix(b0, b1, b2, b3);
+            nextAnim = mul(nextAnim, global);
+            
             result = lerp(result, nextAnim, Tweenframes[index].TweenTime);
         }
     }
+   
     
     Output[index * MAX_MODEL_TRANSFORMS+bone].Result = result;
 }

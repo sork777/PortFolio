@@ -38,16 +38,13 @@ private:
 	void ModelAttach();
 	void ImportModel(wstring path=L"");
 private:
-	struct Keyframe
-	{
-		vector<Transform*> partsTrans;
-	};
+	
 	struct ModelAnimData
 	{
 		wstring ModelName;
 		ModelAnimator* animator;
 		vector<ModelBone*> boneNames;
-		vector<Keyframe> keyframes;
+		vector<Transform*> boneTrans;
 		ModelAnimData()
 		{
 			ModelName = L"";
@@ -55,7 +52,7 @@ private:
 		}
 	};
 	vector<ModelBone*> boneNames;
-	vector<Keyframe> keyframes;
+	vector<Transform*> boneTrans;
 
 	vector<ModelAnimData*> ModelList;
 	vector<string> ClipNames;

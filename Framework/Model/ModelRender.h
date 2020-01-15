@@ -10,7 +10,7 @@ public:
 	void UpdateTransform(UINT instanceId, UINT boneIndex, Transform& transform);
 
 private:
-	virtual Matrix GetboneTransform(UINT instance, UINT boneIndex) override;
+	virtual Matrix GetboneWorld(UINT instance, UINT boneIndex) override;
 	virtual void CreateTexture() override;
 
 private:

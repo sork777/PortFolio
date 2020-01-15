@@ -29,7 +29,7 @@ public:
 
 	UINT GetInstSize() { return transforms.size(); }
 	Transform* GetTransform(UINT instance) { return transforms[instance]; }
-	virtual Matrix GetboneTransform(UINT instance, UINT boneIndex) = 0;
+	virtual Matrix GetboneWorld(UINT instance, UINT boneIndex) = 0;
 
 protected:
 	void AddTransform();
@@ -55,19 +55,22 @@ public:
 public:
 	void ReadMaterial(wstring file, wstring directoryPath = L"../../_Textures/");
 	void ReadMesh(wstring file, wstring directoryPath = L"../../_Models/");
+	void AddSocket(int parentBoneIndex, wstring bonename = L"");
 
 private:
 	void BindBone();
 	void BindMesh();
 
-public:
-	void AddSocket(int parentBoneIndex, wstring bonename = L"");
+private:
+	void CreateBuffer();
+
 private:
 	vector<Material *> materials;
 	
 	ModelBone* rootBone;
 	vector<ModelBone *> bones;
 	vector<ModelMesh *> meshes;
+
 protected:
 	Shader* shader;
 
@@ -78,5 +81,10 @@ protected:
 
 	ID3D11Texture2D* texture = NULL;
 	ID3D11ShaderResourceView* srv;
+
+	// 모델이 가지고 있을 본
+	ID3D11Texture1D* bonebuffer = NULL;
+	ID3D11ShaderResourceView* boneSrv;
+	Matrix boneTrans[MAX_MODEL_TRANSFORMS];
 
 };

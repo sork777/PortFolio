@@ -193,18 +193,6 @@
     <ClCompile Include="ScreenSpace\SSLR.cpp">
       <Filter>PostEffects\ScreenSpace</Filter>
     </ClCompile>
-    <ClCompile Include="Environment\Atmosphere.cpp">
-      <Filter>Environment\Sky</Filter>
-    </ClCompile>
-    <ClCompile Include="Environment\Cloud.cpp">
-      <Filter>Environment\Sky</Filter>
-    </ClCompile>
-    <ClCompile Include="Environment\Moon.cpp">
-      <Filter>Environment\Sky</Filter>
-    </ClCompile>
-    <ClCompile Include="Environment\Scattering.cpp">
-      <Filter>Environment\Sky</Filter>
-    </ClCompile>
     <ClCompile Include="Utilities\FFT.cpp">
       <Filter>Environment\FFTOcean</Filter>
     </ClCompile>
@@ -261,6 +249,18 @@
     </ClCompile>
     <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="Components\Actor\ActorComponent.cpp" />
+    <ClCompile Include="Environment\Sky\Atmosphere.cpp">
+      <Filter>Environment\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="Environment\Sky\Moon.cpp">
+      <Filter>Environment\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="Environment\Sky\Cloud.cpp">
+      <Filter>Environment\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="Environment\Sky\Scattering.cpp">
+      <Filter>Environment\Sky</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -506,18 +506,6 @@
     <ClInclude Include="ScreenSpace\SSLR.h">
       <Filter>PostEffects\ScreenSpace</Filter>
     </ClInclude>
-    <ClInclude Include="Environment\Atmosphere.h">
-      <Filter>Environment\Sky</Filter>
-    </ClInclude>
-    <ClInclude Include="Environment\Cloud.h">
-      <Filter>Environment\Sky</Filter>
-    </ClInclude>
-    <ClInclude Include="Environment\Moon.h">
-      <Filter>Environment\Sky</Filter>
-    </ClInclude>
-    <ClInclude Include="Environment\Scattering.h">
-      <Filter>Environment\Sky</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\FFT.h">
       <Filter>Environment\FFTOcean</Filter>
     </ClInclude>
@@ -587,5 +575,17 @@
     </ClInclude>
     <ClInclude Include="Editor\AnimationEditor.h" />
     <ClInclude Include="Components\Actor\ActorComponent.h" />
+    <ClInclude Include="Environment\Sky\Atmosphere.h">
+      <Filter>Environment\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="Environment\Sky\Moon.h">
+      <Filter>Environment\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="Environment\Sky\Cloud.h">
+      <Filter>Environment\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="Environment\Sky\Scattering.h">
+      <Filter>Environment\Sky</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

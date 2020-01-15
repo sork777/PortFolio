@@ -7,9 +7,9 @@ void Convert::Initialize()
 	//Airplane();
 	//Tower();
 	//Tank();
-	//Kachujin();
+	Kachujin();
 	Megan();
-	//Weapon();
+	Weapon();
 }
 
 void Convert::Airplane()
@@ -36,7 +36,7 @@ void Convert::Tank()
 {
 	Converter* conv = new Converter();
 	conv->ReadFile(L"Tank/Tank.fbx");
-	conv->ExportMaterial(L"Tank/Tank", L"../../_Textures/", false);
+	conv->ExportMaterial(L"Tank/Tank", L"../../_Textures2/", false);
 	conv->ExportMesh(L"Tank/Tank");
 
 	SafeDelete(conv);
@@ -46,29 +46,29 @@ void Convert::Kachujin()
 {
 	Converter* conv = new Converter();
 	conv->ReadFile(L"Kachujin/Mesh.fbx");
-	conv->ExportMaterial(L"Kachujin/Mesh", L"../../_Textures/", false);
-	conv->ExportMesh(L"Kachujin/Mesh");
-	conv->ExportAnimClip(0, L"Kachujin/Mesh");
+	conv->ExportMaterial(L"Kachujin/Mesh", L"../../_TestTextures/", false);
+	conv->ExportMesh(L"Kachujin/Mesh", L"../../_TestModels/");
+	conv->ExportAnimClip(0, L"Kachujin/Mesh", L"../../_TestModels/");
 	SafeDelete(conv);
 
 	conv = new Converter();
 	conv->ReadFile(L"Kachujin/Idle.fbx");
-	conv->ExportAnimClip(0, L"Kachujin/Idle");
+	conv->ExportAnimClip(0, L"Kachujin/Idle", L"../../_TestModels/");
 	SafeDelete(conv);
 
 	conv = new Converter();
 	conv->ReadFile(L"Kachujin/Running.fbx");
-	conv->ExportAnimClip(0, L"Kachujin/Running");
+	conv->ExportAnimClip(0, L"Kachujin/Running", L"../../_TestModels/");
 	SafeDelete(conv);
 
 	conv = new Converter();
 	conv->ReadFile(L"Kachujin/Jump.fbx");
-	conv->ExportAnimClip(0, L"Kachujin/Jump");
+	conv->ExportAnimClip(0, L"Kachujin/Jump", L"../../_TestModels/");
 	SafeDelete(conv);
 
 	conv = new Converter();
 	conv->ReadFile(L"Kachujin/Hip_Hop_Dancing.fbx");
-	conv->ExportAnimClip(0, L"Kachujin/Hip_Hop_Dancing");
+	conv->ExportAnimClip(0, L"Kachujin/Hip_Hop_Dancing", L"../../_TestModels/");
 	SafeDelete(conv);
 }
 
@@ -76,19 +76,19 @@ void Convert::Megan()
 {
 	Converter* conv = new Converter();
 	conv->ReadFile(L"Megan/Mesh.fbx");
-	conv->ExportMaterial(L"Megan/Mesh", L"../../_Textures/", false);
-	conv->ExportMesh(L"Megan/Mesh");
-	conv->ExportAnimClip(0, L"Megan/Mesh");
+	conv->ExportMaterial(L"Megan/Mesh", L"../../_TestTextures/", false);
+	conv->ExportMesh(L"Megan/Mesh", L"../../_TestModels/");
+	conv->ExportAnimClip(0, L"Megan/Mesh", L"../../_TestModels/");
 	SafeDelete(conv);
 
 	conv = new Converter();
 	conv->ReadFile(L"Megan/Taunt.fbx");
-	conv->ExportAnimClip(0, L"Megan/Taunt");
+	conv->ExportAnimClip(0, L"Megan/Taunt", L"../../_TestModels/");
 	SafeDelete(conv);
 
 	conv = new Converter();
 	conv->ReadFile(L"Megan/Dancing.fbx");
-	conv->ExportAnimClip(0, L"Megan/Dancing");
+	conv->ExportAnimClip(0, L"Megan/Dancing", L"../../_TestModels/");
 	SafeDelete(conv);
 }
 
@@ -116,8 +116,8 @@ void Convert::Weapon()
 		String::Replace(&name, L".fbx", L"");
 		String::Replace(&name, L".obj", L"");
 
-		conv->ExportMaterial(L"Weapon/" + name, L"../../_Textures/", false);
-		conv->ExportMesh(L"Weapon/" + name);
+		conv->ExportMaterial(L"Weapon/" + name, L"../../_TestTextures/", false);
+		conv->ExportMesh(L"Weapon/" + name, L"../../_TestModels/");
 		SafeDelete(conv);
 	}
 }

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "TerrainLodDemo.h"
 #include "Objects/CSM.h"
-#include "Environment/Atmosphere.h"
+#include "Environment/Sky/Atmosphere.h"
 #include "Environment/TerrainLod.h"
 
 void TerrainLodDemo::Initialize()
@@ -64,25 +64,26 @@ void TerrainLodDemo::Update()
 void TerrainLodDemo::PreRender()
 {
 	sky->PreRender();
-	sky->Render();
 	//shadow->Set();
 
 	SetGBuffer();
+
+	sky->Render();
 	shader->AsSRV("AtmosphereMap")->SetResource(sky->GetAtmoSRV());
 	ssao->Compute(gBuffer->GetDepthSrv(), gBuffer->GetNormalSrv());
 	shader->AsSRV("AOTexture")->SetResource(ssao->GetSSAOSRV());
-
 	
 }
 
 
 void TerrainLodDemo::Render()
 {
+
 	gBuffer->Tech(1);
 	gBuffer->Render();
 	
-	gBuffer->RenderGBuffers();
-	ssao->RenderSSAO();
+	//gBuffer->RenderGBuffers();
+	//ssao->RenderSSAO();
 }
 
 void TerrainLodDemo::SetGBuffer()

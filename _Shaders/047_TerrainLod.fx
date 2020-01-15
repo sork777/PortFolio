@@ -144,15 +144,6 @@ float4 PS(DomainOutput_Lod input) : SV_Target0
 
     ComputeLight(output, normal, input.wPosition);
     AddMaterial(result, output);
-
-    ComputePointLights(output, normal, input.wPosition);
-    AddMaterial(result, output);
-
-    ComputeSpotLights(output, normal, input.wPosition);
-    AddMaterial(result, output);
-
-    ComputeCapsuleLights(output, normal, input.wPosition);
-    AddMaterial(result, output);
     
     //return HeightMap.SampleLevel(LinearSampler, input.Uv, 0);
     return float4(MaterialToColor(result), 1) + float4(gridColor, 1) + float4(brushColor, 1);
