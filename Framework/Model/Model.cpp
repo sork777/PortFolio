@@ -28,8 +28,8 @@ Model::~Model()
 		SafeDelete(transform);
 
 	SafeDelete(shader);
-	SafeDelete(bonebuffer);
-	SafeDelete(texture);
+	SafeRelease(bonebuffer);
+	SafeRelease(texture);
 	SafeDelete(instanceBuffer);
 
 }
@@ -48,7 +48,7 @@ void Model::Render()
 		CreateTexture();
 	
 	if (bonebuffer == NULL)
-		CreateBuffer();
+		CreateBoneBuffer();
 
 
 	instanceBuffer->Render();
@@ -252,11 +252,7 @@ void Model::ReadMaterial(wstring file, wstring directoryPath)
 
 void Model::ReadMesh(wstring file, wstring directoryPath)
 {
-	//wstring clipfile = directoryPath + file + L".clip";
-	//bool bReadClip = Path::ExistFile(clipfile);
-	//clipfile = file;
 	file = directoryPath + file + L".mesh";
-
 
 	BinaryReader* r = new BinaryReader();
 	r->Open(file);
@@ -344,15 +340,16 @@ void Model::ReadMesh(wstring file, wstring directoryPath)
 	for (ModelMesh* mesh : meshes)
 		mesh->SetShader(shader);
 	
-	CreateBuffer();
+	CreateBoneBuffer();
 }
 
-void Model::AddSocket(int parentBoneIndex, wstring bonename)
+void Model::AddSocket(int parentBoneIndex, wstring socketName)
 {
 	ModelBone* parentBone = BoneByIndex(parentBoneIndex);
 	ModelBone* newBone = new ModelBone();
-	newBone->name = bonename;
-	newBone->transform = parentBone->transform;
+	newBone->name = socketName;
+	newBone->editTransform->Local(parentBone->editTransform->Local());
+	newBone->editTransform->Parent(parentBone->editTransform->ParentTransform());
 	newBone->parentIndex = parentBoneIndex;
 	newBone->parent = parentBone;
 	newBone->parent->childs.push_back(newBone);
@@ -401,7 +398,7 @@ void Model::BindMesh()
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Model::CreateBuffer()
+void Model::CreateBoneBuffer()
 {
 	// °ª ÇÒ´ç
 	{

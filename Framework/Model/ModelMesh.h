@@ -18,8 +18,7 @@ public:
 	wstring Name() { return name; }
 
 	Matrix& BoneWorld() { return world; }
-	//void BoneWorld(Matrix& matrix);
-	class Transform* GetTransform() { return transform; }
+	class Transform* GetTransform() { return editTransform; }
 
 	ModelBone* Parent() { return parent; }
 	vector<ModelBone *>& Childs() { return childs; }
@@ -28,10 +27,11 @@ private:
 	int index;
 	wstring name;
 
+	Matrix world;
+	class Transform* editTransform;		
+
 	int parentIndex;
 	ModelBone* parent;
-	Matrix world;
-	class Transform* transform;		
 	vector<ModelBone *> childs;
 };
 
@@ -63,9 +63,14 @@ public:
 
 	void TransformsSRV(ID3D11ShaderResourceView* srv);
 	void BoneTransformsSRV(ID3D11ShaderResourceView* boneSrv);
-	void AnimGlobalsSrv(ID3D11ShaderResourceView* globalSrv);
+	void AnimEditSrv(ID3D11ShaderResourceView* editSrv);
+
 	UINT GetVertexCount() { return vertexCount; }
 	Model::ModelVertex* GetVertices() { return vertices; }
+	VertexBuffer* GetVertexBuffer() { return vertexBuffer; }
+
+	UINT GetIndexCount() { return indexCount; }
+	IndexBuffer* GetIndexBuffer() { return indexBuffer; }
 
 private:
 
@@ -108,6 +113,6 @@ private:
 	ID3D11ShaderResourceView* boneTransformsSRV = NULL;
 	ID3DX11EffectShaderResourceVariable* sBoneTransformsSRV;
 
-	ID3D11ShaderResourceView* animGlobalSRV = NULL;
-	ID3DX11EffectShaderResourceVariable* sAnimGlobalSRV;
+	ID3D11ShaderResourceView* animEditSRV = NULL;
+	ID3DX11EffectShaderResourceVariable* sAnimEditSRV;
 };

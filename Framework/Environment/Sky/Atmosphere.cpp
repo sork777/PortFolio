@@ -104,7 +104,7 @@ void Atmosphere::Render(bool bRTV)
 
 	//Scattering
 	{
-		position.y -= 0.1f;
+		position.y += 0.1f;
 
 		GetTransform()->Position(position);
 		GetTransform()->Scale(1, 1, 1);
@@ -126,7 +126,7 @@ void Atmosphere::Render(bool bRTV)
 
 		//GetTransform()->Scale(1, 5, 5);
 		//GetTransform()->Rotation(-Math::PI * 0.5f, 0, 0);
-		GetTransform()->Position(position.x , position.y , position.z );
+		GetTransform()->Position(position.x , position.y-0.5f , position.z );
 
 		Super::Render();
 		cloud->Render();

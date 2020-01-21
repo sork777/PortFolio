@@ -13,7 +13,8 @@ void InstanceColliderDemo::Initialize()
 
 	shader = new Shader(L"027_Animation.fx");
 	sky = new Sky(L"Environment/GrassCube1024.dds");
-
+	trail = new TrailRenderer();
+	trail->GetTransform()->Scale(500, 500, 500);
 	Mesh();
 	ModelLoad();
 	for (ModelBone* bone : kachujin->Bones())
@@ -21,7 +22,6 @@ void InstanceColliderDemo::Initialize()
 		if (bone->Index() < 0)continue;
 		boneNames.emplace_back(bone);
 	}
-
 	
 	for (UINT j = 0; j < boneNames.size(); j++)
 	{
@@ -42,13 +42,14 @@ void InstanceColliderDemo::Destroy()
 void InstanceColliderDemo::Update()
 {
 	sky->Update();
-
 	grid->Update();
 
 
 	for (ModelRender* temp : models)
 		temp->Update();
 	
+
+
 	AnimationController();
 	ImGUIController();
 	NotifyController();
@@ -58,7 +59,10 @@ void InstanceColliderDemo::Update()
 		colliders[i].Collider->GetTransform()->Parent(attach);
 		colliders[i].Collider->Update();
 	}	
-	
+	if (illusion != NULL)
+	{
+		illusion->Update(kachujin->GetCurrTween(0),0.3f);
+	}
 }
 
 void InstanceColliderDemo::Render()
@@ -82,17 +86,28 @@ void InstanceColliderDemo::Render()
 	
 	floor->Render();
 	grid->Render();
-
+	
 	for (ModelRender* temp : models)
 		temp->Render();
 
 	for (ModelAnimator* temp : animators)
 		temp->Render();
-	/*if (ModelList[selectedModel])
-		ModelList[selectedModel]->animator->Render();*/
-/*
-	for (int i = 0; i < 3; i++)
-		colliders[i].Collider->Render(Color(0, 1, 0, 1));*/
+	if (illusion != NULL)
+	{
+		illusion->Render();
+		ImGui::Begin("Illusion");
+		{
+			illusion->Property();
+			ImGui::End();
+		}
+	}
+	trail->Render();
+	ImGui::Begin("Trail");
+	{
+		trail->Property();
+		ImGui::End();
+	}
+	
 }
 
 void InstanceColliderDemo::Pass(UINT mesh, UINT model, UINT anim)
@@ -364,16 +379,18 @@ void InstanceColliderDemo::AnimationController()
 			kachujin->PlayClip(instance, clip, takeTime);
 
 		kachujin->Update(instance);
-		if (ImGui::Button("addTest"))
+		if (ImGui::Button("IllusionTest"))
 		{
-			kachujin->AddClip(L"Kachujin/Jump");
-			kachujin->AddClip(L"Kachujin/Hip_Hop_Dancing");
+			illusion = new ModelIllusion(kachujin);
+			illusion->GetTransform()->Parent(kachujin->GetTransform(0));
 		}
 		if (ImGui::Button("Del"))
 		{
-			kachujin->DelInstance(instance);
-			instance %= kachujin->GetInstSize();
+			//SafeDelete(illusion);
+			//kachujin->DelInstance(instance);
+			//instance %= kachujin->GetInstSize();
 		}
+		
 	}
 	ImGui::End();
 }
@@ -452,6 +469,8 @@ void InstanceColliderDemo::SelectedPartsViewer()
 	Vector3 textPos, pos;
 	
 	Matrix mat = kachujin->GetboneWorld(instance, selected + 1);
+	trail->Update(mat);
+
 	selectedTransform->World(mat);
 	selectedTransform->Position(&pos);
 	Context::Get()->GetViewport()->Project(&textPos, pos, W, V, P);

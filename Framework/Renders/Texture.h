@@ -19,6 +19,7 @@ public:
 
 
 	wstring GetFile() { return file; }
+	wstring GetDir() { return dir; }
 
 	UINT GetWidth() { return metaData.width; }
 	UINT GetHeight() { return metaData.height; }
@@ -34,6 +35,7 @@ public:
 	ID3D11Texture2D* GetTexture();
 private:
 	wstring file;
+	wstring dir;
 
 	DirectX::TexMetadata metaData;
 	ID3D11ShaderResourceView* view;

@@ -61,6 +61,11 @@ RasterizerState cascadeRS
     SlopeScaledDepthBias = 1.0f;
     DepthClipEnable = false;
 };
+
+RasterizerState TrailRS
+{
+    CullMode = None;
+};
 ///////////////////////////////////////////////////////////////////////////////
 /*           Sampler             */
 SamplerComparisonState ShadowSampler;
@@ -163,12 +168,37 @@ BlendState AlphaBlend
     DestBlendAlpha[0] = Zero;
     RenderTargetWriteMask[0] = 0x0F;
 };
-
 BlendState AdditiveAlphaBlend
 {
     BlendEnable[0] = true;
     DestBlend[0] = One;
     SrcBlend[0] = One;
+    BlendOp[0] = Add;
+
+    DestBlendAlpha[0] = One;
+    SrcBlendAlpha[0] = One;
+    BlendOpAlpha[0] = Add;
+    RenderTargetWriteMask[0] = 0x0f;
+};
+
+
+BlendState TrailBlend
+{
+    BlendEnable[0] = true;
+    DestBlend[0] = One;
+    SrcBlend[0] = SRC_ALPHA;
+    BlendOp[0] = Add;
+
+    DestBlendAlpha[0] = Zero;
+    SrcBlendAlpha[0] = Zero;
+    BlendOpAlpha[0] = Add;
+    RenderTargetWriteMask[0] = 0x0f;
+};
+BlendState IllusionBlend
+{
+    BlendEnable[0] = true;
+    DestBlend[0] = One;
+    SrcBlend[0] = SRC_ALPHA;
     BlendOp[0] = Add;
 
     DestBlendAlpha[0] = One;
@@ -365,6 +395,7 @@ void Texture(inout float4 color, Texture2D t, float2 uv)
 {
     Texture(color, t, uv, LinearSampler);
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 

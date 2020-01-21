@@ -19,8 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Components\Actor\ActorComponent.cpp" />
+    <ClCompile Include="Objects\Actor\ActorComponent.cpp" />
     <ClCompile Include="Editor\AnimationEditor.cpp" />
+    <ClCompile Include="Effect\ModelIllusion.cpp" />
     <ClCompile Include="ImguiWidget\WidgetUtility\IconProvider.cpp" />
     <ClCompile Include="ImguiWidget\Widget_Contents.cpp" />
     <ClCompile Include="Model\AnimationUtility\AnimationNotify.cpp" />
@@ -51,6 +52,7 @@
     <ClCompile Include="Model\ModelMesh.cpp" />
     <ClCompile Include="Model\ModelRender.cpp" />
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
+    <ClCompile Include="Effect\TrailRenderer.cpp" />
     <ClCompile Include="Utilities\ImGuizmo.cpp" />
     <ClCompile Include="Utilities\Perlin.cpp" />
     <ClCompile Include="PostEffects\HDR_Tone.cpp" />
@@ -75,10 +77,10 @@
     <ClCompile Include="Utilities\QuadTree.cpp" />
     <ClCompile Include="Renders\Buffers.cpp" />
     <ClCompile Include="Utilities\DebugLine.cpp" />
-    <ClCompile Include="Components\Material.cpp" />
+    <ClCompile Include="Components\Base\Material.cpp" />
     <ClCompile Include="ScreenSpace\Render2D.cpp" />
-    <ClCompile Include="Components\Renderer.cpp" />
-    <ClCompile Include="Components\PerFrame.cpp" />
+    <ClCompile Include="Components\Base\Renderer.cpp" />
+    <ClCompile Include="Components\Base\PerFrame.cpp" />
     <ClCompile Include="Renders\Context.cpp" />
     <ClCompile Include="Renders\Shader.cpp" />
     <ClCompile Include="Renders\Texture.cpp" />
@@ -91,7 +93,7 @@
     <ClCompile Include="Systems\Time.cpp" />
     <ClCompile Include="Systems\Window.cpp" />
     <ClCompile Include="Environment\Terrain.cpp" />
-    <ClCompile Include="Components\Transform.cpp" />
+    <ClCompile Include="Components\Base\Transform.cpp" />
     <ClCompile Include="Utilities\BinaryFile.cpp" />
     <ClCompile Include="Utilities\Math.cpp" />
     <ClCompile Include="Utilities\Path.cpp" />
@@ -111,9 +113,11 @@
     <ClCompile Include="Viewer\Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Components\Actor\ActorComponent.h" />
+    <ClInclude Include="Objects\Actor\ActorComponent.h" />
     <ClInclude Include="Editor\AnimationEditor.h" />
     <ClInclude Include="Components\BaseComponent.h" />
+    <ClInclude Include="Editor\IEditor.h" />
+    <ClInclude Include="Effect\ModelIllusion.h" />
     <ClInclude Include="ImguiWidget\IWidget.h" />
     <ClInclude Include="ImguiWidget\WidgetUtility\DragDrop.h" />
     <ClInclude Include="ImguiWidget\WidgetUtility\EditorHelper.h" />
@@ -149,6 +153,7 @@
     <ClInclude Include="Model\ModelMesh.h" />
     <ClInclude Include="Model\ModelRender.h" />
     <ClInclude Include="ParticleSystem\ParticleSystem.h" />
+    <ClInclude Include="Effect\TrailRenderer.h" />
     <ClInclude Include="Utilities\ImGuizmo.h" />
     <ClInclude Include="Utilities\Perlin.h" />
     <ClInclude Include="PostEffects\HDR_Tone.h" />
@@ -173,10 +178,10 @@
     <ClInclude Include="Utilities\QuadTree.h" />
     <ClInclude Include="Renders\Buffers.h" />
     <ClInclude Include="Utilities\DebugLine.h" />
-    <ClInclude Include="Components\Material.h" />
+    <ClInclude Include="Components\Base\Material.h" />
     <ClInclude Include="ScreenSpace\Render2D.h" />
-    <ClInclude Include="Components\Renderer.h" />
-    <ClInclude Include="Components\PerFrame.h" />
+    <ClInclude Include="Components\Base\Renderer.h" />
+    <ClInclude Include="Components\Base\PerFrame.h" />
     <ClInclude Include="Renders\Context.h" />
     <ClInclude Include="Renders\Shader.h" />
     <ClInclude Include="Renders\Texture.h" />
@@ -191,7 +196,7 @@
     <ClInclude Include="Systems\Time.h" />
     <ClInclude Include="Systems\Window.h" />
     <ClInclude Include="Environment\Terrain.h" />
-    <ClInclude Include="Components\Transform.h" />
+    <ClInclude Include="Components\Base\Transform.h" />
     <ClInclude Include="Utilities\BinaryFile.h" />
     <ClInclude Include="Utilities\Math.h" />
     <ClInclude Include="Utilities\Path.h" />

@@ -1,4 +1,5 @@
 #include "000_Header.fx"
+#include "000_Model.fx"
 #include "000_Light.fx"
 
 float4 PS(MeshOutput input) : SV_Target0

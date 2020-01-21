@@ -6,7 +6,7 @@ using namespace DirectX;
 vector<TextureDesc> Textures::descs;
 
 Texture::Texture(wstring file, wstring dir, D3DX11_IMAGE_LOAD_INFO* loadInfo)
-	: file(file)
+	: file(file), dir(dir)
 {
 	bool b = Path::IsRelativePath(file);
 	if (b == true)

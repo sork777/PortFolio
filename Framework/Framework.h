@@ -13,6 +13,8 @@
 #include <iterator>
 #include <thread>
 #include <mutex>
+#include <type_traits>
+
 using namespace std;
 
 //Direct3D
@@ -89,10 +91,11 @@ typedef D3DXPLANE Plane;
 #include "Renders/VertexLayouts.h"
 #include "Renders/Context.h"
 
-#include "Components/Material.h"	
-#include "Components/PerFrame.h"
-#include "Components/Transform.h"
-#include "Components/Renderer.h"
+#include "Components/BaseComponent.h"	
+#include "Components/Base/Material.h"	
+#include "Components/Base/PerFrame.h"
+#include "Components/Base/Transform.h"
+#include "Components/Base/Renderer.h"
 
 #include "Utilities/DebugLine.h"
 #include "Utilities/Math.h"
@@ -128,3 +131,6 @@ typedef D3DXPLANE Plane;
 
 #include "ImguiWidget/IWidget.h"
 #include "ImguiWidget/Widget_Contents.h"
+
+#include "Effect/TrailRenderer.h"
+#include "Effect/ModelIllusion.h"

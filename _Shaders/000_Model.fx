@@ -1,3 +1,4 @@
+
 ///////////////////////////////////////////////////////////////////////////////
 // 매크로들 
 #define VS_GENERATE \
@@ -82,6 +83,132 @@ float4 PS_Depth(DepthOutput input) : SV_Target0
     //return float4(final, final, final, 1);
 }
 ///////////////////////////////////////////////////////////////////////////////
+// 행렬 분해, 쿼터니온과 행렬 변환
+float4 MattoQuat(matrix input)
+{
+    float mat[16]
+    =
+    {
+        input._11, input._12, input._13, input._14,
+        input._21, input._22, input._23, input._24,
+        input._31, input._32, input._33, input._34,
+        input._41, input._42, input._43, input._44,
+    };
+    
+    float T = 1 + mat[0] + mat[5] + mat[10];
+    float S, X, Y, Z, W;
+    
+    [branch]
+    if (T > 0.00000001)      //  to avoid    large distortions
+    {
+        S = sqrt(T) * 2;
+        X = (mat[9] - mat[6]) / S;
+        Y = (mat[2] - mat[8]) / S;
+        Z = (mat[4] - mat[1]) / S;
+        W = 0.25 * S;
+    }
+    else if (mat[0] > mat[5] && mat[0] > mat[10])
+    { // Column 0:
+        S = sqrt(1.0 + mat[0] - mat[5] - mat[10]) * 2;
+        X = 0.25 * S;
+        Y = (mat[4] + mat[1]) / S;
+        Z = (mat[2] + mat[8]) / S;
+        W = (mat[9] - mat[6]) / S;
+    }
+    else if (mat[5] > mat[10])
+    { // Column 1: 
+        S = sqrt(1.0 + mat[5] - mat[0] - mat[10]) * 2;
+        X = (mat[4] + mat[1]) / S;
+        Y = 0.25 * S;
+        Z = (mat[9] + mat[6]) / S;
+        W = (mat[2] - mat[8]) / S;
+    }
+    else
+    { // Column 2: 
+        S = sqrt(1.0 + mat[10] - mat[0] - mat[5]) * 2;
+        X = (mat[2] + mat[8]) / S;
+        Y = (mat[9] + mat[6]) / S;
+        Z = 0.25 * S;
+        W = (mat[4] - mat[1]) / S;
+    }
+
+    
+    return float4(X, Y, Z, W);
+}
+
+matrix QuattoMat(float4 quat)
+{
+    float mat[16];
+    
+    float X = quat.x;
+    float Y = quat.y;
+    float Z = quat.z;
+    float W = quat.w;
+    
+    float xx = X * X;
+    float xy = X * Y;
+    float xz = X * Z;
+    float xw = X * W;
+    float yy = Y * Y;
+    float yz = Y * Z;
+    float yw = Y * W;
+    float zz = Z * Z;
+    float zw = Z * W;
+    
+    mat[0] = 1 - 2 * (yy + zz);
+    mat[1] = 2 * (xy - zw);
+    mat[2] = 2 * (xz + yw);
+    mat[4] = 2 * (xy + zw);
+    mat[5] = 1 - 2 * (xx + zz);
+    mat[6] = 2 * (yz - xw);
+    mat[8] = 2 * (xz - yw);
+    mat[9] = 2 * (yz + xw);
+    mat[10] = 1 - 2 * (xx + yy);
+    
+    mat[3] = mat[7] = mat[11] = mat[12] = mat[13] = mat[14] = 0;
+    mat[15] = 1;
+
+    matrix result;
+    result._11 = mat[0];
+    result._12 = mat[1];
+    result._13 = mat[2];
+    result._14 = mat[3];
+    result._21 = mat[4];
+    result._22 = mat[5];
+    result._23 = mat[6];
+    result._24 = mat[7];
+    result._31 = mat[8];
+    result._32 = mat[9];
+    result._33 = mat[10];
+    result._34 = mat[11];
+    result._41 = mat[12];
+    result._42 = mat[13];
+    result._43 = mat[14];
+    result._44 = mat[15];
+    return result;
+}
+
+void DivideMat(out matrix S, out float4 Q, out matrix T, matrix mat)
+{
+    S =T= 0;
+    S._11 = mat._14;
+    S._22 = mat._24;
+    S._33 = mat._34;
+    S._44 = mat._44;
+    
+    matrix R = mat;
+    R._14 = R._24 = R._34 = R._41 = R._42 = R._41 = 0;
+    //회전행렬의 쿼터니온 변화
+    Q = MattoQuat(R);
+        
+    T._11 = T._22 = T._33 = 1;
+    T._41 = mat._41;
+    T._42 = mat._42;
+    T._43 = mat._43;
+    T._44 = mat._44;    
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 #define MAX_MODEL_INSTANCE 500
 #define MAX_MODEL_TRANSFORMS 250
@@ -90,7 +217,7 @@ float4 PS_Depth(DepthOutput input) : SV_Target0
 
 Texture2DArray TransformsMap;
 Texture1D BoneTransformsMap;
-Texture2D AnimationGlobalTransformMap;
+Texture2D AnimEditTransformMap;
 //애니메이션하고 통합해서 빌드 할거임?
 //인스터싱을 대비?
 struct VertexModel
@@ -108,9 +235,6 @@ struct VertexModel
 
 cbuffer CB_Bone
 {
-    //만들때
-    //단일 모델용, 나중에 따로 만들것
-    //matrix TransformsMap[MAX_MODEL_TRANSFORMS];
     uint BoneIndex;
 };
 
@@ -122,15 +246,9 @@ void SetModelWorld(inout matrix world, VertexModel input)
     float4 c0, c1, c2, c3;
     matrix anim=0;
     matrix transform=0;
-    matrix transform2=0;
     matrix curr = 0;
-    matrix curr2 = 0;
    
-    float boneIndices[4] = { input.BlendIndices.x, input.BlendIndices.y, input.BlendIndices.z, input.BlendIndices.w };
-    float boneWeights[4] = { input.BlendWeights.x, input.BlendWeights.y, input.BlendWeights.z, input.BlendWeights.w };
 
-    [branch]
-    if (boneIndices[0] <= 0.5f)
     {
         c0 = TransformsMap.Load(uint4(BoneIndex * 4 + 0, input.InstID, 0, 0));
         c1 = TransformsMap.Load(uint4(BoneIndex * 4 + 1, input.InstID, 0, 0));
@@ -140,22 +258,6 @@ void SetModelWorld(inout matrix world, VertexModel input)
 
         transform = curr;
     }
-    else if (boneIndices[0] > 0.0f)
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            /* 정지 모델 참조 */
-            c0 =TransformsMap.Load(uint4(boneIndices[i] * 4 + 0, input.InstID, 0, 0));
-            c1 =TransformsMap.Load(uint4(boneIndices[i] * 4 + 1, input.InstID, 0, 0));
-            c2 =TransformsMap.Load(uint4(boneIndices[i] * 4 + 2, input.InstID, 0, 0));
-            c3 = TransformsMap.Load(uint4(boneIndices[i] * 4 + 3, input.InstID, 0, 0));
-            curr = matrix(c0, c1, c2, c3);
-
-            transform += mul(boneWeights[i], curr);
-        }
-        
-    }
-
     
     world = mul(transform, input.Transform);
 }
@@ -276,10 +378,16 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
     float4 n0, n1, n2, n3;
     float4 b0, b1, b2, b3;
     matrix bone = 0;
+    matrix cedit = 0;
+    matrix nedit = 0;
+    matrix cS, cR, cT, nS, nR, nT;
+    float4 cQ, nQ;
 
     [unroll(4)]
     for (int i = 0; i < 4; i++)
     {
+        cS = cR = cT = nS = nR = nT = 0;
+        
         c0 = TransformsMap.Load(int4(indices[i] * 4 + 0, currFrame[0], clip[0], 0));
         c1 = TransformsMap.Load(int4(indices[i] * 4 + 1, currFrame[0], clip[0], 0));
         c2 = TransformsMap.Load(int4(indices[i] * 4 + 2, currFrame[0], clip[0], 0));
@@ -291,20 +399,22 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
         n2 = TransformsMap.Load(int4(indices[i] * 4 + 2, nextFrame[0], clip[0], 0));
         n3 = TransformsMap.Load(int4(indices[i] * 4 + 3, nextFrame[0], clip[0], 0));
         next = matrix(n0, n1, n2, n3);
-
+        
         currAnim = lerp(curr, next, time[0]);
+               
+        /* 애니메이션 변화 부분 */        
+        b0 = AnimEditTransformMap.Load(int3(indices[i] * 4 + 0, clip[0], 0));
+        b1 = AnimEditTransformMap.Load(int3(indices[i] * 4 + 1, clip[0], 0));
+        b2 = AnimEditTransformMap.Load(int3(indices[i] * 4 + 2, clip[0], 0));
+        b3 = AnimEditTransformMap.Load(int3(indices[i] * 4 + 3, clip[0], 0));
         
-        b0 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 0, clip[0], 0));
-        b1 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 1, clip[0], 0));
-        b2 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 2, clip[0], 0));
-        b3 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 3, clip[0], 0));
-        
-        bone = matrix(b0, b1, b2, b3);
-        currAnim = mul(currAnim, bone);
+        cedit = matrix(b0, b1, b2, b3);
         
         [flatten]
         if (clip[1] >= 0)
         {
+            cS = cR = cT = nS = nR = nT = 0;
+            
             c0 = TransformsMap.Load(int4(indices[i] * 4 + 0, currFrame[1], clip[1], 0));
             c1 = TransformsMap.Load(int4(indices[i] * 4 + 1, currFrame[1], clip[1], 0));
             c2 = TransformsMap.Load(int4(indices[i] * 4 + 2, currFrame[1], clip[1], 0));
@@ -316,22 +426,48 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
             n2 = TransformsMap.Load(int4(indices[i] * 4 + 2, nextFrame[1], clip[1], 0));
             n3 = TransformsMap.Load(int4(indices[i] * 4 + 3, nextFrame[1], clip[1], 0));
             next = matrix(n0, n1, n2, n3);
-
-            nextAnim = lerp(curr, next, time[1]);            
+           
+            nextAnim = lerp(curr, next, time[1]);
             
             /* 애니메이션 변화 부분 */
-            b0 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 0, clip[1], 0));
-            b1 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 1, clip[1], 0));
-            b2 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 2, clip[1], 0));
-            b3 = AnimationGlobalTransformMap.Load(int3(indices[i] * 4 + 3, clip[1], 0));
+            b0 = AnimEditTransformMap.Load(int3(indices[i] * 4 + 0, clip[1], 0));
+            b1 = AnimEditTransformMap.Load(int3(indices[i] * 4 + 1, clip[1], 0));
+            b2 = AnimEditTransformMap.Load(int3(indices[i] * 4 + 2, clip[1], 0));
+            b3 = AnimEditTransformMap.Load(int3(indices[i] * 4 + 3, clip[1], 0));
         
-            bone = matrix(b0, b1, b2, b3);
-            nextAnim = mul(nextAnim, bone);
+            nedit = matrix(b0, b1, b2, b3);
             
-
-            currAnim = lerp(currAnim, nextAnim, Tweenframes[input.InstID].TweenTime);
         }
         
+        
+        //클립간 보간
+        {
+            DivideMat(cS, cQ, cT, currAnim);
+            DivideMat(nS, nQ, nT, nextAnim);
+            cS = lerp(cS, nS, Tweenframes[input.InstID].TweenTime);
+            cQ = normalize(lerp(cQ, nQ, Tweenframes[input.InstID].TweenTime));
+            cR = QuattoMat(cQ);
+            cT = lerp(cT, nT, Tweenframes[input.InstID].TweenTime);
+            
+            currAnim = mul(cS, cR);
+            currAnim = mul(currAnim, cT);
+        
+            
+            DivideMat(cS, cQ, cT, cedit);
+            DivideMat(nS, nQ, nT, nedit);
+            cS = lerp(cS, nS, Tweenframes[input.InstID].TweenTime);
+            cQ = normalize(lerp(cQ, nQ, Tweenframes[input.InstID].TweenTime));
+            cR = QuattoMat(cQ);
+            cT = lerp(cT, nT, Tweenframes[input.InstID].TweenTime);
+            
+            cedit = mul(cS, cR);
+            cedit = mul(cedit, cT);
+            currAnim = mul(currAnim, cedit);            
+        }
+        
+        
+        
+        /* 본의 world */
         b0 = BoneTransformsMap.Load(int2(indices[i] * 4 + 0, 0));
         b1 = BoneTransformsMap.Load(int2(indices[i] * 4 + 1, 0));
         b2 = BoneTransformsMap.Load(int2(indices[i] * 4 + 2, 0));
@@ -342,6 +478,7 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
         transform += mul(weights[i], currAnim);
     }
 
+    //world = transform;
     world = mul(transform, input.Transform);
 }
 
@@ -350,8 +487,9 @@ MeshOutput VS_Animation(VertexModel input)
 {
     MeshOutput output;
 
+    matrix mat;
     SetAnimationWorld(World, input);
-
+    //World = mul(mat, input.Transform);
     VS_GENERATE
         
     output.sPosition = WorldPosition(input.Position);

@@ -79,6 +79,12 @@ struct VertexTexture
 		: Position(0, 0, 0)
 		, Uv(0, 0) {}
 
+	VertexTexture(float x, float y, float z, float u, float v)
+	{
+		Position = D3DXVECTOR3(x, y, z);
+		Uv = D3DXVECTOR2(u, v);
+	}
+
 	D3DXVECTOR3	Position;
 	D3DXVECTOR2	Uv;
 };

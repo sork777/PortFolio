@@ -66,6 +66,7 @@ private:
 	UINT clip = 0;
 	UINT instance = 0;
 	float takeTime = 1.0f;
+
 private:
 	Shader* shader;
 
@@ -77,6 +78,7 @@ private:
 	ModelRender* sword = NULL;
 	ModelAnimator* kachujin = NULL;
 
+private:
 	struct ColliderDesc
 	{
 		Transform* Init;
@@ -84,7 +86,7 @@ private:
 		Collider* Collider;
 	} colliders[4];
 	
-
+private:
 	vector<MeshRender *> meshes;
 	vector<ModelRender *> models;
 	vector<ModelAnimator *> animators;
@@ -94,4 +96,7 @@ private:
 
 	vector<Collider*> Colliders;
 	vector<class IWidget*> widgets;
+
+	TrailRenderer* trail;
+	ModelIllusion* illusion;
 };

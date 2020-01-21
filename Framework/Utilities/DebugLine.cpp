@@ -103,5 +103,5 @@ DebugLine::~DebugLine()
 
 	SafeDelete(transform);
 	SafeDelete(perFrame);
-	//SafeDelete(shader);
+	SafeDelete(shader);
 }

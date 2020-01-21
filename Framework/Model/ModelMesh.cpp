@@ -3,12 +3,12 @@
 
 ModelBone::ModelBone()
 {
-	transform = new Transform();
+	editTransform = new Transform();
 }
 
 ModelBone::~ModelBone()
 {
-	SafeDelete(transform);
+	SafeDelete(editTransform);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,14 +29,14 @@ ModelMesh::~ModelMesh()
 	SafeDelete(indexBuffer);
 
 	SafeDelete(boneBuffer);
-	SafeDelete(material);
+	//SafeDelete(material);
 
 	SafeRelease(transformsSRV);
 	SafeRelease(sTransformsSRV);
 	SafeRelease(boneTransformsSRV);
 	SafeRelease(sBoneTransformsSRV);
-	SafeRelease(animGlobalSRV);
-	SafeRelease(sAnimGlobalSRV);
+	SafeRelease(animEditSRV);
+	SafeRelease(sAnimEditSRV);
 }
 
 void ModelMesh::Binding(Model * model)
@@ -60,7 +60,7 @@ void ModelMesh::SetShader(Shader * shader)
 
 	sTransformsSRV = shader->AsSRV("TransformsMap");
 	sBoneTransformsSRV = shader->AsSRV("BoneTransformsMap");
-	sAnimGlobalSRV = shader->AsSRV("AnimationGlobalTransformMap");
+	sAnimEditSRV = shader->AsSRV("AnimEditTransformMap");
 }
 
 void ModelMesh::Update()
@@ -84,8 +84,8 @@ void ModelMesh::Render(UINT drawCount)
 	if (boneTransformsSRV != NULL)
 		sBoneTransformsSRV->SetResource(boneTransformsSRV);
 
-	if (animGlobalSRV != NULL)
-		sAnimGlobalSRV->SetResource(animGlobalSRV);
+	if (animEditSRV != NULL)
+		sAnimEditSRV->SetResource(animEditSRV);
 
 
 	vertexBuffer->Render();
@@ -105,8 +105,8 @@ void ModelMesh::BoneTransformsSRV(ID3D11ShaderResourceView* boneSrv)
 	boneTransformsSRV = boneSrv;
 }
 
-void ModelMesh::AnimGlobalsSrv(ID3D11ShaderResourceView * globalSrv)
+void ModelMesh::AnimEditSrv(ID3D11ShaderResourceView * editSrv)
 {
-	animGlobalSRV = globalSrv;
+	animEditSRV = editSrv;
 
 }

@@ -31,6 +31,11 @@ public:
 	Transform* GetTransform(UINT instance) { return transforms[instance]; }
 	virtual Matrix GetboneWorld(UINT instance, UINT boneIndex) = 0;
 
+public:
+	//Shader* GetShader() { return shader; }
+	ID3D11ShaderResourceView* GetBoneSrv() { return boneSrv; }
+	ID3D11ShaderResourceView* GetTransformSrv() { return srv; }
+
 protected:
 	void AddTransform();
 	virtual void CreateTexture() = 0;
@@ -55,14 +60,14 @@ public:
 public:
 	void ReadMaterial(wstring file, wstring directoryPath = L"../../_Textures/");
 	void ReadMesh(wstring file, wstring directoryPath = L"../../_Models/");
-	void AddSocket(int parentBoneIndex, wstring bonename = L"");
+	void AddSocket(int parentBoneIndex, wstring socketName = L"");
 
 private:
 	void BindBone();
 	void BindMesh();
 
 private:
-	void CreateBuffer();
+	void CreateBoneBuffer();
 
 private:
 	vector<Material *> materials;

@@ -115,6 +115,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "040", "040", "{13B5923E-661
 		_Shaders\048_Frustum.fx = _Shaders\048_Frustum.fx
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effect", "Effect", "{A54CC457-CDB6-43DC-97B4-04179324A1C4}"
+	ProjectSection(SolutionItems) = preProject
+		_Shaders\Effect\Illusion.fx = _Shaders\Effect\Illusion.fx
+		_Shaders\Effect\TrailEffect.fx = _Shaders\Effect\TrailEffect.fx
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -144,6 +150,7 @@ Global
 		{D0B655A5-2734-4300-8075-9ACDCFD744A5} = {6EEA8452-5781-471C-8346-675D4685B85A}
 		{33EE8730-BD58-418D-B5FB-C5BCC482A1C6} = {6EEA8452-5781-471C-8346-675D4685B85A}
 		{13B5923E-6619-4CA4-B8F6-01E9E87CED2F} = {6EEA8452-5781-471C-8346-675D4685B85A}
+		{A54CC457-CDB6-43DC-97B4-04179324A1C4} = {6EEA8452-5781-471C-8346-675D4685B85A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {50571E8E-9188-42A1-B8AF-8C0AFAC06065}

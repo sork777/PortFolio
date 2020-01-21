@@ -3,6 +3,12 @@
 #include "WidgetUtility/DragDrop.h"
 #include "WidgetUtility/IconProvider.h"
 
+struct Content
+{
+	Item* item;
+	vector<Content*> childs;
+};
+
 class Widget_Contents : public IWidget
 {
 public:

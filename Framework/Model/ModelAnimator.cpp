@@ -11,20 +11,18 @@ ModelAnimator::ModelAnimator(Shader * shader)
 
 	computeShader = new Shader(L"030_Collider.fx");
 	
-	sSrv = computeShader->AsSRV("Input");
 	sUav = computeShader->AsUAV("Output");
 	sComputeFrameBuffer = computeShader->AsConstantBuffer("CB_AnimationFrame");
 }
 
 ModelAnimator::~ModelAnimator()
 {
-	SafeDelete(computeShader);
-	SafeDelete(computeBuffer);
+	SafeRelease(editTexture);
 	SafeRelease(sComputeFrameBuffer);
 	SafeRelease(sUav);
-	SafeRelease(sSrv);
+	SafeDelete(computeBuffer);
 	SafeDelete(csOutput);
-	SafeDelete(csInput);
+	SafeDelete(computeShader);
 
 	for (ModelClip* clip : clips)
 		SafeDelete(clip);
@@ -32,14 +30,12 @@ ModelAnimator::~ModelAnimator()
 	SafeDelete(frameBuffer);
 	SafeDeleteArray(clipTransforms);
 
-	SafeDelete(globalTex);
 }
 
-void ModelAnimator::Update(UINT instance,bool bPlay)
+void ModelAnimator::Update(UINT instance)
 {
 	Super::Update();
-	if (bPlay)
-		PlayAnim(instance);
+	PlayAnim(instance);
 }
 
 void ModelAnimator::Render()
@@ -48,9 +44,9 @@ void ModelAnimator::Render()
 	{
 		CreateComputeDesc();
 	}
-	if(globalTex == NULL)
+	if(editTexture == NULL)
 	{
-		CreateGlobalAnimTexture();
+		CreateAnimEditTexture();
 	}
 
 
@@ -63,8 +59,7 @@ void ModelAnimator::Render()
 		sComputeFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
 
 		computeShader->AsSRV("TransformsMap")->SetResource(srv);
-		computeShader->AsSRV("AnimationGlobalTransformMap")->SetResource(globalSrv);
-		sSrv->SetResource(computeBuffer->SRV());
+		computeShader->AsSRV("AnimEditTransformMap")->SetResource(editSrv);
 		sUav->SetUnorderedAccessView(computeBuffer->UAV());
 
 		computeShader->Dispatch(0, 0, GetInstSize(), 1, 1);
@@ -341,7 +336,6 @@ ModelClip * ModelAnimator::ClipByName(wstring name)
 void ModelAnimator::CreateTexture()
 {
 	clipTransforms = new ClipTransform[MAX_ANIMATION_CLIPS];
-	boneAinTransforms = new ClipTransform[MAX_ANIMATION_CLIPS];
 	for (UINT i = 0; i < ClipCount(); i++)
 		CreateClipTransform(i);
 	for (UINT i =  ClipCount();i< MAX_ANIMATION_CLIPS; i++)
@@ -422,12 +416,10 @@ void ModelAnimator::CreateClipTransform(UINT index)
 			ModelBone* bone = BoneByIndex(b);
 
 			Matrix parent;
-			//Matrix invGlobal = bone->BoneWorld();
 			///* 
 			//	1. 애니메이션에서 역행렬로 들어옴 
 			//	2. 키프레임 데이터는 로컬임. 그래서 부모 본을 곱해주려는것
 			//*/
-			//D3DXMatrixInverse(&invGlobal, NULL, &invGlobal);
 
 			int parentIndex = bone->ParentIndex();
 			if (parentIndex < 0)
@@ -444,8 +436,6 @@ void ModelAnimator::CreateClipTransform(UINT index)
 				Matrix S, R, T;
 				D3DXMatrixScaling(&S, data.Scale.x, data.Scale.y, data.Scale.z);
 				D3DXMatrixRotationQuaternion(&R, &data.Rotation);
-			
-
 				D3DXMatrixTranslation(&T, data.Translation.x, data.Translation.y, data.Translation.z);
 
 				animation = S * R * T;
@@ -458,7 +448,21 @@ void ModelAnimator::CreateClipTransform(UINT index)
 				bones[b] = parent;
 				//clipTransforms[index].Transform[f][b] = bone->BoneWorld()*bones[b];
 			}
-				clipTransforms[index].Transform[f][b] = bones[b];
+			Matrix S,R,T,result;
+			Vector3 scale, pos;
+			Quaternion Q;
+			D3DXMatrixDecompose(&scale, &Q, &pos, &bones[b]);
+			D3DXMatrixScaling(&S, scale.x, scale.y, scale.z);
+			D3DXMatrixRotationQuaternion(&R, &Q);
+			D3DXMatrixTranslation(&T, pos.x, pos.y, pos.z);
+			result = R * T;
+			result._14 = scale.x;
+			result._24 = scale.y;
+			result._34 = scale.z;
+
+			clipTransforms[index].Transform[f][b] = result;
+
+			//clipTransforms[index].Transform[f][b] = bones[b];
 		}//for(b)
 	}//for(f)
 }
@@ -493,13 +497,16 @@ void ModelAnimator::CreateComputeDesc()
 
 #pragma region 애니메이션 클립 변화 텍스쳐 생성 및 변화 구현 영역
 
-void ModelAnimator::CreateGlobalAnimTexture()
+void ModelAnimator::CreateAnimEditTexture()
 {
 	// 해당 버퍼가 애니메이션의 변화를 담당한다.
 	// 기본 값은 identity
 	for (UINT b = 0; b < BoneCount(); b++)
 		for (UINT c = 0; c < MAX_ANIMATION_CLIPS; c++)
-			D3DXMatrixIdentity(&animGlobalTrans[c][b]);
+		{
+			D3DXMatrixIdentity(&animEditTrans[c][b]);
+			animEditTrans[c][b]._14 = animEditTrans[c][b]._24 = animEditTrans[c][b]._34 = 1;
+		}
 
 	//CreateTexture
 	{
@@ -515,17 +522,17 @@ void ModelAnimator::CreateGlobalAnimTexture()
 		desc.SampleDesc.Count = 1;
 
 		D3D11_SUBRESOURCE_DATA subResource;
-		subResource.pSysMem = animGlobalTrans;
+		subResource.pSysMem = animEditTrans;
 		subResource.SysMemPitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix);
 		subResource.SysMemSlicePitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix)*MAX_ANIMATION_CLIPS;
 
-		Check(D3D::GetDevice()->CreateTexture2D(&desc, &subResource, &globalTex));
+		Check(D3D::GetDevice()->CreateTexture2D(&desc, &subResource, &editTexture));
 	}
 
 	//Create SRV
 	{
 		D3D11_TEXTURE2D_DESC desc;
-		globalTex->GetDesc(&desc);
+		editTexture->GetDesc(&desc);
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		ZeroMemory(&srvDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
@@ -533,16 +540,16 @@ void ModelAnimator::CreateGlobalAnimTexture()
 		srvDesc.Texture2D.MipLevels = 1;
 		srvDesc.Format = desc.Format;
 
-		Check(D3D::GetDevice()->CreateShaderResourceView(globalTex, &srvDesc, &globalSrv));
+		Check(D3D::GetDevice()->CreateShaderResourceView(editTexture, &srvDesc, &editSrv));
 	}
 
 	for (ModelMesh* mesh : Meshes())
-		mesh->AnimGlobalsSrv(globalSrv);
+		mesh->AnimEditSrv(editSrv);
 }
 
 void ModelAnimator::UpdateBoneTransform(UINT part, UINT clipID, Transform* transform)
 {
-	if (globalTex == NULL || bonebuffer == NULL)
+	if (editTexture == NULL || bonebuffer == NULL)
 		return;
 	//클립 변화로 인한 본들의 위치 변화 재계산을 위해 CS를 다시 실행
 	bChangeCS = true;
@@ -552,8 +559,18 @@ void ModelAnimator::UpdateBoneTransform(UINT part, UINT clipID, Transform* trans
 	Matrix trans = transform->World();
 	bone->GetTransform()->Local(trans);
 	Matrix global = bone->GetTransform()->World();
-
-	animGlobalTrans[clipID][part] = global;
+	Matrix S, R, T, result;
+	Vector3 scale, pos;
+	Quaternion Q;
+	D3DXMatrixDecompose(&scale, &Q, &pos, &global);
+	D3DXMatrixScaling(&S, scale.x, scale.y, scale.z);
+	D3DXMatrixRotationQuaternion(&R, &Q);
+	D3DXMatrixTranslation(&T, pos.x, pos.y, pos.z);
+	result = R * T;
+	result._14 = scale.x;
+	result._24 = scale.y;
+	result._34 = scale.z;
+	animEditTrans[clipID][part] = result;
 	for (ModelBone* child : bone->Childs())
 	{
 		UpdateChildBones(part, child->Index(), clipID);// , transform);
@@ -572,10 +589,10 @@ void ModelAnimator::UpdateBoneTransform(UINT part, UINT clipID, Transform* trans
 	/* 업데이트 */
 	D3D::GetDC()->UpdateSubresource
 	(
-		globalTex,
+		editTexture,
 		0,
 		&destRegion,
-		animGlobalTrans[clipID],
+		animEditTrans[clipID],
 		sizeof(Matrix)*MAX_MODEL_TRANSFORMS,
 		0
 	);
@@ -587,7 +604,18 @@ void ModelAnimator::UpdateChildBones(UINT parentID, UINT childID, UINT clipID)
 
 	bone->GetTransform()->Update();
 	Matrix global = bone->GetTransform()->World();
-	animGlobalTrans[clipID][childID] = global;
+	Matrix S, R, T, result;
+	Vector3 scale, pos;
+	Quaternion Q;
+	D3DXMatrixDecompose(&scale, &Q, &pos, &global);
+	D3DXMatrixScaling(&S, scale.x, scale.y, scale.z);
+	D3DXMatrixRotationQuaternion(&R, &Q);
+	D3DXMatrixTranslation(&T, pos.x, pos.y, pos.z);
+	result = R * T;
+	result._14 = scale.x;
+	result._24 = scale.y;
+	result._34 = scale.z;
+	animEditTrans[clipID][childID] = result;
 	for (ModelBone* child : bone->Childs())
 	{
 		UpdateChildBones(childID, child->Index(), clipID);

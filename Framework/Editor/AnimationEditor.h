@@ -1,4 +1,6 @@
 #pragma once
+#include "IEditor.h"
+
 /*
 에디터 외부에 있는 액터들 목록 중에서
 액터(모델)을 하나 받음
@@ -15,17 +17,20 @@ TODO: 저장 정보는?
 액터의 정보가 변경되는거니까 액터를 저장하면 될까?
 */
 
-class AnimationEditor
+class AnimationEditor :public IEditor
 {
 public:
 	AnimationEditor();
 	~AnimationEditor();
 
-	void Destroy();
-	void Update();
-	void PreRender();
-	void Render();
-	void PostRender();
+	// IEditor을(를) 통해 상속됨
+	virtual void Initialize() override;
+	virtual void Destroy() override;
+
+	virtual void Update() override;
+	virtual void PreRender() override;
+	virtual void Render() override;
+	virtual void PostRender() override;
 
 private:
 	void ImGUIController();
@@ -33,7 +38,6 @@ private:
 
 private:
 	void SelectedPartsViewer();
-	void ModelsViewer();
 
 	void PartsViewer();
 	void ChildViewer(ModelBone * bone);
@@ -43,9 +47,9 @@ private:
 
 	void AddAnimation();
 	void ModelAttach();
+
 private:
 	int selectedFrame = 0;
-	int selectedModel = 0;
 	int selected = 0;
 	bool bPlay = false;
 
@@ -53,5 +57,9 @@ private:
 	UINT clip = 0;
 	UINT instance = 0;
 	float takeTime = 1.0f;
+
+private:
+	ModelAnimator* mainModel;
+
 };
 

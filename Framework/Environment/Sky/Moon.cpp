@@ -73,7 +73,7 @@ D3DXMATRIX Moon::GetTransform(float theta)
 	Matrix S, R, T, D;
 	D3DXMatrixScaling(&S, 50, 50, 1);
 	D3DXMatrixRotationYawPitchRoll(&R, Math::PI * 0.5f, theta - (Math::PI * 0.5f), 0);
-	D3DXMatrixTranslation(&T, position.x, position.y+400, position.z);
+	D3DXMatrixTranslation(&T, position.x, position.y, position.z);
 
 	Vector3 direction = Context::Get()->LightDirection();
 	D3DXMatrixTranslation
@@ -95,7 +95,7 @@ D3DXMATRIX Moon::GetGlowTransform(float theta)
 	D3DXMATRIX S, R, T, D;
 	D3DXMatrixScaling(&S, 150, 150, 1);
 	D3DXMatrixRotationYawPitchRoll(&R, Math::PI * 0.5f, theta - (Math::PI * 0.5f), 0);
-	D3DXMatrixTranslation(&T, position.x, position.y+400, position.z);
+	D3DXMatrixTranslation(&T, position.x, position.y, position.z);
 
 	D3DXVECTOR3 direction = Context::Get()->LightDirection();
 	D3DXMatrixTranslation

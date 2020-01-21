@@ -235,20 +235,7 @@
     <ClCompile Include="ScreenSpace\GBuffer.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="Components\Material.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
-    <ClCompile Include="Components\PerFrame.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
-    <ClCompile Include="Components\Renderer.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
-    <ClCompile Include="Components\Transform.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\AnimationEditor.cpp" />
-    <ClCompile Include="Components\Actor\ActorComponent.cpp" />
     <ClCompile Include="Environment\Sky\Atmosphere.cpp">
       <Filter>Environment\Sky</Filter>
     </ClCompile>
@@ -261,6 +248,21 @@
     <ClCompile Include="Environment\Sky\Scattering.cpp">
       <Filter>Environment\Sky</Filter>
     </ClCompile>
+    <ClCompile Include="Components\Base\Material.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Base\PerFrame.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Base\Renderer.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Base\Transform.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Effect\TrailRenderer.cpp" />
+    <ClCompile Include="Objects\Actor\ActorComponent.cpp" />
+    <ClCompile Include="Effect\ModelIllusion.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -561,20 +563,7 @@
     <ClInclude Include="ScreenSpace\GBuffer.h">
       <Filter>Objects</Filter>
     </ClInclude>
-    <ClInclude Include="Components\Material.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\PerFrame.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\Renderer.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\Transform.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
     <ClInclude Include="Editor\AnimationEditor.h" />
-    <ClInclude Include="Components\Actor\ActorComponent.h" />
     <ClInclude Include="Environment\Sky\Atmosphere.h">
       <Filter>Environment\Sky</Filter>
     </ClInclude>
@@ -587,5 +576,21 @@
     <ClInclude Include="Environment\Sky\Scattering.h">
       <Filter>Environment\Sky</Filter>
     </ClInclude>
+    <ClInclude Include="Components\Base\Material.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Base\PerFrame.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Base\Renderer.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Base\Transform.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\IEditor.h" />
+    <ClInclude Include="Effect\TrailRenderer.h" />
+    <ClInclude Include="Objects\Actor\ActorComponent.h" />
+    <ClInclude Include="Effect\ModelIllusion.h" />
   </ItemGroup>
 </Project>

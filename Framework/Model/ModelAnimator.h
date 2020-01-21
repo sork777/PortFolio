@@ -6,14 +6,44 @@ enum class AnimationState
 	Play,
 	Pause
 };
+struct KeyframeDesc
+{
+	int Clip = 0;
 
+	UINT CurrFrame = 0;
+	UINT NextFrame = 0;
+
+	float Time = 0.0f;
+	float RunningTime = 0.0f;
+
+	float Speed = 1.0f;
+
+	Vector2 Padding;
+}; //keyframeDesc;
+
+struct TweenDesc
+{
+	float TakeTime = 1.0f;
+	float TweenTime = 0.0f;
+	float RunningTime = 0.0f;
+	float Padding;
+
+	KeyframeDesc Curr;
+	KeyframeDesc Next;
+
+	TweenDesc()
+	{
+		Curr.Clip = 0;
+		Next.Clip = -1;
+	}
+};
 class ModelAnimator : public Model
 {
 public:
 	ModelAnimator(Shader* shader);
 	~ModelAnimator();
 
-	void Update(UINT instance=-1,bool bPlay=true);
+	void Update(UINT instance=-1);
 	virtual void Render() override;
 
 public:
@@ -31,6 +61,7 @@ public:
 public:
 	void PlayAnim(UINT instance=-1);
 	void PlayClip(UINT instance, UINT clip, float speed = 1.0f, float takeTime = 1.0f);
+	TweenDesc GetCurrTween(UINT instance) { return tweenDesc[instance]; }
 	UINT GetCurrClip(UINT instance) { return tweenDesc[instance].Curr.Clip; }
 	UINT GetCurrFrame(UINT instance) { return tweenDesc[instance].Curr.CurrFrame; }
 	void SetFrame(UINT instance, int frameNum);
@@ -70,42 +101,10 @@ private:
 		}
 	};
 	ClipTransform* clipTransforms = NULL;
-	ClipTransform* boneAinTransforms = NULL;
 
 	vector<ModelClip *> clips;
 private:
-	struct KeyframeDesc
-	{
-		int Clip = 0;
-
-		UINT CurrFrame = 0;
-		UINT NextFrame = 0;
-
-		float Time = 0.0f;
-		float RunningTime = 0.0f;
-
-		float Speed = 1.0f;
-
-		Vector2 Padding;
-	}; //keyframeDesc;
-
-	struct TweenDesc
-	{
-		float TakeTime = 1.0f;
-		float TweenTime = 0.0f;
-		float RunningTime = 0.0f;
-		float Padding;
-
-		KeyframeDesc Curr;
-		KeyframeDesc Next;
-
-		TweenDesc()
-		{
-			Curr.Clip = 0;
-			Next.Clip = -1;
-		}
-	} tweenDesc[MAX_MODEL_INSTANCE];
-
+	
 	struct InstState
 	{
 		AnimationState state;
@@ -116,16 +115,12 @@ private:
 			bPlay = true;
 		}
 	};
+	TweenDesc tweenDesc[MAX_MODEL_INSTANCE];
 	ConstantBuffer* frameBuffer;
 	ID3DX11EffectConstantBuffer* sFrameBuffer;
 
 	vector<InstState*> states;
 private:
-	struct CS_InputDesc
-	{
-		Matrix Bone;
-	};
-
 	struct CS_OutputDesc
 	{
 		Matrix Result;
@@ -135,12 +130,10 @@ private:
 	Shader* computeShader;
 	StructuredBuffer* computeBuffer = NULL;
 
-	CS_InputDesc* csInput = NULL;
 	CS_OutputDesc* csOutput = NULL;
 	
 	ID3DX11EffectConstantBuffer* sComputeFrameBuffer;
 
-	ID3DX11EffectShaderResourceVariable* sSrv;
 	ID3DX11EffectUnorderedAccessViewVariable* sUav;
 	bool bChangeCS=true;
 
@@ -149,15 +142,16 @@ private:
 public:
 	void UpdateBoneTransform(UINT part, UINT clipID, Transform* transform);
 	void UpdateChildBones(UINT parentID, UINT childID, UINT clipID);
+	ID3D11ShaderResourceView* GetEditSrv() { return editSrv; }
 
 private:
-	void CreateGlobalAnimTexture();
+	void CreateAnimEditTexture();
 
 private:
 	// 애니메이션의 글로벌 변화
 	// 최종적으로 클립 저장시 곱해서 변화된 애를 저장할 것.
-	ID3D11Texture2D* globalTex = NULL;
-	ID3D11ShaderResourceView* globalSrv;
-	Matrix animGlobalTrans[MAX_ANIMATION_CLIPS][MAX_MODEL_TRANSFORMS];
+	ID3D11Texture2D* editTexture = NULL;
+	ID3D11ShaderResourceView* editSrv;
+	Matrix animEditTrans[MAX_ANIMATION_CLIPS][MAX_MODEL_TRANSFORMS];
 #pragma endregion
 };
