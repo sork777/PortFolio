@@ -22,7 +22,7 @@ void Material::Initialize()
 	diffuseMap = NULL;
 	specularMap = NULL;
 	normalMap = NULL;
-
+	
 	buffer = new ConstantBuffer(&colorDesc, sizeof(ColorDesc));
 }
 
@@ -70,6 +70,37 @@ void Material::Render()
 
 bool Material::Property()
 {
+	int itemSize = 60;
+
+	auto MapButton =[&](Texture* tex,string name,function<void(string,string)> func)
+	{
+		ImGui::PushID(name.c_str());
+
+		Item* item;
+		ID3D11ShaderResourceView* srv = NULL;
+		if(tex!=NULL)
+			srv = tex->SRV();
+		ImGui::ImageButton(srv, ImVec2(itemSize, itemSize));
+
+		{
+			item = DragDrop::GetDragDropPayload_Item(DragDropPayloadType::Texture);
+			if (item != NULL)
+			{
+				string dir = Path::GetDirectoryName(item->filePath);
+				string file = Path::GetFileName(item->filePath);
+				func(file, dir);
+			}
+		}
+		ImGui::PopID();
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 20);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + itemSize*0.5f);
+
+		ImGui::TextWrapped(name.c_str());
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() - itemSize*0.5f);
+		
+	};
+
 	bool bChange = false;
 	{
 		ImGui::PushID(this);
@@ -79,42 +110,14 @@ bool Material::Property()
 		ImGui::ColorEdit4("Diffuse", (float*)colorDesc.Diffuse);
 		ImGui::ColorEdit4("Specular", (float*)colorDesc.Specular);
 		ImGui::ColorEdit4("Emissive", (float*)colorDesc.Emissive);
-
-		ImGui::ImageButton(diffuseMap->SRV(), ImVec2(50, 50));
-		Item* item;
+		
 		{
-			item = DragDrop::GetDragDropPayload_Item(DragDropPayloadType::Texture);
-			if (item != NULL)
-			{
-				string dir = Path::GetDirectoryName(item->filePath);
-				string file = Path::GetFileName(item->filePath);
-				DiffuseMap(file, dir);
-			}
-		}
 
-		ImGui::SameLine();
-
-		ImGui::ImageButton(specularMap->SRV(), ImVec2(50, 50));
-		{
-			item = DragDrop::GetDragDropPayload_Item(DragDropPayloadType::Texture);
-			if (item != NULL)
-			{
-				string dir = Path::GetDirectoryName(item->filePath);
-				string file = Path::GetFileName(item->filePath);
-				SpecularMap(file, dir);
-			}
+			MapButton(diffuseMap, "DiffuseMap", bind(&Material::LoadDiffuseMap, this, placeholders::_1, placeholders::_2));
+			MapButton(specularMap, "SpeculatMap", bind(&Material::LoadSpecularMap, this, placeholders::_1, placeholders::_2));
+			MapButton(normalMap, "NormalMap", bind(&Material::LoadNormalMap, this, placeholders::_1, placeholders::_2));
 		}
-		ImGui::SameLine();
-		ImGui::ImageButton(normalMap->SRV(), ImVec2(50, 50));
-		{
-			item = DragDrop::GetDragDropPayload_Item(DragDropPayloadType::Texture);
-			if (item != NULL)
-			{
-				string dir = Path::GetDirectoryName(item->filePath);
-				string file = Path::GetFileName(item->filePath);
-				NormalMap(file, dir);
-			}
-		}
+		//ImGui::SameLine();
 		ImGui::PopID();
 	}
 
@@ -163,41 +166,39 @@ void Material::Emissive(float r, float g, float b, float a)
 	Emissive(Color(r, g, b, a));
 }
 
-void Material::DiffuseMap(string file, string dir)
+void Material::LoadDiffuseMap(string file, string dir)
 {
-	DiffuseMap(String::ToWString(file), String::ToWString(dir));
+	LoadDiffuseMapW(String::ToWString(file), String::ToWString(dir));
 }
 
-void Material::DiffuseMap(wstring file, wstring dir)
+void Material::LoadDiffuseMapW(wstring file, wstring dir)
 {
 	SafeDelete(diffuseMap);
 
 	diffuseMap = new Texture(file, dir);
 }
 
-void Material::SpecularMap(string file, string dir)
+void Material::LoadSpecularMap(string file, string dir)
 {
-	SpecularMap(String::ToWString(file), String::ToWString(dir));
+	LoadSpecularMapW(String::ToWString(file), String::ToWString(dir));
 }
 
-void Material::SpecularMap(wstring file, wstring dir)
+void Material::LoadSpecularMapW(wstring file, wstring dir)
 {
 	SafeDelete(specularMap);
 
 	specularMap = new Texture(file, dir);
 }
 
-void Material::NormalMap(string file, string dir)
+void Material::LoadNormalMap(string file, string dir)
 {
-	NormalMap(String::ToWString(file), String::ToWString(dir));
+	LoadNormalMapW(String::ToWString(file), String::ToWString(dir));
 }
 
-void Material::NormalMap(wstring file, wstring dir)
+void Material::LoadNormalMapW(wstring file, wstring dir)
 {
 	SafeDelete(normalMap);
 
 	normalMap = new Texture(file,dir);
 }
-
-
 #pragma endregion

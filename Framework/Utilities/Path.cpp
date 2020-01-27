@@ -168,12 +168,12 @@ bool Path::IsSupportMapFile(wstring path)
 
 #pragma region 파일존재여부확인영역
 
-void Path::GetDirectoryHierarchy(string path, DirectoryHierarchy * parent)
+void Path::GetDirectoryHierarchy(string path, DirectoryNode * parent)
 {
 	GetDirectoryHierarchy(String::ToWString(path), parent);
 }
 
-void Path::GetDirectoryHierarchy(wstring path, DirectoryHierarchy * parent)
+void Path::GetDirectoryHierarchy(wstring path, DirectoryNode * parent)
 {
 	if (!ExistDirectory(path))
 		return;
@@ -193,7 +193,7 @@ void Path::GetDirectoryHierarchy(wstring path, DirectoryHierarchy * parent)
 				if (findData.cFileName[0] != '.')
 				{
 					wstring folder = path + wstring(findData.cFileName) + L"/";
-					DirectoryHierarchy node;
+					DirectoryNode node;
 					GetDirectoryHierarchy(folder, &node);
 
 					parent->Children.emplace_back(node);
@@ -371,6 +371,22 @@ wstring Path::GetFileNameWithoutExtension(wstring path)
 
 	size_t index = fileName.find_last_of('.');
 	return fileName.substr(0, index);
+}
+
+string Path::GetFilePathWithoutExtension(string path)
+{
+	String::Replace(&path, "\\", "/");
+	size_t index = path.find_last_of('.');
+
+	return path.substr(0, index);
+}
+
+wstring Path::GetFilePathWithoutExtension(wstring path)
+{
+	String::Replace(&path, L"\\", L"/");
+	size_t index = path.find_last_of('.');
+
+	return path.substr(0, index);
 }
 
 #pragma endregion

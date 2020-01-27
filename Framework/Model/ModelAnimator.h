@@ -1,11 +1,5 @@
 #pragma once
 
-enum class AnimationState
-{
-	Stop,
-	Play,
-	Pause
-};
 struct KeyframeDesc
 {
 	int Clip = 0;
@@ -47,8 +41,8 @@ public:
 	virtual void Render() override;
 
 public:
-	virtual void AddInstance() override;
-	virtual void DelInstance(UINT instance) override;
+	/*virtual void AddInstance() override;
+	virtual void DelInstance(UINT instance) override;*/
 	
 public:	
 	virtual Matrix GetboneWorld(UINT instance, UINT boneIndex) override;
@@ -56,6 +50,8 @@ public:
 public:	
 	void AddClip(wstring file, wstring directoryPath = L"../../_Models/");
 	void ReadClip(wstring file, wstring directoryPath = L"../../_Models/");
+	void SaveChangedClip(UINT clip, wstring file, wstring directoryPath = L"../../_Models/", bool bOverwrite=false);
+
 	void AddSocket(int parentBoneIndex, wstring bonename = L"");
 
 public:
@@ -105,21 +101,11 @@ private:
 	vector<ModelClip *> clips;
 private:
 	
-	struct InstState
-	{
-		AnimationState state;
-		bool bPlay;
-		InstState()
-		{
-			state = AnimationState::Play;
-			bPlay = true;
-		}
-	};
+	
 	TweenDesc tweenDesc[MAX_MODEL_INSTANCE];
 	ConstantBuffer* frameBuffer;
 	ID3DX11EffectConstantBuffer* sFrameBuffer;
 
-	vector<InstState*> states;
 private:
 	struct CS_OutputDesc
 	{

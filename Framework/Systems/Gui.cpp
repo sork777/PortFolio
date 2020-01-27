@@ -187,10 +187,12 @@ void Gui::RenderGUITexture(Vector2 position, Vector2 size, D3DXCOLOR color, Text
 	RenderGUITexture(text);
 }
 
-void Gui::SetGizmo(Transform * selectedTransform, class Transform* vTransform)
+void Gui::SetGizmo(Transform * selectedTransform, class Transform* vTransform, bool bReverse)
 {	
 	this->selectedTransform = selectedTransform;
 	this->vTransform = vTransform;
+	//리버스가 true면 변경을 원하는 트랜스폼을 부모로 잡을것.
+	this->bReverse = bReverse;
 }
 
 void Gui::RenderGizmo()
@@ -205,19 +207,30 @@ void Gui::RenderGizmo()
 	if (ImGui::IsKeyPressed(82)) // r
 		operation = ImGuizmo::SCALE;
 
-	Matrix vMatrix,InvMat;
+	Matrix vMatrix,Inv_vMat;
 	Matrix matrix = selectedTransform->World();
+	Matrix rMatrix;
+	//Matrix Inv_Mat;
+	//D3DXMatrixInverse(&Inv_Mat, NULL, &matrix);
+
 	if (vTransform == NULL)
 	{
-		vMatrix = matrix;
-		D3DXMatrixIdentity(&InvMat);
+		rMatrix = matrix;
+		D3DXMatrixIdentity(&Inv_vMat);
 	}
 	else
 	{
-		vTransform->Parent(matrix);
-		vMatrix = vTransform->Local();
-		D3DXMatrixInverse(&InvMat,NULL, &vMatrix);
 		vMatrix = vTransform->World();
+		D3DXMatrixInverse(&Inv_vMat,NULL, &vMatrix);
+		
+		if (bReverse == false)
+		{
+			rMatrix = matrix * vMatrix;
+		}
+		else
+		{
+			rMatrix =  vMatrix* matrix;
+		}
 	}
 
 	float width = D3D::Get()->Width();
@@ -235,9 +248,25 @@ void Gui::RenderGizmo()
 		proj,
 		operation,
 		mode,
-		vMatrix
+		rMatrix
 	);
-	matrix = InvMat * vMatrix;
+
+	if (vTransform == NULL)
+	{
+		matrix = rMatrix;
+	}
+	else
+	{
+		if (bReverse == false)
+		{
+			matrix = rMatrix* Inv_vMat;
+		}
+		else
+		{
+			matrix = Inv_vMat * rMatrix;
+		}
+	}
+
 	selectedTransform->World(matrix);	
 
 	int a = 0;

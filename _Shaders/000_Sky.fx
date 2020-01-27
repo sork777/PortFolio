@@ -1,4 +1,4 @@
-/*static */const float PI = 3.14159265f;
+///*static */const float PI = 3.14159265f;
 /*static */const float InnerRadius = 6356.7523142f;
 /*static */const float OuterRadius = 6356.7523142f * 1.0157313f;
 

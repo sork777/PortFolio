@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef _DEBUG
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+#endif
+
 #include <Windows.h>
 #include <assert.h>
 
@@ -90,12 +94,13 @@ typedef D3DXPLANE Plane;
 #include "Renders/Texture.h"
 #include "Renders/VertexLayouts.h"
 #include "Renders/Context.h"
+#include "Renders/Renderer.h"
 
 #include "Components/BaseComponent.h"	
 #include "Components/Base/Material.h"	
 #include "Components/Base/PerFrame.h"
 #include "Components/Base/Transform.h"
-#include "Components/Base/Renderer.h"
+#include "Components/Base/Collider.h"
 
 #include "Utilities/DebugLine.h"
 #include "Utilities/Math.h"
@@ -111,15 +116,6 @@ typedef D3DXPLANE Plane;
 #include "Meshes/MeshCylinder.h"
 #include "Meshes/MeshSphere.h"
 
-#include "Objects/Collider.h"
-#include "Objects/Shadow.h"
-#include "Objects/Light.h"
-
-#include "ScreenSpace/Render2D.h"
-#include "ScreenSpace/GBuffer.h"
-#include "ScreenSpace/SSAO.h"
-#include "ScreenSpace/SSLR.h"
-
 #include "Model/Model.h"
 #include "Model/ModelMesh.h"
 #include "Model/ModelClip.h"
@@ -128,6 +124,14 @@ typedef D3DXPLANE Plane;
 
 #include "Model/Loader/Types.h"
 #include "Model/Loader/Converter.h"
+
+#include "Objects/Shadow.h"
+#include "Objects/Light.h"
+
+#include "ScreenSpace/Render2D.h"
+#include "ScreenSpace/GBuffer.h"
+#include "ScreenSpace/SSAO.h"
+#include "ScreenSpace/SSLR.h"
 
 #include "ImguiWidget/IWidget.h"
 #include "ImguiWidget/Widget_Contents.h"

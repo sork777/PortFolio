@@ -3,10 +3,10 @@
 #include "WidgetUtility/DragDrop.h"
 #include "WidgetUtility/IconProvider.h"
 
-struct Content
+struct ContentNode
 {
 	Item* item;
-	vector<Content*> childs;
+	vector<ContentNode*> childs;
 };
 
 class Widget_Contents : public IWidget
@@ -24,12 +24,15 @@ public:
 private:
 	void ShowItems();
 	void DirectoryViewer();
-	void ChildDirViewer(DirectoryHierarchy * node,int& index);
+	void ChildDirViewer(DirectoryNode * node,int& index);
 
 private:
-	void UpdateItems(const string& path);
+	void InitailizeNode(ContentNode* root);
 	void SelectIconFromFile(const string& path);
+
+	void UpdateItems(const string& path);
 	DragDropPayloadType GetPayloadType(IconType& type);
+
 private:
 	function<void(wstring)> ImportFunc = NULL;
 private:
@@ -41,7 +44,8 @@ private:
 	
 	int selectedDirectory=0;
 
-	DirectoryHierarchy dirHierarchyRoot;
+	DirectoryNode dirHierarchyRoot;
+	ContentNode* contentsRoot;
 	vector<struct Item> items;
 	vector<struct Item> icons;
 	vector< DragDropPayloadType> MovableTypes;

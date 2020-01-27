@@ -20,8 +20,8 @@ private:
 private:
 	void ImGUIController();
 	void AnimationController();
-	void NotifyController();
 
+	void AddClip(wstring name);
 private:
 	void SelectedPartsViewer();
 	void ModelsViewer();
@@ -35,7 +35,6 @@ private:
 
 	void ModelLoad();
 	void AddAnimation();
-	void ModelAttach();
 	void ImportModel(wstring path=L"");
 private:
 	

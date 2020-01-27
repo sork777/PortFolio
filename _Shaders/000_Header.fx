@@ -17,12 +17,19 @@ cbuffer CB_World
 Texture2D DiffuseMap;
 Texture2D SpecularMap;
 Texture2D NormalMap;
+Texture2D LoughMetalMap;
 Texture2D DisplaceMentMap;
 //중요 2D로 하면 샘플링 안됨
 TextureCube SkyCubeMap;
 /* DSV에 대한 SRV가 들어올거임 */ 
 Texture2D ShadowMap;
 
+//=============================================================================================
+// [Global Constant]
+//=============================================================================================
+#define PI 3.1415926535897932384626433832795
+#define INV_PI 1.0 / PI
+#define EPSILON 0.00000001
 ///////////////////////////////////////////////////////////////////////////////
 /*                                 States                                    */
 /*           Raster             */
@@ -129,6 +136,25 @@ SamplerState FresnelSampler
     AddressW = CLAMP;
     MaxAnisotropy = 1;    
     ComparisonFunc = Never;
+};
+
+SamplerState BiLinearClampSampler
+{
+    Filter = MIN_MAG_LINEAR_MIP_POINT;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    AddressW = CLAMP;
+    MaxAnisotropy = 16;
+    ComparisonFunc = Always;
+};
+SamplerState TriLinearSampler
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    AddressW = CLAMP;
+    MaxAnisotropy = 16;
+    ComparisonFunc = Always;
 };
 ///////////////////////////////////////////////////////////////////////////////
 /*          Blend            */

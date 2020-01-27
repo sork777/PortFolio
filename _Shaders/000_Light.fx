@@ -2,9 +2,9 @@
 struct MaterialDesc
 {
     float4 Ambient;
+    float4 Emissive;    
     float4 Diffuse;
     float4 Specular;
-    float4 Emissive;    
 };
 
 cbuffer CB_Material
@@ -57,7 +57,7 @@ void ComputeLight(inout MaterialDesc output, float3 normal, float3 wPosition)
     output.Ambient = 0;
     output.Diffuse = 0;
     output.Specular = 0;
-    //output.Emissive = 0;
+    output.Emissive = 0;
     
     float3 direction = -GlobalLight.Direction;  /* 나가는 방향 */
 

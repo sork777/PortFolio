@@ -48,19 +48,19 @@ ModelIllusion::ModelIllusion(Model* model, UINT meshIdx, UINT illusionCount)
 
 
 		if (srcMaterial->DiffuseMap() != NULL)
-			material->DiffuseMap(
+			material->LoadDiffuseMapW(
 				srcMaterial->DiffuseMap()->GetFile(),
 				srcMaterial->DiffuseMap()->GetDir()
 			);
 
 		if (srcMaterial->SpecularMap() != NULL)
-			material->SpecularMap(
+			material->LoadSpecularMapW(
 				srcMaterial->SpecularMap()->GetFile(),
 				srcMaterial->SpecularMap()->GetDir()
 			);
 
 		if (srcMaterial->NormalMap() != NULL)
-			material->NormalMap(
+			material->LoadNormalMapW(
 				srcMaterial->NormalMap()->GetFile(),
 				srcMaterial->NormalMap()->GetDir()
 			);

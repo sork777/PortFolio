@@ -67,19 +67,16 @@ void ModelAnimator::Render()
 		bChangeCS = false;
 	}
 }
-
-void ModelAnimator::AddInstance()
-{
-	Super::AddInstance();
-	InstState* state = new InstState();
-	states.emplace_back(state);
-}
-
-void ModelAnimator::DelInstance(UINT instance)
-{
-	Super::DelInstance(instance);
-	states.erase(states.begin() + instance);
-}
+//
+//void ModelAnimator::AddInstance()
+//{
+//	Super::AddInstance();
+//}
+//
+//void ModelAnimator::DelInstance(UINT instance)
+//{
+//	Super::DelInstance(instance);
+//}
 Matrix ModelAnimator::GetboneWorld(UINT instance, UINT boneIndex)
 {
 
@@ -106,7 +103,7 @@ void ModelAnimator::ReadClip(wstring file, wstring directoryPath)
 {
 	if (clips.size() >= MAX_ANIMATION_CLIPS)
 		return;
-
+	file = Path::GetFilePathWithoutExtension(file);
 	file = directoryPath + file + L".clip";
 
 	BinaryReader* r = new BinaryReader();
@@ -125,11 +122,7 @@ void ModelAnimator::ReadClip(wstring file, wstring directoryPath)
 	{
 		ModelKeyframe* keyframe = new ModelKeyframe();
 		keyframe->BoneName = String::ToWString(r->String());
-		int index = keyframe->BoneName.find(L":", 0);
-		if (index >= 0)
-			keyframe->BoneName = keyframe->BoneName.substr(index + 1, keyframe->BoneName.length());
-
-
+		
 		UINT size = r->UInt();
 		if (size > 0)
 		{
@@ -146,6 +139,80 @@ void ModelAnimator::ReadClip(wstring file, wstring directoryPath)
 	SafeDelete(r);
 
 	clips.push_back(clip);
+}
+
+void ModelAnimator::SaveChangedClip(UINT clip, wstring file, wstring directoryPath, bool bOverwrite)
+{
+	//사이즈가 오버플로면
+	if (clip >= clips.size())
+		return;
+
+	file = Path::GetFilePathWithoutExtension(file);
+	wstring savePath = directoryPath + file + L".clip";
+	if (bOverwrite == false)
+	{
+		if (Path::ExistFile(savePath) == true)
+			return;
+	}
+	
+	Path::CreateFolders(Path::GetDirectoryName(savePath));
+
+	ModelClip* saveclip=clips[clip];
+
+	BinaryWriter* w = new BinaryWriter();
+	w->Open(savePath);
+
+	w->String(String::ToString( saveclip->name));
+	w->Float(saveclip->duration);
+	w->Float(saveclip->frameRate);
+	w->UInt(saveclip->frameCount);
+	
+	UINT keyframesCount = saveclip->keyframeMap.size();
+	w->UInt(keyframesCount);
+
+	for (auto it = saveclip->keyframeMap.begin(); it != saveclip->keyframeMap.end(); it++)
+	{
+		wstring boneName = it->first;
+		w->String(String::ToString(boneName));
+
+		ModelKeyframe* keyframe = it->second;
+		UINT size = keyframe->Transforms.size();
+		w->UInt(size);
+		vector<ModelKeyframeData> datas;
+		ModelBone* bone = BoneByName(boneName);
+		
+		//TODO: 나중 변경
+		Matrix edit = bone->GetTransform()->Local();
+		for (UINT f = 0; f < size; f++)
+		{
+			ModelKeyframeData& data = keyframe->Transforms[f];
+			ModelKeyframeData editedData;
+
+			Matrix S, R, T, W;
+			D3DXMatrixScaling(&S, data.Scale.x, data.Scale.y, data.Scale.z);
+			D3DXMatrixRotationQuaternion(&R, &data.Rotation);
+			D3DXMatrixTranslation(&T, data.Translation.x, data.Translation.y, data.Translation.z);
+				
+			if (bone != NULL)
+			{
+				W = S * R * T * edit;
+			}
+			else
+			{
+				W = S * R * T;
+			}
+			D3DXMatrixDecompose(&editedData.Scale, &editedData.Rotation, &editedData.Translation, &W);
+			editedData.Time	= data.Time;
+			datas.emplace_back(editedData);
+		}
+		if (size > 0)
+		{
+			w->Byte(&datas[0], sizeof(ModelKeyframeData) * datas.size());
+		}
+	}
+
+	w->Close();
+	SafeDelete(w);
 }
 
 void ModelAnimator::AddClip(wstring file, wstring directoryPath)
@@ -559,6 +626,7 @@ void ModelAnimator::UpdateBoneTransform(UINT part, UINT clipID, Transform* trans
 	Matrix trans = transform->World();
 	bone->GetTransform()->Local(trans);
 	Matrix global = bone->GetTransform()->World();
+	// 월드 행렬 분해후 필요한 형태로 재조립해서 넘김
 	Matrix S, R, T, result;
 	Vector3 scale, pos;
 	Quaternion Q;
@@ -573,7 +641,7 @@ void ModelAnimator::UpdateBoneTransform(UINT part, UINT clipID, Transform* trans
 	animEditTrans[clipID][part] = result;
 	for (ModelBone* child : bone->Childs())
 	{
-		UpdateChildBones(part, child->Index(), clipID);// , transform);
+		UpdateChildBones(part, child->Index(), clipID);
 	}
 
 	D3D11_BOX destRegion;

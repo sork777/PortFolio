@@ -9,7 +9,7 @@ OceanWater::OceanWater(Shader * shader, UINT width, UINT height, float thick, Te
 	material->Ambient(Color(0.25f, 0.20f, 1.0f, 1.0f));
 	material->Diffuse(Color(0.600f, 0.721f, 0.937f, 0.627f));
 	material->Specular(Color(1, 1, 1, 500));
-	material->NormalMap(L"Environment/WaveNormal.png");
+	material->LoadNormalMapW(L"Environment/WaveNormal.png");
 
 	sMap = shader->AsSRV("HeightMap");
 

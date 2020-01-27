@@ -7,6 +7,7 @@ enum class BaseCompType
 	Renderer,
 	Transform,
 	Material,
+	MaterialPBR,
 	PerFrame,
 };
 

@@ -1,10 +1,10 @@
 #pragma once
 
-struct DirectoryHierarchy
+struct DirectoryNode
 {
 	wstring DirectoryPath;
 	wstring DirectoryName;
-	vector< DirectoryHierarchy> Children;
+	vector< DirectoryNode> Children;
 };
 class Path
 {
@@ -41,8 +41,8 @@ public:
 	static bool IsSupportMapFile(wstring path);
 
 public:
-	static void GetDirectoryHierarchy(string path, DirectoryHierarchy* parent);
-	static void GetDirectoryHierarchy(wstring path, DirectoryHierarchy* parent);
+	static void GetDirectoryHierarchy(string path, DirectoryNode* parent);
+	static void GetDirectoryHierarchy(wstring path, DirectoryNode* parent);
 
 	static bool IsDirectory(string path);
 	static bool IsDirectory(wstring path);
@@ -74,6 +74,8 @@ public:
 	static string GetFileNameWithoutExtension(string path);
 	static wstring GetFileNameWithoutExtension(wstring path);
 
+	static string GetFilePathWithoutExtension(string path);
+	static wstring GetFilePathWithoutExtension(wstring path);
 
 public:
 	const static WCHAR* ImageFilter;

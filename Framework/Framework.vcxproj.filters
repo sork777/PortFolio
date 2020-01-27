@@ -169,9 +169,6 @@
     <ClCompile Include="Objects\Light.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\Collider.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
     <ClCompile Include="Objects\CSM.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
@@ -254,15 +251,20 @@
     <ClCompile Include="Components\Base\PerFrame.cpp">
       <Filter>Renders</Filter>
     </ClCompile>
-    <ClCompile Include="Components\Base\Renderer.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
     <ClCompile Include="Components\Base\Transform.cpp">
       <Filter>Renders</Filter>
     </ClCompile>
     <ClCompile Include="Effect\TrailRenderer.cpp" />
     <ClCompile Include="Objects\Actor\ActorComponent.cpp" />
     <ClCompile Include="Effect\ModelIllusion.cpp" />
+    <ClCompile Include="Components\Base\Collider.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Renders\Renderer.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\GUID_Generator.cpp" />
+    <ClCompile Include="Components\Base\MaterialPBR.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -484,9 +486,6 @@
     <ClInclude Include="Objects\Light.h">
       <Filter>Objects</Filter>
     </ClInclude>
-    <ClInclude Include="Objects\Collider.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
     <ClInclude Include="Objects\CSM.h">
       <Filter>Objects</Filter>
     </ClInclude>
@@ -582,9 +581,6 @@
     <ClInclude Include="Components\Base\PerFrame.h">
       <Filter>Renders</Filter>
     </ClInclude>
-    <ClInclude Include="Components\Base\Renderer.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
     <ClInclude Include="Components\Base\Transform.h">
       <Filter>Renders</Filter>
     </ClInclude>
@@ -592,5 +588,14 @@
     <ClInclude Include="Effect\TrailRenderer.h" />
     <ClInclude Include="Objects\Actor\ActorComponent.h" />
     <ClInclude Include="Effect\ModelIllusion.h" />
+    <ClInclude Include="Components\Base\Collider.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Renders\Renderer.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\BaseObject.h" />
+    <ClInclude Include="Utilities\GUID_Generator.h" />
+    <ClInclude Include="Components\Base\MaterialPBR.h" />
   </ItemGroup>
 </Project>

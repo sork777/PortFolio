@@ -52,7 +52,7 @@ void InstanceColliderDemo::Update()
 
 	AnimationController();
 	ImGUIController();
-	NotifyController();
+	
 	for (int i = 0; i < kachujin->GetInstSize(); i++)
 	{
 		Matrix attach = kachujin->GetboneWorld(i,11);
@@ -131,7 +131,7 @@ void InstanceColliderDemo::Mesh()
 	//Create Material
 	{
 		floor = new Material(shader);
-		floor->DiffuseMap("Floor.png");
+		floor->LoadDiffuseMap("Floor.png");
 		//floor->SpecularMap("Floor_Specular.png");
 		//floor->NormalMap("Floor_Normal.png");
 		//floor->Specular(1, 1, 1, 20);
@@ -254,7 +254,7 @@ void InstanceColliderDemo::ImGUIController()
 		if (ImGui::CollapsingHeader("Selected_Parts", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			Transform* transform = new Transform();
-			Matrix transMat = boneNames[selected]->BoneWorld();
+			Transform* boneTransform = boneNames[selected]->GetTransform();
 			Matrix mat = kachujin->BoneByIndex(selected + 1)->BoneWorld();
 			transform->World(mat);
 			Vector3 S, R, T;
@@ -273,9 +273,9 @@ void InstanceColliderDemo::ImGUIController()
 			if (bPlay != true)
 			{
 				//TODO: 파츠별 기즈모 변동은 일단 패스
-				//transform->Parent();
+				transform->Parent(kachujin->GetTransform(instance));
 				//transform->World(transMat);
-				//Gui::Get()->SetGizmo(keyframes[selected],transform);
+				Gui::Get()->SetGizmo(boneTrans[selected], transform,true);
 
 				bChange |= boneTrans[selected]->Property();
 				boneTrans[selected]->Position(&T);
@@ -384,71 +384,30 @@ void InstanceColliderDemo::AnimationController()
 			illusion = new ModelIllusion(kachujin);
 			illusion->GetTransform()->Parent(kachujin->GetTransform(0));
 		}
-		if (ImGui::Button("Del"))
+		if (ImGui::Button("SaveClipTest"))
 		{
+			wstring name = L"Test_" + to_wstring( clip);
+			kachujin->SaveChangedClip(clip, name,L"../../_Models/Kachujin/",true);
 			//SafeDelete(illusion);
 			//kachujin->DelInstance(instance);
 			//instance %= kachujin->GetInstSize();
+		}
+		if (ImGui::Button("AddClipTest"))
+		{
+			function<void(wstring)> f = bind(&InstanceColliderDemo::AddClip, this, placeholders::_1);
+			Path::OpenFileDialog(L"", L"CLIP\0*.clip", L"../../_Models/", f);
+			//kachujin.
 		}
 		
 	}
 	ImGui::End();
 }
 
-void InstanceColliderDemo::NotifyController()
+void InstanceColliderDemo::AddClip(wstring name)
 {
-	/*bool bDocking = true;
-	ImGui::Begin("AnimationNotify", &bDocking);
-	{
-		for (int notiID = 0; notiID < notifies.size(); notiID++)
-		{
-			ImGui::Text(notifies[notiID].NotifyName.c_str());
-
-			ImGui::PushItemWidth(60);
-			{
-				string str = "##" + to_string(notiID) + notifies[notiID].NotifyName + "_Start";
-				ImGui::Text("StartFrame");
-				ImGui::SameLine();
-				ImGui::SliderInt(str.c_str(), &notifies[notiID].StartFrame, 0, notifies[notiID].EndFrame);
-				ImGui::SameLine();
-				ImGui::Text("EndFrame");
-				ImGui::SameLine();
-				str = "##" + to_string(notiID) + notifies[notiID].NotifyName + "_End";
-				ImGui::SameLine();
-				ImGui::SliderInt(str.c_str(), &notifies[notiID].EndFrame, notifies[notiID].StartFrame, MAX_MODEL_KEYFRAMES);
-			}
-			ImGui::PopItemWidth();
-			if (notifies[notiID].StartFrame < notifies[notiID].EndFrame
-				&& notifies[notiID].StartFrame > -1)
-				notifies[notiID].bSet = true;
-
-		}
-
-		if (ImGui::Button("AddNotify"))
-		{
-			ImGui::OpenPopup("AddNotify?");
-		}
-		if (ImGui::BeginPopupModal("AddNotify?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-		{
-			static char name[64] = "New Notify Name";
-
-			ImGui::Text("Edit name:");
-			ImGui::InputText("##edit", name, IM_ARRAYSIZE(name));
-			if (ImGui::Button("OK", ImVec2(120, 0))) {
-
-				Notify noti;
-				noti.NotifyName = name;
-				notifies.push_back(noti);
-				strcpy_s(name, "New Notify Name");
-				ImGui::CloseCurrentPopup();
-			}
-			ImGui::SetItemDefaultFocus();
-			ImGui::SameLine();
-			if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-			ImGui::EndPopup();
-		}
-	}
-	ImGui::End();*/
+	wstring dir = Path::GetDirectoryName(name);
+	name = Path::GetFileNameWithoutExtension(name);
+	kachujin->AddClip(name,dir);
 }
 
 #pragma endregion

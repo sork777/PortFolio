@@ -200,17 +200,17 @@ void Model::ReadMaterial(wstring file, wstring directoryPath)
 		node = node->NextSiblingElement();
 		texture = String::ToWString(node->GetText());
 		if (texture.length() > 0)
-			material->DiffuseMap(directory + texture, directoryPath);
+			material->LoadDiffuseMapW(directory + texture, directoryPath);
 
 		node = node->NextSiblingElement();
 		texture = String::ToWString(node->GetText());
 		if (texture.length() > 0)
-			material->SpecularMap(directory + texture, directoryPath);
+			material->LoadSpecularMapW(directory + texture, directoryPath);
 
 		node = node->NextSiblingElement();
 		texture = String::ToWString(node->GetText());
 		if (texture.length() > 0)
-			material->NormalMap(directory + texture, directoryPath);
+			material->LoadNormalMapW(directory + texture, directoryPath);
 
 
 		D3DXCOLOR color;
@@ -252,6 +252,7 @@ void Model::ReadMaterial(wstring file, wstring directoryPath)
 
 void Model::ReadMesh(wstring file, wstring directoryPath)
 {
+	name = Path::GetFileNameWithoutExtension(file);
 	file = directoryPath + file + L".mesh";
 
 	BinaryReader* r = new BinaryReader();

@@ -14,8 +14,10 @@ Widget_Contents::Widget_Contents()
 	rootPath = "../Contents/";
 	currentPath = "../Contents/";
 	Path::GetDirectoryHierarchy(rootPath, &dirHierarchyRoot);
+	contentsRoot = new ContentNode();
 
 	Initialize();
+	InitailizeNode(contentsRoot);
 	UpdateItems(currentPath);
 }
 
@@ -103,7 +105,7 @@ void Widget_Contents::ShowItems()
 			//ImageButton
 			ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			if (ImGui::ImageButton(item.thumbnail.texture->SRV(), ImVec2(itemSize, itemSize - 23.0f)))
+			if (ImGui::ImageButton(item.thumbnail.texture->SRV(), ImVec2(itemSize, itemSize-10)))
 			{
 				//TODO :
 			}
@@ -115,14 +117,14 @@ void Widget_Contents::ShowItems()
 			//Label
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetCursorPosX() - itemSize);
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + itemSize - 13.0f);
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + itemSize);
 			ImGui::PushItemWidth(itemSize + 8.5f);
 			{
 				ImGui::TextWrapped(item.label.c_str());
 			}
 			ImGui::PopItemWidth();
 			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + itemSize);
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - itemSize + 13.0f);
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - itemSize);
 
 			ImGui::NextColumn();
 			ImGui::PopID();
@@ -148,7 +150,7 @@ void Widget_Contents::DirectoryViewer()
 	}ImGui::EndGroup();
 }
 
-void Widget_Contents::ChildDirViewer(DirectoryHierarchy * node, int& index)
+void Widget_Contents::ChildDirViewer(DirectoryNode * node, int& index)
 {
 	auto childs = node->Children;
 
@@ -190,6 +192,11 @@ void Widget_Contents::ChildDirViewer(DirectoryHierarchy * node, int& index)
 	ImGui::PopStyleVar();
 }
 
+void Widget_Contents::InitailizeNode(ContentNode * root)
+{
+
+}
+
 void Widget_Contents::UpdateItems(const string & path)
 {
 	if (!Path::ExistDirectory(path))
@@ -210,24 +217,44 @@ void Widget_Contents::UpdateItems(const string & path)
 
 void Widget_Contents::SelectIconFromFile(const string & path)
 {
-	
-	if (Path::IsSupportAudioFile(path))
-		items.emplace_back(path,icons[0].thumbnail);
-	else if (Path::IsSupportMeshFile(path))
-		items.emplace_back(path,icons[1].thumbnail);
-	else if (Path::IsConvertedAnimationFile(path))
-		items.emplace_back(path,icons[2].thumbnail);
-	else if (Path::IsSupportMapFile(path))
-		items.emplace_back(path,icons[3].thumbnail);
-	else if (Path::IsConvertedModelFile(path))
-		items.emplace_back(path,icons[4].thumbnail);
-	else if (Path::IsSupportTextureFile(path))
-		items.emplace_back(path, IconProvider::Get().Load(path, "", IconType::Texture));
-	else if (Path::IsDirectory(path))
-		items.emplace_back(path,icons[5].thumbnail);
-	else
-		items.emplace_back(path,icons[6].thumbnail);
+	Thumbnail thumbnail;
 
+	if (Path::IsSupportAudioFile(path))
+	{
+		thumbnail = icons[0].thumbnail;
+	}
+	else if (Path::IsSupportMeshFile(path))
+	{
+		thumbnail = icons[1].thumbnail;
+	}
+	else if (Path::IsConvertedAnimationFile(path))
+	{
+		thumbnail = icons[2].thumbnail;
+	}
+	else if (Path::IsSupportMapFile(path))
+	{
+		thumbnail = icons[3].thumbnail;
+	}
+	else if (Path::IsConvertedModelFile(path))
+	{
+		thumbnail = icons[4].thumbnail;
+	}
+	else if (Path::IsSupportTextureFile(path))
+	{
+		thumbnail = IconProvider::Get().Load(path, "", IconType::Texture);
+	}
+	else if (Path::IsDirectory(path))
+	{
+		thumbnail = icons[5].thumbnail;
+	}
+	else
+	{
+		thumbnail = icons[6].thumbnail;
+	}
+	// 집어넣기
+	{
+		items.emplace_back(path,thumbnail);
+	}
 }
 
 DragDropPayloadType  Widget_Contents::GetPayloadType(IconType &type)

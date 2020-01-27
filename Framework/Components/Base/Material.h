@@ -1,5 +1,7 @@
 #pragma once
 
+
+
 class Material :public BaseComponent
 {
 public:
@@ -21,6 +23,8 @@ public:
 	void Name(wstring val) { name = val; }
 	wstring Name() { return name; }
 
+	// Desc
+
 	Color& Ambient() { return colorDesc.Ambient; }
 	void Ambient(Color& color);
 	void Ambient(float r, float g, float b, float a = 1.0f);
@@ -38,26 +42,30 @@ public:
 	void Emissive(float r, float g, float b, float a = 1.0f);
 
 
+
+	// Texture
+
 	Texture* DiffuseMap() { return diffuseMap; }
-	void DiffuseMap(string file, string dir = "../../_Textures/");
-	void DiffuseMap(wstring file, wstring dir = L"../../_Textures/");
+	void LoadDiffuseMap(string file, string dir = "../../_Textures/");
+	void LoadDiffuseMapW(wstring file, wstring dir = L"../../_Textures/");
 
 	Texture* SpecularMap() { return specularMap; }
-	void SpecularMap(string file, string dir = "../../_Textures/");
-	void SpecularMap(wstring file, wstring dir = L"../../_Textures/");
+	void LoadSpecularMap(string file, string dir = "../../_Textures/");
+	void LoadSpecularMapW(wstring file, wstring dir = L"../../_Textures/");
 
 	Texture* NormalMap() { return normalMap; }
-	void NormalMap(string file, string dir = "../../_Textures/");
-	void NormalMap(wstring file, wstring dir = L"../../_Textures/");
+	void LoadNormalMap(string file, string dir = "../../_Textures/");
+	void LoadNormalMapW(wstring file, wstring dir = L"../../_Textures/");
+
 
 
 private:
 	struct ColorDesc
 	{
 		Color Ambient = Color(0, 0, 0, 1);
+		Color Emissive = Color(0, 0, 0, 1);
 		Color Diffuse = Color(1, 1, 1, 1);
 		Color Specular = Color(0, 0, 0, 1);
-		Color Emissive = Color(0, 0, 0, 1);
 	} colorDesc;
 
 private:

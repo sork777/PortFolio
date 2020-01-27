@@ -23,8 +23,8 @@ public:
 
 	void UpdateTransforms();
 	
-	virtual void AddInstance();
-	virtual void DelInstance(UINT instance);
+	void AddInstance();
+	void DelInstance(UINT instance);
 
 
 	UINT GetInstSize() { return transforms.size(); }
@@ -41,6 +41,8 @@ protected:
 	virtual void CreateTexture() = 0;
 
 public:
+	wstring& Name() { return name; }
+
 	UINT MaterialCount() { return materials.size(); }
 	vector<Material *>& Materials() { return materials; }
 	Material* MaterialByIndex(UINT index) { return materials[index]; }
@@ -70,9 +72,9 @@ private:
 	void CreateBoneBuffer();
 
 private:
-	vector<Material *> materials;
-	
+	wstring name;
 	ModelBone* rootBone;
+	vector<Material *> materials;
 	vector<ModelBone *> bones;
 	vector<ModelMesh *> meshes;
 

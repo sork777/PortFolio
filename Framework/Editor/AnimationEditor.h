@@ -33,6 +33,7 @@ public:
 	virtual void PostRender() override;
 
 private:
+	void Pass(UINT mesh, UINT model, UINT anim);
 	void ImGUIController();
 	void AnimationController();
 
@@ -41,13 +42,15 @@ private:
 
 	void PartsViewer();
 	void ChildViewer(ModelBone * bone);
+	void ModelsViewer();
+
 private:
 	void Popup();
 	void AddSocket();
 
 	void AddAnimation();
 	void ModelAttach();
-
+	void LoadModel(wstring path);
 private:
 	int selectedFrame = 0;
 	int selected = 0;
@@ -59,7 +62,27 @@ private:
 	float takeTime = 1.0f;
 
 private:
+	Shader* shader;
 	ModelAnimator* mainModel;
+	//실질적으로 만드는것은 액터오브젝트에서 추가할것.
+	vector<Model*> prevModel;
+private:
+	struct Attach
+	{
+		Collider* collider = NULL;
+		Model* attach;
+		UINT bone;
+	};
 
+	vector<Attach> attaches;
+private:
+
+	class Sky* sky;
+
+	Material* floor;
+	MeshRender* grid;
+
+	vector<MeshRender *> meshes;
+	vector<Model *> models;
 };
 
