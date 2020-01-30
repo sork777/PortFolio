@@ -3,18 +3,10 @@
 // 모델에서 이전 클립상태를 받아 돌릴거임
 // 인스턴스들이 따라 움직이는 형태.
 #define MAX_ILLUSION_COUNT 100
-
-enum class IllusionType
-{
-	None,
-	Render,
-	Animation	
-};
-
 class ModelIllusion
 {
 public:
-	ModelIllusion(Model* model,UINT meshIdx=0,UINT illusionCount=50);
+	ModelIllusion(ModelAnimator* animator,UINT meshIdx=0,UINT illusionCount=50);
 	~ModelIllusion();
 
 	void Initialize();
@@ -29,9 +21,8 @@ private:
 	void SetAndShiftBuffer(TweenDesc& insertFirstTween, float& gap);
 
 private:
-	UINT tech;
-	UINT pass;
-	IllusionType type;
+	UINT tech=0;
+	UINT pass=0;
 	Shader* shader;
 	PerFrame* perframe;
 	Transform* transform;

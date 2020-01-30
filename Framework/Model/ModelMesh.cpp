@@ -4,11 +4,14 @@
 ModelBone::ModelBone()
 {
 	editTransform = new Transform();
+	boneTransform = new Transform();
+	boneTransform->Parent(editTransform);
 }
 
 ModelBone::~ModelBone()
 {
 	SafeDelete(editTransform);
+	SafeDelete(boneTransform);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -31,12 +34,12 @@ ModelMesh::~ModelMesh()
 	SafeDelete(boneBuffer);
 	//SafeDelete(material);
 
-	SafeRelease(transformsSRV);
-	SafeRelease(sTransformsSRV);
-	SafeRelease(boneTransformsSRV);
-	SafeRelease(sBoneTransformsSRV);
-	SafeRelease(animEditSRV);
-	SafeRelease(sAnimEditSRV);
+	//SafeRelease(transformsSRV);
+	//SafeRelease(sTransformsSRV);
+	//SafeRelease(boneTransformsSRV);
+	//SafeRelease(sBoneTransformsSRV);
+	//SafeRelease(animEditSRV);
+	//SafeRelease(sAnimEditSRV);
 }
 
 void ModelMesh::Binding(Model * model)
@@ -57,10 +60,6 @@ void ModelMesh::SetShader(Shader * shader)
 
 	material->SetShader(shader);
 	sBoneBuffer = shader->AsConstantBuffer("CB_Bone");
-
-	sTransformsSRV = shader->AsSRV("TransformsMap");
-	sBoneTransformsSRV = shader->AsSRV("BoneTransformsMap");
-	sAnimEditSRV = shader->AsSRV("AnimEditTransformMap");
 }
 
 void ModelMesh::Update()
@@ -77,36 +76,10 @@ void ModelMesh::Render(UINT drawCount)
 
 	perFrame->Render();
 	material->Render();
-
-	if (transformsSRV != NULL)
-		sTransformsSRV->SetResource(transformsSRV);
-
-	if (boneTransformsSRV != NULL)
-		sBoneTransformsSRV->SetResource(boneTransformsSRV);
-
-	if (animEditSRV != NULL)
-		sAnimEditSRV->SetResource(animEditSRV);
-
-
+	
 	vertexBuffer->Render();
 	indexBuffer->Render();
 	D3D::GetDC()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	shader->DrawIndexedInstanced(tech, pass, indexCount, drawCount);
-}
-
-void ModelMesh::TransformsSRV(ID3D11ShaderResourceView * srv)
-{
-	transformsSRV = srv;
-}
-
-void ModelMesh::BoneTransformsSRV(ID3D11ShaderResourceView* boneSrv)
-{
-	boneTransformsSRV = boneSrv;
-}
-
-void ModelMesh::AnimEditSrv(ID3D11ShaderResourceView * editSrv)
-{
-	animEditSRV = editSrv;
-
 }

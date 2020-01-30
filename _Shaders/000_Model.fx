@@ -346,18 +346,19 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
     matrix transform = 0;
     matrix curr = 0, currAnim = 0;
     matrix next = 0, nextAnim = 0;
-
+    
+    float4 c0, c1, c2, c3;
+    float4 n0, n1, n2, n3;
+    float4 b0, b1, b2, b3;
+    matrix bone = 0;
+    matrix cedit = 0;
+    matrix nedit = 0;
+    matrix cS, cR, cT, nS, nR, nT;
+    float4 cQ, nQ;
 
     float indices[4] = { input.BlendIndices.x, input.BlendIndices.y, input.BlendIndices.z, input.BlendIndices.w };
     float weights[4] = { input.BlendWeights.x, input.BlendWeights.y, input.BlendWeights.z, input.BlendWeights.w };
-    //Attach Model
-    if (any(input.BlendIndices) == false)
-    {
-        indices[0] = BoneIndex;
-        weights[0] = 1.0f;
-    }
-
-
+   
     uint clip[2];
     uint currFrame[2];
     uint nextFrame[2];
@@ -374,14 +375,6 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
     time[1] = Tweenframes[input.InstID].Next.Time;
 
 
-    float4 c0, c1, c2, c3;
-    float4 n0, n1, n2, n3;
-    float4 b0, b1, b2, b3;
-    matrix bone = 0;
-    matrix cedit = 0;
-    matrix nedit = 0;
-    matrix cS, cR, cT, nS, nR, nT;
-    float4 cQ, nQ;
 
     [unroll(4)]
     for (int i = 0; i < 4; i++)

@@ -35,12 +35,12 @@ Sky::Sky(wstring cubeMapFile)
 
 Sky::~Sky()
 {
-	SafeDelete(shader);
 	SafeDelete(sphere);
 	SafeDelete(buffer);
-	SafeDelete(sBuffer);
-	SafeDelete(cubeSRV);
-	SafeDelete(sCubeSRV);
+	SafeRelease(sBuffer);
+	SafeRelease(cubeSRV);
+	SafeRelease(sCubeSRV);
+	SafeDelete(shader);
 }
 
 void Sky::Update()

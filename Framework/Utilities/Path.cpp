@@ -395,6 +395,7 @@ wstring Path::GetFilePathWithoutExtension(wstring path)
 const WCHAR* Path::ImageFilter = L"Image\0*.png;*.bmp;*.jpg";
 const WCHAR* Path::BinModelFilter = L"Binary Model\0*.model";
 const WCHAR* Path::FbxModelFilter = L"Fbx Model\0*.fbx;*.obj\0";
+const WCHAR* Path::ConvModelDataFilter = L"Conv Model\0*.material;*.mesh";
 const WCHAR* Path::ShaderFilter = L"HLSL file\0*.hlsl";
 const WCHAR* Path::XmlFilter = L"Xml file\0*.xml";
 const WCHAR* Path::TextFilter = L"Text file\0*.txt";
@@ -417,7 +418,7 @@ void Path::OpenFileDialog(wstring file, const WCHAR* filter, wstring folder, fun
 	ofn.nMaxFile = 255;
 	ofn.lpstrInitialDir = tempFolder.c_str();
 	ofn.Flags = OFN_NOCHANGEDIR;
-
+	
 	if (GetOpenFileName(&ofn) == TRUE)
 	{
 		if (func != NULL)

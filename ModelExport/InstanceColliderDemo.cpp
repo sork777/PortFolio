@@ -17,7 +17,7 @@ void InstanceColliderDemo::Initialize()
 	trail->GetTransform()->Scale(500, 500, 500);
 	Mesh();
 	ModelLoad();
-	for (ModelBone* bone : kachujin->Bones())
+	for (ModelBone* bone : model->Bones())
 	{
 		if (bone->Index() < 0)continue;
 		boneNames.emplace_back(bone);
@@ -48,12 +48,15 @@ void InstanceColliderDemo::Update()
 	for (ModelRender* temp : models)
 		temp->Update();
 	
+	//for (ModelAnimator* temp : animators)
+	//	temp->Update();
 
-
+	if(megan !=NULL)
+		megan->Update();
 	AnimationController();
 	ImGUIController();
 	
-	for (int i = 0; i < kachujin->GetInstSize(); i++)
+	for (int i = 0; i < model->GetInstSize(); i++)
 	{
 		Matrix attach = kachujin->GetboneWorld(i,11);
 		colliders[i].Collider->GetTransform()->Parent(attach);
@@ -101,12 +104,12 @@ void InstanceColliderDemo::Render()
 			ImGui::End();
 		}
 	}
-	trail->Render();
-	ImGui::Begin("Trail");
-	{
-		trail->Property();
-		ImGui::End();
-	}
+	//trail->Render();
+	//ImGui::Begin("Trail");
+	//{
+	//	trail->Property();
+	//	ImGui::End();
+	//}
 	
 }
 
@@ -155,14 +158,53 @@ void InstanceColliderDemo::Mesh()
 
 void InstanceColliderDemo::ModelLoad()
 {
-	sword = new ModelRender(shader);
-	sword->ReadMaterial(L"Weapon/Sword",  L"../../_Textures/");
-	sword->ReadMesh(L"Weapon/Sword", L"../../_Models/");
-	
+	Model* temp = new Model(shader);
+	temp->ReadMaterial(L"Weapon/Sword",  L"../../_Textures/");
+	temp->ReadMesh(L"Weapon/Sword", L"../../_Models/");
+	sword = new ModelRender(temp);
+	testModels.emplace_back(temp);
+	//if (ImGui::Button("AddAnimator"))
+	{
+		model = new Model(shader);
+		model->ReadMaterial(L"Megan/Mesh", L"../../_Textures/");
+		model->ReadMesh(L"Megan/Mesh", L"../../_Models/");
+		model->AddInstance();
+		model->GetTransform(0)->Position(0, 0, 50);
+		model->GetTransform(0)->Scale(0.075f, 0.075f, 0.075f);
+		//model->UpdateTransforms();
 
-	kachujin = new ModelAnimator(shader);
-	kachujin->ReadMaterial(L"Kachujin/Mesh", L"../../_Textures/");
-	kachujin->ReadMesh(L"Kachujin/Mesh", L"../../_Models/");
+		megan = new ModelAnimator(model);
+		megan->ReadClip(L"Megan/Mesh", L"../../_Models/");
+		//megan->Update();
+		megan->Render();
+		animators.push_back(megan);
+		//megan = NULL;
+	}
+	//if (ImGui::Button("AddAnimator2"))
+	{
+		model = new Model(shader);
+		model->ReadMaterial(L"Mutant/Mesh", L"../../_Textures/");
+		model->ReadMesh(L"Mutant/Mesh", L"../../_Models/");
+		model->AddInstance();
+		model->GetTransform(0)->Position(20, 0, 50);
+		model->GetTransform(0)->Scale(0.075f, 0.075f, 0.075f);
+		//model->UpdateTransforms();
+
+		mutant = new ModelAnimator(model);
+		mutant->ReadClip(L"Mutant/Mesh", L"../../_Models/");
+		mutant->Update();
+		mutant->Render();
+		animators.push_back(mutant);
+		//megan = NULL;
+	}
+
+
+	model = new Model(shader);
+	model->ReadMaterial(L"Kachujin/Mesh", L"../../_Textures/");
+	model->ReadMesh(L"Kachujin/Mesh", L"../../_Models/");
+	testModels.emplace_back(model);
+
+	kachujin = new ModelAnimator(model);
 	kachujin->ReadClip(L"Kachujin/Mesh", L"../../_Models/");
 	//kachujin->ReadClip(L"Megan/Taunt", L"../../_Models/");
 	//kachujin->ReadClip(L"Megan/Dancing");
@@ -170,45 +212,43 @@ void InstanceColliderDemo::ModelLoad()
 	kachujin->ReadClip(L"Kachujin/Jump", L"../../_Models/");
 	kachujin->ReadClip(L"Kachujin/Hip_Hop_Dancing", L"../../_Models/");
 
-	int arms = kachujin->BoneIndexByName(L"LeftHand");
+	int arms = model->BoneIndexByName(L"LeftHand");
 	/*if(arms<0)
 		kachujin->Attach((Model*)sword, 11, sword->GetInstSize());
 	else
 		kachujin->Attach((Model*)sword, arms, sword->GetInstSize());
 */
-	sword->AddInstance();
-	Transform* attachTransform = sword->GetTransform(0);
-	attachTransform->Position(10, -5, -15);
-	attachTransform->Scale(1.0f, 1.0f, 1.0f);
-	attachTransform->RotationDegree(180.0f, 0.0f, 0.0f);
-
-
+	
 
 	Transform* transform = NULL;
-	kachujin->AddInstance();
-	transform = kachujin->GetTransform(0);
+	model->AddInstance();
+	transform = model->GetTransform(0);
 	transform->Position(-25, 0, 0);
 	transform->Scale(0.075f, 0.075f, 0.075f);
 	kachujin->PlayClip(0, 0, 1.0f);
 
-	kachujin->AddInstance();
-	transform = kachujin->GetTransform(1);
+	model->AddInstance();
+	transform = model->GetTransform(1);
 	transform->Position(0, 0, 0);
 	transform->Scale(0.075f, 0.075f, 0.075f);
 	kachujin->PlayClip(1, 1, 1.0f);
 
-	kachujin->AddInstance();
-	transform = kachujin->GetTransform(2);
+	model->AddInstance();
+	transform = model->GetTransform(2);
 	transform->Position(25, 0, 0);
 	transform->Scale(0.075f, 0.075f, 0.075f);
 	kachujin->PlayClip(2, 2, 0.75f);
 		
-	kachujin->UpdateTransforms();
+	model->UpdateTransforms();
 
 	animators.push_back(kachujin);
 	kachujin->Render();
 	
+
 	
+
+
+
 
 	for (UINT i = 0; i < 3; i++)
 	{
@@ -243,7 +283,7 @@ void InstanceColliderDemo::ImGUIController()
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
 		if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			for(Material* mat : kachujin->Materials())
+			for(Material* mat : model->Materials())
 			{
 				mat->Property();
 				ImGui::Separator();
@@ -254,8 +294,8 @@ void InstanceColliderDemo::ImGUIController()
 		if (ImGui::CollapsingHeader("Selected_Parts", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			Transform* transform = new Transform();
-			Transform* boneTransform = boneNames[selected]->GetTransform();
-			Matrix mat = kachujin->BoneByIndex(selected + 1)->BoneWorld();
+			Transform* boneTransform = boneNames[selected]->GetBoneTransform();
+			Matrix mat = model->BoneByIndex(selected + 1)->BoneWorld();
 			transform->World(mat);
 			Vector3 S, R, T;
 			/* 파츠의 기본 좌표 출력 */
@@ -272,11 +312,9 @@ void InstanceColliderDemo::ImGUIController()
 			/* 변형 */
 			if (bPlay != true)
 			{
-				//TODO: 파츠별 기즈모 변동은 일단 패스
-				transform->Parent(kachujin->GetTransform(instance));
-				//transform->World(transMat);
-				Gui::Get()->SetGizmo(boneTrans[selected], transform,true);
-
+				boneTrans[selected]->Local(boneTransform->ParentTransform()->Local());
+				boneTrans[selected]->Update();
+				Gui::Get()->SetGizmo(boneTransform, model->GetTransform(instance),true);
 				bChange |= boneTrans[selected]->Property();
 				boneTrans[selected]->Position(&T);
 				T.y = T.y > 0 ? T.y : 0;
@@ -285,7 +323,9 @@ void InstanceColliderDemo::ImGUIController()
 				if (bChange)
 				{
 					UINT clip = kachujin->GetCurrClip(instance);
-					boneTrans[selected]->Update();
+					boneTransform->ParentTransform()->Local(boneTrans[selected]->Local());
+					boneTransform->Update();
+
 					//kachujin->UpdateInstTransform(instance, selected + 1, boneTrans[selected]->World());
 					kachujin->UpdateBoneTransform(selected + 1,clip, boneTrans[selected]);
 				}
@@ -373,16 +413,21 @@ void InstanceColliderDemo::AnimationController()
 		bChange |= ImGui::InputFloat("TakeTime", &takeTime, 0.1f);
 		takeTime = Math::Clamp(takeTime, 0.1f, 3.0f);
 		clip %= kachujin->ClipCount();
-		instance %= kachujin->GetInstSize();
+		instance %= model->GetInstSize();
 
 		if (bChange)
 			kachujin->PlayClip(instance, clip, takeTime);
+		kachujin->Update();
+		for (UINT i = 0; i < model->GetInstSize(); i++)
+		{
+			if (i == instance && bPlay == false) continue;
+			kachujin->PlayAnim(i);
+		}
 
-		kachujin->Update(instance);
 		if (ImGui::Button("IllusionTest"))
 		{
 			illusion = new ModelIllusion(kachujin);
-			illusion->GetTransform()->Parent(kachujin->GetTransform(0));
+			illusion->GetTransform()->Parent(model->GetTransform(0));
 		}
 		if (ImGui::Button("SaveClipTest"))
 		{
@@ -399,6 +444,71 @@ void InstanceColliderDemo::AnimationController()
 			//kachujin.
 		}
 		
+		
+		ImGui::Separator();
+		ImGui::Text("ModelClonningTest");
+		static int selectmodel = 0;
+		if (testModels.size() > 0)
+		{
+			ImGui::InputInt("SelectModel", (int*)&selectmodel);
+			selectmodel %= testModels.size();
+			ImGui::LabelText("##Selected", String::ToString(testModels[selectmodel]->Name()).c_str());
+
+			if (ImGui::Button("Clonning"))
+			{
+				Model* newmodel = new Model(testModels[selectmodel]);
+				newmodel->AddInstance();
+				testModels.emplace_back(newmodel);
+			}
+			if (ImGui::Button("ChangeAnimModel"))
+			{
+				if (testModels[selectmodel]->IsAnimationModel())
+				{
+					model = testModels[selectmodel];
+					kachujin->ChangeModel(model);
+				}
+			}
+			if (ImGui::Button("AddAnimator"))
+			{
+				model = new Model(shader);
+				model->ReadMaterial(L"Megan/Mesh", L"../../_Textures/");
+				model->ReadMesh(L"Megan/Mesh", L"../../_Models/");
+				model->AddInstance();
+				model->GetTransform(0)->Position(0, 0, 50);
+				model->GetTransform(0)->Scale(0.075f, 0.075f, 0.075f);
+				//model->UpdateTransforms();
+
+				megan = new ModelAnimator(model);
+				megan->ReadClip(L"Megan/Mesh", L"../../_Models/");
+				//megan->Update();
+				megan->Render();
+				animators.push_back(megan);
+				//megan = NULL;
+			}
+			if (ImGui::Button("AddAnimator2"))
+			{
+				model = new Model(shader);
+				model->ReadMaterial(L"Mutant/Mesh", L"../../_Textures/");
+				model->ReadMesh(L"Mutant/Mesh", L"../../_Models/");
+				model->AddInstance();
+				model->GetTransform(0)->Position(20, 0, 50);
+				model->GetTransform(0)->Scale(0.075f, 0.075f, 0.075f);
+				//model->UpdateTransforms();
+
+				mutant = new ModelAnimator(model);
+				mutant->ReadClip(L"Mutant/Mesh", L"../../_Models/");
+				mutant->Update();
+				mutant->Render();
+				animators.push_back(mutant);
+				//megan = NULL;
+			}
+
+		}
+		ImGui::Separator();
+		for (Model* model : testModels)
+		{
+			ImGui::LabelText("##ModelName", String::ToString(model->Name()).c_str());
+		}
 	}
 	ImGui::End();
 }
@@ -478,7 +588,8 @@ void InstanceColliderDemo::PartsViewer()
 			auto root = boneNames[i];
 			if (boneNames[i]->ParentIndex() < 0)
 				ChildViewer(root);
-		}
+			
+		}		
 	}
 	ImGui::End();
 }
@@ -510,7 +621,7 @@ void InstanceColliderDemo::ChildViewer(ModelBone * bone)
 			selected = bone->Index() - 1;
 			ImGui::OpenPopup("Popup");
 		}
-			Popup();
+		Popup();
 
 		for (auto& child : childs)
 		{
@@ -525,6 +636,7 @@ void InstanceColliderDemo::ChildViewer(ModelBone * bone)
 
 void InstanceColliderDemo::Popup()
 {
+	bool boo = false;
 	if (ImGui::BeginPopup("Popup"))
 	{
 		//TODO: MenuItem은 openpopup이 안먹힘
@@ -532,13 +644,17 @@ void InstanceColliderDemo::Popup()
 		{
 			//TODO:Button 안하면 종료 안하고 계속 오픈 상태가 됨
 			wstring str = boneNames[selected]->Name() + L"_AddSocket";
-			if(ImGui::Button(String::ToString( str).c_str()))
-				ImGui::OpenPopup("Add_Socket?");
-			AddSocket();
+			boo = ImGui::MenuItem(String::ToString(str).c_str());
+			
 			ImGui::EndMenu();
 		}
 		ImGui::EndPopup();
 	}
+
+	//EndPopup 중첩되어서 밖으로 빼줘야함...
+	if (boo)
+		ImGui::OpenPopup("Add_Socket?");
+	AddSocket();
 }
 
 void InstanceColliderDemo::AddSocket()
@@ -553,8 +669,8 @@ void InstanceColliderDemo::AddSocket()
 
 			kachujin->AddSocket(selected + 1, String::ToWString(name));
 
-			UINT boneIdx = kachujin->BoneCount()-1;
-			ModelBone* bone = kachujin->BoneByIndex(boneIdx);
+			UINT boneIdx = model->BoneCount()-1;
+			ModelBone* bone = model->BoneByIndex(boneIdx);
 			boneNames.emplace_back(bone);
 
 			boneTrans.emplace_back(new Transform());

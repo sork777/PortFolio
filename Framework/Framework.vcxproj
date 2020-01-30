@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Components\Base\MaterialPBR.cpp" />
-    <ClCompile Include="Objects\Actor\ActorComponent.cpp" />
     <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="Effect\ModelIllusion.cpp" />
     <ClCompile Include="ImguiWidget\WidgetUtility\IconProvider.cpp" />
@@ -116,9 +115,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\Base\MaterialPBR.h" />
-    <ClInclude Include="Objects\Actor\ActorComponent.h" />
-    <ClInclude Include="Editor\AnimationEditor.h" />
     <ClInclude Include="Components\BaseComponent.h" />
+    <ClInclude Include="Editor\AnimationEditor.h" />
     <ClInclude Include="Editor\IEditor.h" />
     <ClInclude Include="Effect\ModelIllusion.h" />
     <ClInclude Include="ImguiWidget\IWidget.h" />

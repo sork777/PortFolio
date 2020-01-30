@@ -76,7 +76,12 @@ private:
 
 	ModelRender* sword = NULL;
 	ModelAnimator* kachujin = NULL;
+	ModelAnimator* megan = NULL;
+	ModelAnimator* mutant = NULL;
+	Model* model=NULL;
+	Model* model2=NULL;
 
+	vector<Model*> testModels;
 private:
 	struct ColliderDesc
 	{

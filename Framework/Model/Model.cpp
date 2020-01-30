@@ -6,11 +6,36 @@
 
 Model::Model(Shader* shader)
 	:shader(shader)
+	,name(L"")
+	,materialFilePath(L""), materialDirPath(L"")
+	,meshFilePath(L""), meshDirPath(L"")
 {
 	for (UINT i = 0; i < MAX_MODEL_INSTANCE; i++)
 		D3DXMatrixIdentity(&worlds[i]);
-
 	instanceBuffer = new VertexBuffer(worlds, MAX_MODEL_INSTANCE, sizeof(Matrix), 1, true);
+
+	sBoneTransformsSRV = shader->AsSRV("BoneTransformsMap");
+}
+
+Model::Model(Model* model)
+	: name(L"")
+	, materialFilePath(L""), materialDirPath(L"")
+	, meshFilePath(L""), meshDirPath(L"")
+{
+	for (UINT i = 0; i < MAX_MODEL_INSTANCE; i++)
+		D3DXMatrixIdentity(&worlds[i]);
+	instanceBuffer = new VertexBuffer(worlds, MAX_MODEL_INSTANCE, sizeof(Matrix), 1, true);
+
+
+	shader				= model->GetShader();
+	sBoneTransformsSRV	= shader->AsSRV("BoneTransformsMap");
+
+	materialFilePath	= model->MaterialPath();
+	materialDirPath		= model->MaterialDir();
+	meshFilePath		= model->MeshPath();
+	meshDirPath			= model->MeshDir();	
+	ReadMaterial(materialFilePath, materialDirPath);
+	ReadMesh(meshFilePath, meshDirPath);
 }
 
 Model::~Model()
@@ -29,7 +54,6 @@ Model::~Model()
 
 	SafeDelete(shader);
 	SafeRelease(bonebuffer);
-	SafeRelease(texture);
 	SafeDelete(instanceBuffer);
 
 }
@@ -44,14 +68,14 @@ void Model::Update()
 
 void Model::Render()
 {
-	if (texture == NULL)
-		CreateTexture();
-	
 	if (bonebuffer == NULL)
 		CreateBoneBuffer();
 
 
 	instanceBuffer->Render();
+	
+	if (boneSrv != NULL)
+		sBoneTransformsSRV->SetResource(boneSrv);
 
 	for (ModelMesh* mesh : meshes)
 		mesh->Render(transforms.size());	
@@ -170,6 +194,8 @@ ModelMesh * Model::MeshByName(wstring name)
 
 void Model::ReadMaterial(wstring file, wstring directoryPath)
 {
+	materialFilePath = file;
+	materialDirPath= directoryPath;
 	file = directoryPath + file + L".material";
 
 	Xml::XMLDocument* document = new Xml::XMLDocument();
@@ -177,6 +203,7 @@ void Model::ReadMaterial(wstring file, wstring directoryPath)
 	assert(error == Xml::XML_SUCCESS);
 
 	Xml::XMLElement* root = document->FirstChildElement();
+	bAnimated = root->BoolAttribute("IsAnimation");
 	Xml::XMLElement* materialNode = root->FirstChildElement();
 
 
@@ -252,8 +279,10 @@ void Model::ReadMaterial(wstring file, wstring directoryPath)
 
 void Model::ReadMesh(wstring file, wstring directoryPath)
 {
-	name = Path::GetFileNameWithoutExtension(file);
+	meshFilePath = file;
+	meshDirPath = directoryPath;
 	file = directoryPath + file + L".mesh";
+	name = Path::GetDirectDirectoryName(file);
 
 	BinaryReader* r = new BinaryReader();
 	r->Open(file);
@@ -267,12 +296,10 @@ void Model::ReadMesh(wstring file, wstring directoryPath)
 
 		bone->index = r->Int();
 		bone->name = String::ToWString(r->String());		
-		int index = bone->name.find(L":", 0);
-		if (index >= 0)
-			bone->name = bone->name.substr(index + 1, bone->name.length());
 
 		bone->parentIndex = r->Int();
 		bone->world = r->Matrix();
+		bone->boneTransform->Local(bone->world);
 		//bone->attachID = 0;
 		bones.push_back(bone);
 	}
@@ -344,22 +371,6 @@ void Model::ReadMesh(wstring file, wstring directoryPath)
 	CreateBoneBuffer();
 }
 
-void Model::AddSocket(int parentBoneIndex, wstring socketName)
-{
-	ModelBone* parentBone = BoneByIndex(parentBoneIndex);
-	ModelBone* newBone = new ModelBone();
-	newBone->name = socketName;
-	newBone->editTransform->Local(parentBone->editTransform->Local());
-	newBone->editTransform->Parent(parentBone->editTransform->ParentTransform());
-	newBone->parentIndex = parentBoneIndex;
-	newBone->parent = parentBone;
-	newBone->parent->childs.push_back(newBone);
-
-	newBone->index = bones.size();
-
-	bones.push_back(newBone);
-}
-
 void Model::BindBone()
 {
 	rootBone = bones[0];
@@ -369,7 +380,7 @@ void Model::BindBone()
 		{
 			bone->parent = bones[bone->parentIndex];
 			//애니메이션에 맞춰 변동줄 녀석
-			bone->GetTransform()->Parent(bone->parent->GetTransform());
+			bone->GetEditTransform()->Parent(bone->parent->GetEditTransform());
 			bone->parent->childs.push_back(bone);
 		}
 		else
@@ -399,6 +410,25 @@ void Model::BindMesh()
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void Model::AddSocket(int parentBoneIndex, wstring socketName)
+{
+	//메시에는 변동 없음에 주의
+	ModelBone* parentBone = BoneByIndex(parentBoneIndex);
+	ModelBone* newBone = new ModelBone();
+	newBone->name = socketName;
+	newBone->world = parentBone->world;
+	newBone->boneTransform->Local(newBone->world);
+	newBone->editTransform->Local(parentBone->editTransform->Local());
+	newBone->editTransform->Parent(parentBone->editTransform->ParentTransform());
+	newBone->parentIndex = parentBoneIndex;
+	newBone->parent = parentBone;
+	newBone->parent->childs.push_back(newBone);
+
+	newBone->index = bones.size();
+
+	bones.push_back(newBone);
+}
+
 void Model::CreateBoneBuffer()
 {
 	// 값 할당
@@ -409,8 +439,7 @@ void Model::CreateBoneBuffer()
 			Matrix InvGlobal = bone->BoneWorld();
 			D3DXMatrixInverse(&InvGlobal, NULL, &InvGlobal);
 			// 모델 본 그자체의 데이터
-			boneTrans[b] = InvGlobal;
-			
+			boneTrans[b] = InvGlobal;			
 		}//for(b)
 	}
 
@@ -448,6 +477,6 @@ void Model::CreateBoneBuffer()
 		Check(D3D::GetDevice()->CreateShaderResourceView(bonebuffer, &srvDesc, &boneSrv));
 	}
 	
-	for (ModelMesh* mesh : Meshes())
-		mesh->BoneTransformsSRV(boneSrv);
+	//for (ModelMesh* mesh : Meshes())
+	//	mesh->BoneTransformsSRV(boneSrv);
 }

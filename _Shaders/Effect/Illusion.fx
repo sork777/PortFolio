@@ -57,6 +57,5 @@ float4 PS(MeshOutput input) : SV_Target0
 technique11 T0
 {
     //P_VP(P0, VS_Mesh, PS)
-    P_VP(P0, VS_Model, PS)
-	P_RS_BS_VP(P1, NoneRS, IllusionBlend, VS_ILL_Animation, PS)
+	P_RS_BS_VP(P0, NoneRS, IllusionBlend, VS_ILL_Animation, PS)
 }

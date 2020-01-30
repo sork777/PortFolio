@@ -247,8 +247,11 @@ bool Transform::Property()
 		ImGui::PushID(this);
 		ImGui::Text("Transform");
 		bChange |= ImGui::SliderFloat3("Scale", (float*)&scale, 0.01f, 100.0f);
+		scale.x = Math::Clamp(scale.x, 0.01f, FLT_MAX);
+		scale.y = Math::Clamp(scale.y, 0.01f, FLT_MAX);
+		scale.z = Math::Clamp(scale.z, 0.01f, FLT_MAX);
 		bChange |= ImGui::SliderFloat3("Rotation", (float*)&rotation, -Math::PI*0.9f, Math::PI*0.9f);
-		bChange |= ImGui::SliderFloat3("Position", (float*)&position, -100.0f, 100.0f);
+		bChange |= ImGui::SliderFloat3("Position", (float*)&position, -1000.0f, 1000.0f);
 		ImGui::PopID();
 	}
 	Update();

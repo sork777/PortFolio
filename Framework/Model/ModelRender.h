@@ -1,17 +1,31 @@
 #pragma once
 
-class ModelRender : public Model
+class ModelRender
 {
 public:
-	ModelRender(Shader* shader);
+	ModelRender(Model* model);
 	~ModelRender();
-	
+
+	void Update();
+	void Render();
+
+	void Pass(UINT pass) { model->Pass(pass); }
+	void Tech(UINT tech) { model->Tech(tech); }
 public:
 	void UpdateTransform(UINT instanceId, UINT boneIndex, Transform& transform);
+	Model* GetModel() { return model; }
 
 private:
-	virtual Matrix GetboneWorld(UINT instance, UINT boneIndex) override;
-	virtual void CreateTexture() override;
+	Matrix GetboneWorld(UINT instance, UINT boneIndex) ;
+	void CreateTexture() ;
+
+private:
+	Model* model;
+	Shader* shader;
+
+	ID3D11Texture2D* texture = NULL;
+	ID3D11ShaderResourceView* srv;
+	ID3DX11EffectShaderResourceVariable* sTransformsSRV;
 
 private:
 	Matrix bones[MAX_MODEL_TRANSFORMS];

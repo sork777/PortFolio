@@ -3,45 +3,34 @@
 
 
 
-ModelIllusion::ModelIllusion(Model* model, UINT meshIdx, UINT illusionCount)
+ModelIllusion::ModelIllusion(ModelAnimator* animator, UINT meshIdx, UINT illusionCount)
 	:illusionCount(illusionCount)
 	, boneSrv(NULL), transformSrv(NULL), animEditSrv(NULL)
 	, illusionColor(1,1,1,1)
 {
 	Initialize();
 
-	if (model == NULL)
+	if (animator != NULL)
 	{
-		type = IllusionType::None;		
-	}
-	if (dynamic_cast<ModelRender*>(model) != NULL)
-	{
-		type = IllusionType::Render;		
-	}
-	else if (dynamic_cast<ModelAnimator*>(model) != NULL)
-	{
-		type = IllusionType::Animation;		
-		animEditSrv = dynamic_cast<ModelAnimator*>(model)->GetEditSrv();
+		animEditSrv = (animator)->GetEditSrv();
 		shader->AsSRV("AnimEditTransformMap")->SetResource(animEditSrv);
 
 		frameBuffer = new ConstantBuffer(&tweenDesc, sizeof(TweenDesc) * MAX_ILLUSION_COUNT);
 		sFrameBuffer = shader->AsConstantBuffer("CB_AnimationFrame");
-	}
 	
-	if (type != IllusionType::None)
-	{
-		pass = (UINT)type-1;
+		Model* model = animator->GetModel();
 		if (meshIdx > model->MeshCount())
 			meshIdx = 0;
 		boneSrv = model->GetBoneSrv();
-		transformSrv = model->GetTransformSrv();
+		transformSrv = animator->GetClipTransformSrv();
 		vertexBuffer = model->MeshByIndex(meshIdx)->GetVertexBuffer();
 		indexBuffer = model->MeshByIndex(meshIdx)->GetIndexBuffer();
 		indexCount = model->MeshByIndex(meshIdx)->GetIndexCount();
 		
 		Material* srcMaterial = model->MaterialByIndex(0);
 		material->Name(L"ILLUSION_MAT");
-		material->Ambient(srcMaterial->Ambient());
+		material->CloneMaterial(srcMaterial);
+		/*material->Ambient(srcMaterial->Ambient());
 		material->Diffuse(srcMaterial->Diffuse());
 		material->Specular(srcMaterial->Specular());
 		material->Emissive(srcMaterial->Emissive());
@@ -63,7 +52,7 @@ ModelIllusion::ModelIllusion(Model* model, UINT meshIdx, UINT illusionCount)
 			material->LoadNormalMapW(
 				srcMaterial->NormalMap()->GetFile(),
 				srcMaterial->NormalMap()->GetDir()
-			);
+			);*/
 
 
 		shader->AsSRV("TransformsMap")->SetResource(transformSrv);

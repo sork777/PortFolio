@@ -81,6 +81,7 @@ public:
 	const static WCHAR* ImageFilter;
 	const static WCHAR* BinModelFilter;
 	const static WCHAR* FbxModelFilter;
+	const static WCHAR* ConvModelDataFilter;
 	const static WCHAR* ShaderFilter;
 	const static WCHAR* XmlFilter;
 	const static WCHAR* TextFilter;

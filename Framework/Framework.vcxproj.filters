@@ -232,7 +232,6 @@
     <ClCompile Include="ScreenSpace\GBuffer.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="Environment\Sky\Atmosphere.cpp">
       <Filter>Environment\Sky</Filter>
     </ClCompile>
@@ -255,7 +254,6 @@
       <Filter>Renders</Filter>
     </ClCompile>
     <ClCompile Include="Effect\TrailRenderer.cpp" />
-    <ClCompile Include="Objects\Actor\ActorComponent.cpp" />
     <ClCompile Include="Effect\ModelIllusion.cpp" />
     <ClCompile Include="Components\Base\Collider.cpp">
       <Filter>Objects</Filter>
@@ -265,6 +263,7 @@
     </ClCompile>
     <ClCompile Include="Utilities\GUID_Generator.cpp" />
     <ClCompile Include="Components\Base\MaterialPBR.cpp" />
+    <ClCompile Include="Editor\AnimationEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -562,7 +561,6 @@
     <ClInclude Include="ScreenSpace\GBuffer.h">
       <Filter>Objects</Filter>
     </ClInclude>
-    <ClInclude Include="Editor\AnimationEditor.h" />
     <ClInclude Include="Environment\Sky\Atmosphere.h">
       <Filter>Environment\Sky</Filter>
     </ClInclude>
@@ -586,7 +584,6 @@
     </ClInclude>
     <ClInclude Include="Editor\IEditor.h" />
     <ClInclude Include="Effect\TrailRenderer.h" />
-    <ClInclude Include="Objects\Actor\ActorComponent.h" />
     <ClInclude Include="Effect\ModelIllusion.h" />
     <ClInclude Include="Components\Base\Collider.h">
       <Filter>Objects</Filter>
@@ -597,5 +594,6 @@
     <ClInclude Include="Objects\BaseObject.h" />
     <ClInclude Include="Utilities\GUID_Generator.h" />
     <ClInclude Include="Components\Base\MaterialPBR.h" />
+    <ClInclude Include="Editor\AnimationEditor.h" />
   </ItemGroup>
 </Project>

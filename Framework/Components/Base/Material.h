@@ -16,6 +16,7 @@ public:
 	virtual bool Property() override;
 
 	virtual void SetShader(Shader* shader) override;
+	void CloneMaterial(Material* material);
 private:
 	void Initialize();
 
@@ -42,7 +43,6 @@ public:
 	void Emissive(float r, float g, float b, float a = 1.0f);
 
 
-
 	// Texture
 
 	Texture* DiffuseMap() { return diffuseMap; }
@@ -56,9 +56,6 @@ public:
 	Texture* NormalMap() { return normalMap; }
 	void LoadNormalMap(string file, string dir = "../../_Textures/");
 	void LoadNormalMapW(wstring file, wstring dir = L"../../_Textures/");
-
-
-
 private:
 	struct ColorDesc
 	{

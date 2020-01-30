@@ -46,6 +46,31 @@ void Material::SetShader(Shader * shader)
 	sNormalMap = shader->AsSRV("NormalMap");
 }
 
+void Material::CloneMaterial(Material* material)
+{
+	this->Ambient(material->Ambient());
+	this->Diffuse(material->Diffuse());
+	this->Specular(material->Specular());
+	this->Emissive(material->Emissive());
+
+	if (material->DiffuseMap() != NULL)
+		this->LoadDiffuseMapW(
+			material->DiffuseMap()->GetFile(),
+			material->DiffuseMap()->GetDir()
+		);
+
+	if (material->SpecularMap() != NULL)
+		this->LoadSpecularMapW(
+			material->SpecularMap()->GetFile(),
+			material->SpecularMap()->GetDir()
+		);
+
+	if (material->NormalMap() != NULL)
+		this->LoadNormalMapW(
+			material->NormalMap()->GetFile(),
+			material->NormalMap()->GetDir()
+		);
+}
 void Material::Render()
 {
 	buffer->Apply();

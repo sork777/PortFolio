@@ -2,20 +2,37 @@
 #include "ModelRender.h"
 #include "ModelMesh.h"
 
-ModelRender::ModelRender(Shader * shader)
-	: Model(shader)
+ModelRender::ModelRender(Model* model)
+	: model(model)
 {
+	shader = model->GetShader();
+	sTransformsSRV = shader->AsSRV("TransformsMap");
 }
 
 ModelRender::~ModelRender()
 {
 }
 
+void ModelRender::Update()
+{
+	model->Update();
+}
+
+void ModelRender::Render()
+{
+	if (texture == NULL)
+		CreateTexture();
+
+	if (srv != NULL)
+		sTransformsSRV->SetResource(srv);
+	model->Render();
+}
+
 void ModelRender::UpdateTransform(UINT instanceId, UINT boneIndex, Transform & transform)
 {
 	Matrix destMatrix = transform.World();
 
-	ModelBone* bone = BoneByIndex(boneIndex);
+	ModelBone* bone = model->BoneByIndex(boneIndex);
 	boneTransforms[instanceId][boneIndex] = destMatrix * boneTransforms[instanceId][boneIndex];
 
 	int tempBoneIndex = boneIndex;
@@ -42,7 +59,7 @@ void ModelRender::UpdateTransform(UINT instanceId, UINT boneIndex, Transform & t
 Matrix ModelRender::GetboneWorld(UINT instance, UINT boneIndex)
 {
 	Matrix transform = boneTransforms[instance][boneIndex];
-	Matrix world = GetTransform(instance)->World();
+	Matrix world = model->GetTransform(instance)->World();
 
 	return transform * world;
 }
@@ -65,9 +82,9 @@ void ModelRender::CreateTexture()
 
 		for (UINT i = 0; i < MAX_MODEL_INSTANCE; i++)
 		{
-			for (UINT b = 0; b < BoneCount(); b++)
+			for (UINT b = 0; b < model->BoneCount(); b++)
 			{
-				ModelBone* bone = BoneByIndex(b);
+				ModelBone* bone = model->BoneByIndex(b);
 
 				Matrix parent;
 				int parentIndex = bone->ParentIndex();
@@ -107,7 +124,7 @@ void ModelRender::CreateTexture()
 		Check(D3D::GetDevice()->CreateShaderResourceView(texture, &srvDesc, &srv));
 	}
 
-	for (ModelMesh* mesh : Meshes())
-		mesh->TransformsSRV(srv);
+	//for (ModelMesh* mesh : model->Meshes())
+	//	mesh->TransformsSRV(srv);
 }
 

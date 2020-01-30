@@ -138,3 +138,6 @@ typedef D3DXPLANE Plane;
 
 #include "Effect/TrailRenderer.h"
 #include "Effect/ModelIllusion.h"
+
+
+#include "Editor/AnimationEditor.h"

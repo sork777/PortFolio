@@ -37,6 +37,7 @@ private:
 
 private:
 	wstring file;
+	bool bAnimated=false;
 
 	Assimp::Importer* importer;
 	const aiScene* scene;

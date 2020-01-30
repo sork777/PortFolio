@@ -31,21 +31,25 @@ struct TweenDesc
 		Next.Clip = -1;
 	}
 };
-class ModelAnimator : public Model
+class ModelAnimator //: public Model
 {
 public:
-	ModelAnimator(Shader* shader);
+	ModelAnimator(Model* model);
 	~ModelAnimator();
 
-	void Update(UINT instance=-1);
-	virtual void Render() override;
+	void Update();
+	void Render();
 
+	void Pass(UINT pass) { model->Pass(pass); }
+	void Tech(UINT tech) { model->Tech(tech); }
+
+	void ChangeModel(Model* newmodel) { model = newmodel; }
 public:
-	/*virtual void AddInstance() override;
-	virtual void DelInstance(UINT instance) override;*/
+	ID3D11ShaderResourceView* GetClipTransformSrv() { return clipSrv; }
+	Model* GetModel() { return model; }
 	
 public:	
-	virtual Matrix GetboneWorld(UINT instance, UINT boneIndex) override;
+	Matrix GetboneWorld(UINT instance, UINT boneIndex) ;
 
 public:	
 	void AddClip(wstring file, wstring directoryPath = L"../../_Models/");
@@ -55,22 +59,22 @@ public:
 	void AddSocket(int parentBoneIndex, wstring bonename = L"");
 
 public:
-	void PlayAnim(UINT instance=-1);
+	void PlayAnim(UINT instance = 0);
 	void PlayClip(UINT instance, UINT clip, float speed = 1.0f, float takeTime = 1.0f);
-	TweenDesc GetCurrTween(UINT instance) { return tweenDesc[instance]; }
-	UINT GetCurrClip(UINT instance) { return tweenDesc[instance].Curr.Clip; }
-	UINT GetCurrFrame(UINT instance) { return tweenDesc[instance].Curr.CurrFrame; }
+	UINT GetCurrClip(UINT instance);
+	UINT GetCurrFrame(UINT instance)		{ return tweenDesc[instance].Curr.CurrFrame; }
+	TweenDesc GetCurrTween(UINT instance)	{ return tweenDesc[instance]; }
 	void SetFrame(UINT instance, int frameNum);
 	UINT GetFrameCount(UINT instance);
 
 public:
-	UINT ClipCount() { return clips.size(); }
-	vector<ModelClip *>& Clips() { return clips; }
-	ModelClip* ClipByIndex(UINT index) { return clips[index]; }
+	UINT ClipCount()					{ return clips.size(); }
+	vector<ModelClip *>& Clips()		{ return clips; }
+	ModelClip* ClipByIndex(UINT index)	{ return clips[index]; }
 	ModelClip* ClipByName(wstring name);
 
 private:
-	virtual void CreateTexture() override;
+	void CreateTexture();
 	void CreateClipTransform(UINT index);
 	void CreateNoClipTransform(UINT index);
 	void CreateComputeDesc();
@@ -100,12 +104,17 @@ private:
 
 	vector<ModelClip *> clips;
 private:
-	
-	
 	TweenDesc tweenDesc[MAX_MODEL_INSTANCE];
 	ConstantBuffer* frameBuffer;
 	ID3DX11EffectConstantBuffer* sFrameBuffer;
 
+private:
+	Shader* shader;
+	Model* model;
+
+	ID3D11Texture2D* clipTexture = NULL;
+	ID3D11ShaderResourceView* clipSrv;
+	ID3DX11EffectShaderResourceVariable* sTransformsSRV;
 private:
 	struct CS_OutputDesc
 	{
@@ -138,6 +147,8 @@ private:
 	// 최종적으로 클립 저장시 곱해서 변화된 애를 저장할 것.
 	ID3D11Texture2D* editTexture = NULL;
 	ID3D11ShaderResourceView* editSrv;
+	ID3DX11EffectShaderResourceVariable* sAnimEditSRV;
+
 	Matrix animEditTrans[MAX_ANIMATION_CLIPS][MAX_MODEL_TRANSFORMS];
 #pragma endregion
 };

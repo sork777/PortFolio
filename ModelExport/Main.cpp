@@ -4,10 +4,12 @@
 
 #include "Convert.h"
 #include "InstanceColliderDemo.h"
+#include "AnimEditorDemo.h"
 void Main::Initialize()
 {
-//	Push(new Convert());
-	Push(new InstanceColliderDemo());
+	//Push(new Convert());
+	//Push(new InstanceColliderDemo());
+	Push(new AnimEditorDemo());
 }
 
 void Main::Ready()

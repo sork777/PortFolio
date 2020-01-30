@@ -187,17 +187,18 @@ void Gui::RenderGUITexture(Vector2 position, Vector2 size, D3DXCOLOR color, Text
 	RenderGUITexture(text);
 }
 
-void Gui::SetGizmo(Transform * selectedTransform, class Transform* vTransform, bool bReverse)
+void Gui::SetGizmo(Transform * sTransform, class Transform* parentTransform, bool bReverse)//, bool bUseparent)
 {	
-	this->selectedTransform = selectedTransform;
-	this->vTransform = vTransform;
-	//리버스가 true면 변경을 원하는 트랜스폼을 부모로 잡을것.
+	this->sTransform = sTransform;
+	this->parentTransform = parentTransform;
+	//리버스가 true면 sTransform의 Parent쪽이 변경을 원하는 쪽
 	this->bReverse = bReverse;
+	//this->bUseparent = bUseparent;
 }
 
 void Gui::RenderGizmo()
 {
-	if (selectedTransform == NULL)
+	if (sTransform == NULL)
 		return;
 
 	if (ImGui::IsKeyPressed(87)) // w
@@ -207,30 +208,22 @@ void Gui::RenderGizmo()
 	if (ImGui::IsKeyPressed(82)) // r
 		operation = ImGuizmo::SCALE;
 
-	Matrix vMatrix,Inv_vMat;
-	Matrix matrix = selectedTransform->World();
+	Matrix pMatrix;
+	Matrix matrix = sTransform->World();
 	Matrix rMatrix;
-	//Matrix Inv_Mat;
-	//D3DXMatrixInverse(&Inv_Mat, NULL, &matrix);
-
-	if (vTransform == NULL)
+	Matrix InvLMat,InvPMat;
+	D3DXMatrixInverse(&InvLMat, NULL, &sTransform->Local());
+	
+	if (parentTransform == NULL)
 	{
 		rMatrix = matrix;
-		D3DXMatrixIdentity(&Inv_vMat);
+		D3DXMatrixIdentity(&InvPMat);
 	}
 	else
 	{
-		vMatrix = vTransform->World();
-		D3DXMatrixInverse(&Inv_vMat,NULL, &vMatrix);
-		
-		if (bReverse == false)
-		{
-			rMatrix = matrix * vMatrix;
-		}
-		else
-		{
-			rMatrix =  vMatrix* matrix;
-		}
+		pMatrix = parentTransform->World();
+		D3DXMatrixInverse(&InvPMat, NULL, &pMatrix);
+		rMatrix = matrix * pMatrix;
 	}
 
 	float width = D3D::Get()->Width();
@@ -251,25 +244,26 @@ void Gui::RenderGizmo()
 		rMatrix
 	);
 
-	if (vTransform == NULL)
+	if (parentTransform == NULL)
 	{
 		matrix = rMatrix;
 	}
 	else
 	{
-		if (bReverse == false)
-		{
-			matrix = rMatrix* Inv_vMat;
-		}
-		else
-		{
-			matrix = Inv_vMat * rMatrix;
-		}
+		matrix = rMatrix* InvPMat;
 	}
 
-	selectedTransform->World(matrix);	
 
-	int a = 0;
+	if (bReverse)
+	{
+		matrix = InvLMat * matrix;
+		sTransform->ParentTransform()->World(matrix);
+	}
+	else
+		sTransform->World(matrix);
+
+	//자체 초기화
+	SetGizmo(NULL);
 }
 
 Gui::Gui()

@@ -47,6 +47,7 @@ void Converter::ReadFile(wstring file, wstring directory)
 	);
 	assert(scene != NULL);
 	
+	bAnimated = scene->mNumAnimations > 0;
 }
 
 void Converter::ExportMaterial(wstring savePath, wstring directoryPath, bool bOverwrite)
@@ -120,9 +121,11 @@ void Converter::WriteMaterial(wstring savePath, bool bOverwrite)
 	document->LinkEndChild(decl);
 
 	Xml::XMLElement* root = document->NewElement("Materials");
-	root->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-	root->SetAttribute("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
+	//root->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+	//root->SetAttribute("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
+	root->SetAttribute("IsAnimation", bAnimated);
 	document->LinkEndChild(root);
+
 
 	for (asMaterial* material : materials)
 	{
@@ -440,7 +443,9 @@ void Converter::ExportAnimClip(UINT index, wstring savePath, wstring directoryPa
 {
 	savePath = directoryPath + savePath + L".clip";
 
-	if (scene->mNumAnimations < 1) return;
+	//if (scene->mNumAnimations < 1) return;
+	if (bAnimated == false) return;
+
 	asClip* clip = ReadClipData(scene->mAnimations[index]);
 	WriteClipData(clip, savePath, bOverwrite);
 }

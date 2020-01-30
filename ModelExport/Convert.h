@@ -18,5 +18,6 @@ private:
 	void Tank();
 	void Kachujin();
 	void Megan();
+	void Mutant();
 	void Weapon();
 };

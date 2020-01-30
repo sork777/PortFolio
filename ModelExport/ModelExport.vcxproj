@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AnimEditorDemo.h" />
     <ClInclude Include="Convert.h" />
     <ClInclude Include="InstanceColliderDemo.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AnimEditorDemo.cpp" />
     <ClCompile Include="Convert.cpp" />
     <ClCompile Include="InstanceColliderDemo.cpp" />
     <ClCompile Include="Main.cpp" />

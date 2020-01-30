@@ -33,56 +33,122 @@ public:
 	virtual void PostRender() override;
 
 private:
-	void Pass(UINT mesh, UINT model, UINT anim);
-	void ImGUIController();
+	void Pass(UINT mesh, UINT render, UINT anim);
+
+	void Animate();
+private:
+	void ModelController();
 	void AnimationController();
 
 private:
-	void SelectedPartsViewer();
+	void SelectedBoneViewer();
+	void BoneHierarchy();
+	void ChildBones(ModelBone * bone);
 
-	void PartsViewer();
-	void ChildViewer(ModelBone * bone);
-	void ModelsViewer();
-
-private:
-	void Popup();
+	void BoneHierarchy_Popup();
 	void AddSocket();
 
-	void AddAnimation();
+private:
+	void ModelsViewer();
 	void ModelAttach();
-	void LoadModel(wstring path);
-private:
-	int selectedFrame = 0;
-	int selected = 0;
-	bool bPlay = false;
 
-	Transform* selectedTransform = NULL;
-	UINT clip = 0;
-	UINT instance = 0;
-	float takeTime = 1.0f;
+	void AttachesViewer();
+//TODO: 밖에서 불러온 액터를 대상으로 작업하도록 변경 필요.
+private:
+	void SaveAnimationClip(wstring path = L"");
+	void AddAnimationClip(wstring path=L"");
+
+	void LoadModel(wstring path = L"");
 
 private:
-	Shader* shader;
-	ModelAnimator* mainModel;
-	//실질적으로 만드는것은 액터오브젝트에서 추가할것.
-	vector<Model*> prevModel;
+	enum class AnimationState : UINT
+	{
+		Stop = 0,
+		Play,
+		Pause
+	} state = AnimationState::Stop;
+
+	struct ModelAnimData
+	{
+		wstring ModelName;
+		ModelAnimator* animator;
+		vector<ModelBone*> boneNames;
+		vector<Transform*> boneTrans;
+		ModelAnimData()
+		{
+			ModelName = L"";
+			animator = NULL;
+		}
+		~ModelAnimData()
+		{
+			SafeDelete(animator);
+			boneNames.clear();
+			boneNames.shrink_to_fit();
+			boneTrans.clear();
+			boneTrans.shrink_to_fit();
+		}
+	};
 private:
+	enum class AttachType
+	{
+		None,
+		Render,
+		Animator
+	};
+	enum class GizmoType
+	{
+		None,
+		Bone,
+		Model,
+		Attach
+	};
 	struct Attach
 	{
-		Collider* collider = NULL;
-		Model* attach;
-		UINT bone;
+		int			bone		= -1;
+		Collider*	collider	= NULL;
+		AttachType	type		= AttachType::None;
+		union AttachModel
+		{
+			ModelAnimator*	animator;
+			ModelRender*	render;
+		}attach;
 	};
 
-	vector<Attach> attaches;
+	vector<Attach*>		attaches;
+	int selectedAttach	= 0;
+	GizmoType gizmoType = GizmoType::None;
 private:
+	int selectedFrame	= 0;
+	int selectedModel	= 0;
+	int selectedBone	= 0;
 
-	class Sky* sky;
+	UINT	clip		= 0;
+	float	takeTime	= 1.0f;
+	bool	bPlay		= false;
+private:
+	Shader*				shader;	
+	
+	int 				curIndex;
+	ModelAnimator*		curAnimator;
+	Model*				curModel;
+	vector<ModelBone*>	curBoneNames;
+	vector<Transform*>	curBoneTrans;
+	
+	//실질적으로 만드는것은 액터오브젝트에서 추가할것.
+	//vector<Model*>		prevModel;
+	vector<ModelAnimData*>	prevAnims;
+	vector<ModelRender*>	prevRenders;
 
-	Material* floor;
+private:
+	class Sky*	sky;
+	Material*	floor;
 	MeshRender* grid;
 
-	vector<MeshRender *> meshes;
-	vector<Model *> models;
-};
+	wstring textureDir	= L"../../_Textures/";
+	wstring modelDir	= L"../../_Models/";
 
+private:
+	Model*			newModel	= NULL;
+	ModelRender*	newRender	= NULL;
+	ModelAnimator*	newAnimator	= NULL;
+};
