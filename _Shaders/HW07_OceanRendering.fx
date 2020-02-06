@@ -297,7 +297,7 @@ float4 OceanSurfPS(DomainOutput_Lod input) : SV_Target0
     //태양 위치에 따른 색상 감쇄
     float dayatt = clamp(dot(float3(0, 1, 0), -Shading.SunDir), 0.20f, 1);
     water_color += Shading.SunColor.rgb * sun_spot*att* dayatt;
-    dayatt = clamp(dayatt, 0.5f, 1);
+    dayatt = clamp(dayatt, 0.2f, 1);
     water_color *= dayatt;
     
     return float4(water_color, 1);

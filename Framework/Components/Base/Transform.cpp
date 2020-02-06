@@ -250,7 +250,14 @@ bool Transform::Property()
 		scale.x = Math::Clamp(scale.x, 0.01f, FLT_MAX);
 		scale.y = Math::Clamp(scale.y, 0.01f, FLT_MAX);
 		scale.z = Math::Clamp(scale.z, 0.01f, FLT_MAX);
-		bChange |= ImGui::SliderFloat3("Rotation", (float*)&rotation, -Math::PI*0.9f, Math::PI*0.9f);
+		Vector3 degree;
+		degree.x = Math::ToDegree(rotation.x);
+		degree.y = Math::ToDegree(rotation.y);
+		degree.z = Math::ToDegree(rotation.z);
+		bChange |= ImGui::SliderFloat3("Rotation", (float*)&degree, -170, 170);
+		rotation.x = Math::ToRadian(degree.x);
+		rotation.y = Math::ToRadian(degree.y);
+		rotation.z = Math::ToRadian(degree.z);
 		bChange |= ImGui::SliderFloat3("Position", (float*)&position, -1000.0f, 1000.0f);
 		ImGui::PopID();
 	}

@@ -135,7 +135,7 @@ void FFTOcean::CreateOceanSimAndRender()
 	// The size of displacement map. In this sample, it's fixed to 512.
 	ocean_param.dmap_dim = 512;
 	// The side length (world space) of square patch
-	ocean_param.patch_length = 512.0f;
+	ocean_param.patch_length = 512.0f*2.0f;
 	// Adjust this parameter to control the simulation speed
 	ocean_param.time_scale = 0.8f;
 	// A scale to control the amplitude. Not the world space height
@@ -201,17 +201,6 @@ void FFTOcean::InitRenderResource(const OceanParameter & ocean_param)
 void FFTOcean::Update(float time)
 {
 	Super::Update();
-
-	static bool bWireFrame = false;
-	ImGui::Checkbox("ToggleWireFrame", &bWireFrame);
-	Pass(bWireFrame ? 1 : 0);
-	Vector3 pos,scale;
-	GetTransform()->Position(&pos);
-	ImGui::SliderFloat3("OceanPos", (float*)&pos, -512, 512);
-	GetTransform()->Position(pos);
-	GetTransform()->Scale(&scale);
-	ImGui::SliderFloat3("OceanScale", (float*)&scale, 1, 50);
-	GetTransform()->Scale(scale);
 
 	transform->Update();
 	oceanSimulator->UpdateDisplacementMap(time);
@@ -322,6 +311,40 @@ void FFTOcean::RenderFFT()
 	renderSrvs[3]->SRV(SRV_Fresnel);
 	renderSrvs[3]->Render();
 
+}
+
+void FFTOcean::Property()
+{
+	ImGui::Begin("FFT_OceanProperty");
+	{
+		static bool bWireFrame = false;
+		ImGui::Checkbox("ToggleWireFrame", &bWireFrame);
+		Pass(bWireFrame ? 1 : 0);
+		ImGui::Separator();
+		ImGui::ColorEdit4("FFTSky", (float*)shadingDesc.SkyColor);
+		ImGui::ColorEdit4("FFTWater", (float*)shadingDesc.WaterbodyColor);
+		ImGui::Separator();
+		ImGui::SliderFloat("PerlinSpeed", &PerlinSpeed,0.01f,10.0f);
+		ImGui::SliderFloat("PerlinSize", &shadingDesc.PerlinSize,1.0f,100.0f);
+		ImGui::SliderFloat3("PerlinAmplitude", (float*)&shadingDesc.PerlinAmplitude,10.0f,1000.0f);
+		ImGui::SliderFloat3("PerlinGradient", (float*)&shadingDesc.PerlinGradient,0.01f,100.0f);
+		ImGui::SliderFloat3("PerlinOctave", (float*)&shadingDesc.PerlinOctave,0.01f,100.0f);
+		ImGui::Separator();
+		ImGui::SliderFloat2("WindDir", (float*)&WindDir, -1.0f, 1.0f);
+		//D3DXVec2Normalize(&WindDir, &WindDir);
+		ImGui::SliderFloat3("BendParam", (float*)&BendParam, -1.0f, 1.0f);
+		//D3DXVec3Normalize(&BendParam, &BendParam);
+
+		ImGui::Separator();
+		Vector3 pos, scale;
+		GetTransform()->Position(&pos);
+		ImGui::SliderFloat3("OceanPos", (float*)&pos, -512, 512);
+		GetTransform()->Position(pos);
+		GetTransform()->Scale(&scale);
+		ImGui::SliderFloat3("OceanScale", (float*)&scale, 0.1f, 5.0f);
+		GetTransform()->Scale(scale);
+	}
+	ImGui::End();
 }
 
 //

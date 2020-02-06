@@ -13,8 +13,10 @@ void InstanceColliderDemo::Initialize()
 
 	shader = new Shader(L"027_Animation.fx");
 	sky = new Sky(L"Environment/GrassCube1024.dds");
-	trail = new TrailRenderer();
-	trail->GetTransform()->Scale(500, 500, 500);
+	trail = new TrailRenderer(128);
+	trail->GetTransform()->Scale(10, 120, 30);
+	trail->GetTransform()->RotationDegree(0, 90, 90);
+	trail->GetTransform()->Position(0, 0, -60);
 	Mesh();
 	ModelLoad();
 	for (ModelBone* bone : model->Bones())
@@ -58,7 +60,12 @@ void InstanceColliderDemo::Update()
 	
 	for (int i = 0; i < model->GetInstSize(); i++)
 	{
-		Matrix attach = kachujin->GetboneWorld(i,11);
+		int arms = kachujin->GetModel()->BoneIndexByName(L"RightHand");
+
+		Matrix attach = kachujin->GetboneWorld(i, arms);
+		Matrix world = kachujin->GetModel()->GetTransform(i)->World();
+		attach *= world;
+		sword->GetModel()->GetTransform(i)->Parent(attach);
 		colliders[i].Collider->GetTransform()->Parent(attach);
 		colliders[i].Collider->Update();
 	}	
@@ -104,12 +111,16 @@ void InstanceColliderDemo::Render()
 			ImGui::End();
 		}
 	}
-	//trail->Render();
-	//ImGui::Begin("Trail");
-	//{
-	//	trail->Property();
-	//	ImGui::End();
-	//}
+	trail->Render();
+	ImGui::Begin("Trail");
+	{
+		static int SwordInstance = 0;
+		ImGui::InputInt("SwordInstance", (int*)&SwordInstance);
+		SwordInstance %= sword->GetModel()->GetInstSize();
+		trail->Update(sword->GetModel()->GetTransform(SwordInstance)->World());
+		trail->Property();
+		ImGui::End();
+	}
 	
 }
 
@@ -159,48 +170,23 @@ void InstanceColliderDemo::Mesh()
 void InstanceColliderDemo::ModelLoad()
 {
 	Model* temp = new Model(shader);
-	temp->ReadMaterial(L"Weapon/Sword",  L"../../_Textures/");
+	temp->ReadMaterial(L"Weapon/Sword",  L"../../_Textures/Model/");
 	temp->ReadMesh(L"Weapon/Sword", L"../../_Models/");
+	temp->AddInstance();
+	temp->AddInstance();
+	temp->AddInstance();
+	temp->GetTransform(0)->RotationDegree(0, 0, 90);
+	temp->GetTransform(0)->Position(-10, -5, -15); ;
+	temp->GetTransform(1)->RotationDegree(0, 0, 90);
+	temp->GetTransform(1)->Position(-10, -5, -15); ;
+	temp->GetTransform(2)->RotationDegree(0, 0, 90);
+	temp->GetTransform(2)->Position(-10, -5, -15); ;
 	sword = new ModelRender(temp);
+	models.emplace_back(sword);
 	testModels.emplace_back(temp);
-	//if (ImGui::Button("AddAnimator"))
-	{
-		model = new Model(shader);
-		model->ReadMaterial(L"Megan/Mesh", L"../../_Textures/");
-		model->ReadMesh(L"Megan/Mesh", L"../../_Models/");
-		model->AddInstance();
-		model->GetTransform(0)->Position(0, 0, 50);
-		model->GetTransform(0)->Scale(0.075f, 0.075f, 0.075f);
-		//model->UpdateTransforms();
-
-		megan = new ModelAnimator(model);
-		megan->ReadClip(L"Megan/Mesh", L"../../_Models/");
-		//megan->Update();
-		megan->Render();
-		animators.push_back(megan);
-		//megan = NULL;
-	}
-	//if (ImGui::Button("AddAnimator2"))
-	{
-		model = new Model(shader);
-		model->ReadMaterial(L"Mutant/Mesh", L"../../_Textures/");
-		model->ReadMesh(L"Mutant/Mesh", L"../../_Models/");
-		model->AddInstance();
-		model->GetTransform(0)->Position(20, 0, 50);
-		model->GetTransform(0)->Scale(0.075f, 0.075f, 0.075f);
-		//model->UpdateTransforms();
-
-		mutant = new ModelAnimator(model);
-		mutant->ReadClip(L"Mutant/Mesh", L"../../_Models/");
-		mutant->Update();
-		mutant->Render();
-		animators.push_back(mutant);
-		//megan = NULL;
-	}
-
-
+	
 	model = new Model(shader);
-	model->ReadMaterial(L"Kachujin/Mesh", L"../../_Textures/");
+	model->ReadMaterial(L"Kachujin/Mesh", L"../../_Textures/Model/");
 	model->ReadMesh(L"Kachujin/Mesh", L"../../_Models/");
 	testModels.emplace_back(model);
 
@@ -208,11 +194,11 @@ void InstanceColliderDemo::ModelLoad()
 	kachujin->ReadClip(L"Kachujin/Mesh", L"../../_Models/");
 	//kachujin->ReadClip(L"Megan/Taunt", L"../../_Models/");
 	//kachujin->ReadClip(L"Megan/Dancing");
+	kachujin->ReadClip(L"Kachujin/Idle", L"../../_Models/");
+	kachujin->ReadClip(L"Kachujin/S_M_H_Attack", L"../../_Models/");
 	kachujin->ReadClip(L"Kachujin/Running", L"../../_Models/");
 	kachujin->ReadClip(L"Kachujin/Jump", L"../../_Models/");
-	kachujin->ReadClip(L"Kachujin/Hip_Hop_Dancing", L"../../_Models/");
 
-	int arms = model->BoneIndexByName(L"LeftHand");
 	/*if(arms<0)
 		kachujin->Attach((Model*)sword, 11, sword->GetInstSize());
 	else
@@ -468,41 +454,6 @@ void InstanceColliderDemo::AnimationController()
 					kachujin->ChangeModel(model);
 				}
 			}
-			if (ImGui::Button("AddAnimator"))
-			{
-				model = new Model(shader);
-				model->ReadMaterial(L"Megan/Mesh", L"../../_Textures/");
-				model->ReadMesh(L"Megan/Mesh", L"../../_Models/");
-				model->AddInstance();
-				model->GetTransform(0)->Position(0, 0, 50);
-				model->GetTransform(0)->Scale(0.075f, 0.075f, 0.075f);
-				//model->UpdateTransforms();
-
-				megan = new ModelAnimator(model);
-				megan->ReadClip(L"Megan/Mesh", L"../../_Models/");
-				//megan->Update();
-				megan->Render();
-				animators.push_back(megan);
-				//megan = NULL;
-			}
-			if (ImGui::Button("AddAnimator2"))
-			{
-				model = new Model(shader);
-				model->ReadMaterial(L"Mutant/Mesh", L"../../_Textures/");
-				model->ReadMesh(L"Mutant/Mesh", L"../../_Models/");
-				model->AddInstance();
-				model->GetTransform(0)->Position(20, 0, 50);
-				model->GetTransform(0)->Scale(0.075f, 0.075f, 0.075f);
-				//model->UpdateTransforms();
-
-				mutant = new ModelAnimator(model);
-				mutant->ReadClip(L"Mutant/Mesh", L"../../_Models/");
-				mutant->Update();
-				mutant->Render();
-				animators.push_back(mutant);
-				//megan = NULL;
-			}
-
 		}
 		ImGui::Separator();
 		for (Model* model : testModels)
@@ -538,7 +489,10 @@ void InstanceColliderDemo::SelectedPartsViewer()
 	Vector3 textPos, pos;
 	
 	Matrix mat = kachujin->GetboneWorld(instance, selected + 1);
-	trail->Update(mat);
+	Matrix world = kachujin->GetModel()->GetTransform(instance)->World();
+	mat*=world;
+
+	//trail->Update(mat);
 
 	selectedTransform->World(mat);
 	selectedTransform->Position(&pos);

@@ -10,7 +10,8 @@ void Convert::Initialize()
 	//Kachujin();
 	//Megan();
 	//Weapon();
-	Mutant();
+	//Mutant();
+	Temp();
 }
 
 void Convert::Airplane()
@@ -141,4 +142,13 @@ void Convert::Weapon()
 		conv->ExportMesh(L"Weapon/" + name, L"../../_Models/");
 		SafeDelete(conv);
 	}
+}
+
+void Convert::Temp()
+{
+
+	Converter* conv = new Converter();
+	conv->ReadFile(L"Kachujin/S_M_H_Attack.fbx");
+	conv->ExportAnimClip(0, L"Kachujin/S_M_H_Attack", L"../../_Models/");
+	SafeDelete(conv);
 }

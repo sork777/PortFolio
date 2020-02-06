@@ -20,4 +20,5 @@ private:
 	void Megan();
 	void Mutant();
 	void Weapon();
+	void Temp();
 };

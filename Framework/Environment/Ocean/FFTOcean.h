@@ -45,7 +45,7 @@ public:
 	void Render(float time);
 
 	void RenderFFT();
-
+	void Property();
 
 	Texture* HeightMap() { return heightMap; }
 

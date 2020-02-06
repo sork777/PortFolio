@@ -165,6 +165,7 @@ void CsResource::Copy(void * data, UINT size)
 	D3D::GetDC()->Unmap(result, 0);
 }
 
+
 void CsResource::CreateBuffer()
 {
 	/* 가상함수라 생성자 콜이 안되서 */
@@ -307,7 +308,34 @@ StructuredBuffer::StructuredBuffer(void * inputData, UINT stride, UINT count, bo
 StructuredBuffer::~StructuredBuffer()
 {
 }
-void StructuredBuffer::CreateInput() 
+void StructuredBuffer::UpdateInput()
+{
+	/*D3D11_MAPPED_SUBRESOURCE subResource;
+	D3D::GetDC()->Map(input, 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
+	{
+		memcpy(subResource.pData, inputData, stride);
+	}
+	D3D::GetDC()->Unmap(input, 0);*/
+	D3D11_BOX destRegion;
+	destRegion.left = 0;
+	destRegion.right =	stride*count;
+	destRegion.top = 0;
+	destRegion.bottom = 1;
+	destRegion.front = 0;
+	destRegion.back = 1;
+
+	/* 업데이트 */
+	D3D::GetDC()->UpdateSubresource
+	(
+		input,
+		0,
+		&destRegion,
+		inputData,
+		stride*count,
+		0
+	);
+}
+void StructuredBuffer::CreateInput()
 {
 	ID3D11Buffer* buffer = NULL;
 

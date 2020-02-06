@@ -6,12 +6,20 @@
     <ClInclude Include="Demo\TerrainLodDemo.h">
       <Filter>Demo</Filter>
     </ClInclude>
+    <ClInclude Include="Demo\AnimEditorDemo.h" />
+    <ClInclude Include="Practice\DeferredPrac.h" />
+    <ClInclude Include="Demo\PBRDemo.h" />
+    <ClInclude Include="Demo\CSDemo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Demo\TerrainLodDemo.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
+    <ClCompile Include="Demo\AnimEditorDemo.cpp" />
+    <ClCompile Include="Practice\DeferredPrac.cpp" />
+    <ClCompile Include="Demo\PBRDemo.cpp" />
+    <ClCompile Include="Demo\CSDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Editors">

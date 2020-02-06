@@ -49,11 +49,11 @@ private:
 	Material* brick;
 	Material* wall;
 
-	MeshSphere* sphere[10];
-	MeshCylinder* cylinder[10];
-	MeshCube* cube;
-	MeshGrid* grid;
-	MeshQuad* quad;
+	MeshRender* sphere;
+	MeshRender* cylinder;
+	MeshRender* cube;
+	MeshRender* grid;
+	MeshRender* quad;
 
 	Model* model;
 	ModelRender* modelRender;

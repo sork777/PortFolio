@@ -1,11 +1,11 @@
 #pragma once
 
-#define MAX_TRAILBUFFER_COUNT 500
+#define MAX_TRAILBUFFER_COUNT 128
 
 class TrailRenderer
 {
 public:
-	TrailRenderer(UINT splitCount = 128);
+	TrailRenderer(UINT splitCount = 64);
 	~TrailRenderer();
 
 	void Initialize();
@@ -36,7 +36,8 @@ private:
 		D3DXMATRIX buffer[MAX_TRAILBUFFER_COUNT];
 
 		int TrailCount;
-		float Padding[3];
+		int Segment = 30;
+		float Padding[2];
 
 		TrailDesc()
 		{
@@ -52,14 +53,12 @@ private:
 	Transform* transform;
 	PerFrame* perframe;
 
+	UINT tech=0;
 private:
 	VertexBuffer* vertexBuffer = NULL;
-	IndexBuffer* indexBuffer = NULL;
-
 	VertexTexture* vertices;
-	UINT* indices;
 
-	UINT vertexCount, indexCount;
+	UINT vertexCount;
 
 private:
 	ConstantBuffer* trailBuffer;

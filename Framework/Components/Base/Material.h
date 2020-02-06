@@ -46,16 +46,16 @@ public:
 	// Texture
 
 	Texture* DiffuseMap() { return diffuseMap; }
-	void LoadDiffuseMap(string file, string dir = "../../_Textures/");
-	void LoadDiffuseMapW(wstring file, wstring dir = L"../../_Textures/");
+	void LoadDiffuseMap(string file, string dir = "../../_Textures/Material/");
+	void LoadDiffuseMapW(wstring file, wstring dir = L"../../_Textures/Material/");
 
 	Texture* SpecularMap() { return specularMap; }
-	void LoadSpecularMap(string file, string dir = "../../_Textures/");
-	void LoadSpecularMapW(wstring file, wstring dir = L"../../_Textures/");
+	void LoadSpecularMap(string file, string dir = "../../_Textures/Material/");
+	void LoadSpecularMapW(wstring file, wstring dir = L"../../_Textures/Material/");
 
 	Texture* NormalMap() { return normalMap; }
-	void LoadNormalMap(string file, string dir = "../../_Textures/");
-	void LoadNormalMapW(wstring file, wstring dir = L"../../_Textures/");
+	void LoadNormalMap(string file, string dir = "../../_Textures/Material/");
+	void LoadNormalMapW(wstring file, wstring dir = L"../../_Textures/Material/");
 private:
 	struct ColorDesc
 	{

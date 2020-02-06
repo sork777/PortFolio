@@ -140,6 +140,7 @@ public:
 	UINT InputByteWidth() { return stride * count; }
 	UINT OutputByteWidth() { return outputStride * outputCount; }
 
+	void UpdateInput();
 private:
 	void CreateInput() override;
 	void CreateSRV() override;

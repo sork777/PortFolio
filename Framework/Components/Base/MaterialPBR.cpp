@@ -20,7 +20,7 @@ void MaterialPBR::Initialize()
 	name = L"";
 
 	albedoMap = NULL;
-	heightMap = NULL;
+	//heightMap = NULL;
 	normalMap = NULL;
 	loughnessMap = NULL;
 	metalicMap = NULL;
@@ -31,7 +31,7 @@ void MaterialPBR::Initialize()
 MaterialPBR::~MaterialPBR()
 {
 	SafeDelete(albedoMap);
-	SafeDelete(heightMap);
+	//SafeDelete(heightMap);
 	SafeDelete(normalMap);
 	SafeDelete(loughnessMap);
 
@@ -45,10 +45,15 @@ void MaterialPBR::SetShader(Shader * shader)
 	sBuffer = shader->AsConstantBuffer("CB_MaterialPBR");
 
 	sAlbedoMap = shader->AsSRV("AlbedoMap");
-	sHeightMap = shader->AsSRV("HeightMap");
+	//sHeightMap = shader->AsSRV("HeightMap");
 	sNormalMap = shader->AsSRV("NormalMap");
 	sLoughnessMap = shader->AsSRV("LoughnessMap");
 	sMetalicMap = shader->AsSRV("MetalicMap");
+}
+
+void MaterialPBR::Update()
+{
+	
 }
 
 void MaterialPBR::Render()
@@ -62,11 +67,11 @@ void MaterialPBR::Render()
 		sAlbedoMap->SetResource(NULL);
 
 
-	if (heightMap != NULL)
+	/*if (heightMap != NULL)
 		sHeightMap->SetResource(heightMap->SRV());
 	else
 		sHeightMap->SetResource(NULL);
-
+*/
 	if (normalMap != NULL)
 		sNormalMap->SetResource(normalMap->SRV());
 	else
@@ -76,6 +81,12 @@ void MaterialPBR::Render()
 		sLoughnessMap->SetResource(loughnessMap->SRV());
 	else
 		sLoughnessMap->SetResource(NULL);
+
+
+	if (metalicMap != NULL)
+		sMetalicMap->SetResource(metalicMap->SRV());
+	else
+		sMetalicMap->SetResource(NULL);
 
 }
 
@@ -120,13 +131,12 @@ bool MaterialPBR::Property()
 		ImGui::ColorEdit4("Albedo", (float*)colorDesc.Albedo);
 		ImGui::ColorEdit4("F0", (float*)colorDesc.F0);
 		ImGui::ColorEdit4("Emissive", (float*)colorDesc.Emissive);
-		ImGui::DragFloat("Loughness", &colorDesc.Loughness,0.1f,0.0f,1.0f);
-		ImGui::DragFloat("Metalic", &colorDesc.Metalic,0.1f,0.0f,1.0f);
+		ImGui::DragFloat("Loughness", &colorDesc.Loughness,0.1f,0.0f,1.0f);		
 		
 		{
 
 			MapButton(albedoMap, "AlbedoMap", bind(&MaterialPBR::LoadAlbedoMap, this, placeholders::_1, placeholders::_2));
-			MapButton(heightMap, "HeightMap", bind(&MaterialPBR::LoadHeightMap, this, placeholders::_1, placeholders::_2));
+			//MapButton(heightMap, "HeightMap", bind(&MaterialPBR::LoadHeightMap, this, placeholders::_1, placeholders::_2));
 			MapButton(normalMap, "NormalMap", bind(&MaterialPBR::LoadNormalMap, this, placeholders::_1, placeholders::_2));
 			MapButton(loughnessMap, "LoughnessMap", bind(&MaterialPBR::LoadLoughnessMap, this, placeholders::_1, placeholders::_2));
 			MapButton(metalicMap, "MetalicMap", bind(&MaterialPBR::LoadMetalicMap, this, placeholders::_1, placeholders::_2));
@@ -160,24 +170,19 @@ void MaterialPBR::F0(float r, float g, float b)
 	F0(Vector3(r, g, b));
 }
 
-void MaterialPBR::Emissive(Vector3 & color)
+void MaterialPBR::Emissive(Color & color)
 {
 	colorDesc.Emissive = color;
 }
 
-void MaterialPBR::Emissive(float r, float g, float b)
+void MaterialPBR::Emissive(float r, float g, float b, float a)
 {
-	Emissive(Vector3(r, g, b));
+	Emissive(Color(r, g, b, a));
 }
 
 void MaterialPBR::Lough(float lough)
 {
 	colorDesc.Loughness = lough;
-}
-
-void MaterialPBR::Metalic(float  metal)
-{
-	colorDesc.Metalic = metal;
 }
 
 
@@ -192,18 +197,18 @@ void MaterialPBR::LoadAlbedoMapW(wstring file, wstring dir)
 
 	albedoMap = new Texture(file, dir);
 }
-
-void MaterialPBR::LoadHeightMap(string file, string dir)
-{
-	LoadHeightMapW(String::ToWString(file), String::ToWString(dir));
-}
-
-void MaterialPBR::LoadHeightMapW(wstring file, wstring dir)
-{
-	SafeDelete(heightMap);
-
-	heightMap = new Texture(file, dir);
-}
+//
+//void MaterialPBR::LoadHeightMap(string file, string dir)
+//{
+//	LoadHeightMapW(String::ToWString(file), String::ToWString(dir));
+//}
+//
+//void MaterialPBR::LoadHeightMapW(wstring file, wstring dir)
+//{
+//	SafeDelete(heightMap);
+//
+//	heightMap = new Texture(file, dir);
+//}
 
 void MaterialPBR::LoadNormalMap(string file, string dir)
 {

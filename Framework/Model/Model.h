@@ -2,7 +2,7 @@
 #define MAX_MODEL_TRANSFORMS 250
 #define MAX_MODEL_KEYFRAMES 500
 #define MAX_MODEL_INSTANCE 500
-#define MAX_ANIMATION_CLIPS 20
+#define MAX_ANIMATION_CLIPS 15
 
 class ModelBone;
 class ModelMesh;
@@ -62,7 +62,7 @@ public:
 	ModelMesh* MeshByName(wstring name);
 
 public:
-	void ReadMaterial(wstring file, wstring directoryPath = L"../../_Textures/");
+	void ReadMaterial(wstring file, wstring directoryPath = L"../../_Textures/Model/");
 	void ReadMesh(wstring file, wstring directoryPath = L"../../_Models/");
 
 private:

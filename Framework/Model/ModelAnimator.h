@@ -113,7 +113,9 @@ private:
 	Model* model;
 
 	ID3D11Texture2D* clipTexture = NULL;
+	//vector<ID3D11Texture2D*> clipTextures;
 	ID3D11ShaderResourceView* clipSrv;
+	//vector<ID3D11ShaderResourceView*> clipSrvs;
 	ID3DX11EffectShaderResourceVariable* sTransformsSRV;
 private:
 	struct CS_OutputDesc

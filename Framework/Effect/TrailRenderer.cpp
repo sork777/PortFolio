@@ -2,7 +2,6 @@
 #include "TrailRenderer.h"
 
 
-
 TrailRenderer::TrailRenderer(UINT splitCount)
 	:splitCount(splitCount)
 {
@@ -17,7 +16,6 @@ TrailRenderer::~TrailRenderer()
 		;
 	SafeDelete(vertexBuffer);
 	SafeDelete(vertices);
-	SafeDelete(indices);
 
 	SafeDelete(trailBuffer);
 	SafeDelete(sTrailBuffer);
@@ -39,17 +37,12 @@ void TrailRenderer::Initialize()
 	trailDesc.TrailCount = splitCount;
 
 	// VertexBuffer 持失
-	float w = 0.5f;
-	float h = 0.5f;
 	float dx = 1.0f / (float)splitCount;
 
 	vector<VertexTexture> v;
 	for (UINT i = 0; i < (UINT)splitCount; i++)
 	{
-		v.push_back(VertexTexture(-w, -h, 0, (dx * (float)(i + 0)), 1));
-		v.push_back(VertexTexture(-w, +h, 0, (dx * (float)(i + 0)), 0));
-		v.push_back(VertexTexture(+w, -h, 0, (dx * (float)(i + 1)), 1));
-		v.push_back(VertexTexture(+w, +h, 0, (dx * (float)(i + 1)), 0));
+		v.push_back(VertexTexture(0, 0, 0, (dx * (float)(i)), 0));
 	}
 	vertices = new VertexTexture[v.size()];
 	vertexCount = v.size();
@@ -61,23 +54,6 @@ void TrailRenderer::Initialize()
 	);
 	vertexBuffer = new VertexBuffer(vertices, vertexCount, sizeof(VertexTexture));
 
-	// IndexBuffer 持失
-
-	indexCount = 6* splitCount;
-	indices = new UINT[indexCount];
-	for (UINT i = 0; i < (UINT)splitCount; i++)
-	{
-		indices[i * 6 + 0] = i*4+0;
-		indices[i * 6 + 1] = i*4+1;
-		indices[i * 6 + 2] = i*4+2;
-		indices[i * 6 + 3] = i*4+2;
-		indices[i * 6 + 4] = i*4+1;
-		indices[i * 6 + 5] = i*4+3;
-
-	}
-	indexBuffer = new IndexBuffer(indices, indexCount);
-
-
 	trailBuffer = new ConstantBuffer(&trailDesc, sizeof(TrailDesc));
 	sTrailBuffer = shader->AsConstantBuffer("CB_Trail");
 	sTrailSrv = shader->AsSRV("TrailTexture");
@@ -86,17 +62,9 @@ void TrailRenderer::Initialize()
 
 void TrailRenderer::Update(Matrix parent)
 {
-	//transform->Update();
 	perframe->Update();
-	deltaStoreTime += Time::Delta();
-
-	if (deltaStoreTime >= 0.0005f)
-	{
-		deltaStoreTime -= 0.0005f;
-
-		//D3DXMatrixTranspose(&parent, &parent);
-		SetAndShiftTrailMatBuffer(parent);
-	}
+	
+	SetAndShiftTrailMatBuffer(parent);
 
 	for (UINT i = 0; i < mats.size(); i++)
 		trailDesc.buffer[i] = mats[i];
@@ -108,7 +76,6 @@ void TrailRenderer::Render()
 	perframe->Render();
 
 	vertexBuffer->Render();
-	indexBuffer->Render();
 
 	trailBuffer->Apply();
 	sTrailBuffer->SetConstantBuffer(trailBuffer->Buffer());
@@ -117,8 +84,9 @@ void TrailRenderer::Render()
 	if(maskTexture)
 		sMaskSrv->SetResource(maskTexture->SRV());
 
-	D3D::GetDC()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	shader->DrawIndexed(0, 0, 6 * splitCount);
+	D3D::GetDC()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	shader->Draw(tech, 0, splitCount);
+	
 }
 
 void TrailRenderer::ClearTrail(Matrix mat)
@@ -156,9 +124,11 @@ bool TrailRenderer::Property()
 	bool bChange;
 	{
 		ImGui::Text("TrailRender Property");
+		ImGui::Separator();
 		bChange |= transform->Property();
 		ImGui::Separator();
-
+		ImGui::SliderInt("Wire", (int*)&tech, 0, 1);
+		ImGui::SliderInt("Segment", (int*)&trailDesc.Segment, 2, 100);
 		ID3D11ShaderResourceView* srv = NULL;
 		if (trailTexture)
 			srv = trailTexture->SRV();
@@ -200,14 +170,19 @@ bool TrailRenderer::Property()
 
 void TrailRenderer::SetAndShiftTrailMatBuffer(Matrix & insertFirstMat)
 {
-	mats.insert(mats.begin(),insertFirstMat);
+	Matrix S, R, T, result;
+	Vector3 scale, pos;
+	Quaternion Q;
+	D3DXMatrixDecompose(&scale, &Q, &pos, &insertFirstMat);
+	D3DXMatrixScaling(&S, scale.x, scale.y, scale.z);
+	D3DXMatrixRotationQuaternion(&R, &Q);
+	D3DXMatrixTranslation(&T, pos.x, pos.y, pos.z);
+	result = R * T;
+	result._14 = scale.x;
+	result._24 = scale.y;
+	result._34 = scale.z;
+	mats.insert(mats.begin(), result);
+	
 	if (mats.size() > splitCount)
-		mats.pop_back();
-	//memcpy
-	//(
-	//	&trailDesc.buffer[1],
-	//	&trailDesc.buffer[0],
-	//	sizeof(D3DXMATRIX) * (splitCount - 1)
-	//);
-	//trailDesc.buffer[0] = insertFirstMat;
+		mats.pop_back();	
 }

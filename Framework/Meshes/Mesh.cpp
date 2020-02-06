@@ -44,5 +44,5 @@ void Mesh::Render(UINT drawCount)
 	indexBuffer->Render();
 
 	D3D::GetDC()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	shader->DrawIndexedInstanced(0, pass, indexCount, drawCount);
+	shader->DrawIndexedInstanced(tech, pass, indexCount, drawCount);
 }

@@ -99,7 +99,11 @@ void Model::UpdateTransforms()
 
 	for (UINT i = 0; i < transforms.size(); i++)
 	{
-		if (worlds[i] != transforms[i]->World())
+		if (bChange)
+		{
+			memcpy(worlds[i], transforms[i]->World(), sizeof(Matrix));
+		}
+		else if (worlds[i] != transforms[i]->World())
 		{
 			memcpy(worlds[i], transforms[i]->World(), sizeof(Matrix));
 			bChange = true;

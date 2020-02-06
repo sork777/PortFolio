@@ -144,7 +144,7 @@ private:
 	Material*	floor;
 	MeshRender* grid;
 
-	wstring textureDir	= L"../../_Textures/";
+	wstring textureDir	= L"../../_Textures/Model/";
 	wstring modelDir	= L"../../_Models/";
 
 private:

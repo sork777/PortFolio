@@ -9,6 +9,8 @@ public:
 	void Update();
 	void Render();
 
+	ID3D11ShaderResourceView* CubeSRV() { return cubeSRV; }
+
 private:
 	struct Desc
 	{

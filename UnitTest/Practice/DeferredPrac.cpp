@@ -2,7 +2,7 @@
 #include "DeferredPrac.h"
 #include "Objects/CSM.h"
 #include "PostEffects/HDR_Tone.h"
-#include "Environment/Atmosphere.h"
+#include "Environment/Sky/Atmosphere.h"
 #include "Environment/Ocean/FFTOcean.h"
 #include "Environment/TerrainLod.h"
 
@@ -29,7 +29,7 @@ void DeferredPrac::Initialize()
 		terrain->BaseTexture(L"Terrain/Dirt3.png");
 		terrain->AlphaTexture(L"HeightMap/HeightMap512.png", true);
 		//terrain->LayerTexture(L"Terrain/Grass (Lawn).jpg", L"HeightMap/HeightMap512.png");
-		terrain->NDTexture(L"Terrain/Normal/Dirt3_Normal.png", L"Terrain/Displacement/Dirt3_Displacement.png");
+		terrain->NDTexture(L"Terrain/Normal/Dirt3_Normal.png");// , L"Terrain/Displacement/Dirt3_Displacement.png");
 
 		FFTOcean::InitializeInfo oceaninfo =
 		{
@@ -38,86 +38,98 @@ void DeferredPrac::Initialize()
 			1.0f, 64
 		};
 		ocean = new FFTOcean(oceaninfo);
+		Vector3 pos;
+		ocean->GetTransform()->Position(&pos);
+		pos.y += 5.0f;
+		ocean->GetTransform()->Position(pos);
 	}
 	hdr = new HDR_Tone();
 
 	//CreateMesh
 	{
 		floor = new Material(shader);
-		floor->DiffuseMap("Floor.png");
-		floor->NormalMap("Floor_Normal.png");
-		floor->SpecularMap("Floor_Specular.png");
+		floor->LoadDiffuseMap("Floor.png");
+		floor->LoadNormalMap("Floor_Normal.png");
+		floor->LoadSpecularMap("Floor_Specular.png");
 
 		stone = new Material(shader);
-		stone->DiffuseMap("Stones.png");
-		stone->NormalMap("Stones_Normal.png");
-		stone->SpecularMap("Stones_Specular.png");
+		stone->LoadDiffuseMap("Stones.png");
+		stone->LoadNormalMap("Stones_Normal.png");
+		stone->LoadSpecularMap("Stones_Specular.png");
 
 		brick = new Material(shader);
-		brick->DiffuseMap("Bricks.png");
-		brick->NormalMap("Bricks_Normal.png");
-		brick->SpecularMap("Bricks_Specular.png");
+		brick->LoadDiffuseMap("Bricks.png");
+		brick->LoadNormalMap("Bricks_Normal.png");
+		brick->LoadSpecularMap("Bricks_Specular.png");
 
 		wall = new Material(shader);
-		wall->DiffuseMap("Wall.png");
-		wall->NormalMap("Wall_Normal.png");
-		wall->SpecularMap("Wall_Specular.png");
+		wall->LoadDiffuseMap("Wall.png");
+		wall->LoadNormalMap("Wall_Normal.png");
+		wall->LoadSpecularMap("Wall_Specular.png");
+
+		Transform* transform;
+		cube = new MeshRender(shader,new MeshCube());
+		cube->SetMaterial(stone);
+		transform = cube->AddTransform();
+		transform->Position(0, 2.5f, 0);
+		transform->Scale(15.0f, 5.0f, 25.0);
+
+		grid = new MeshRender(shader, new MeshGrid(10, 10));
+		grid->SetMaterial(floor);
+		transform = grid->AddTransform();
+		transform->Position(0, 0, 0);
+		transform->Scale(20, 1, 20);
 
 
-		cube = new MeshCube(shader);
-		cube->GetTransform()->Position(0, 2.5f, 0);
-		cube->GetTransform()->Scale(15.0f, 5.0f, 25.0);
-
-		grid = new MeshGrid(shader, 10, 10);
-		grid->GetTransform()->Position(0, 0, 0);
-		grid->GetTransform()->Scale(20, 1, 20);
-
-
+		cylinder = new MeshRender(shader,new MeshCylinder(0.5f, 3.0f, 20, 20));
+		cylinder->SetMaterial(brick);
+		sphere = new MeshRender(shader,new MeshSphere(0.5f, 20, 20));
+		sphere->SetMaterial(wall);
 		for (UINT i = 0; i < 5; i++)
 		{
-			cylinder[i * 2] = new MeshCylinder(shader, 0.5f, 3.0f,false, 20, 20);
 			//cylinder[i * 2]->GetTransform()->Position(-100, 6.0f, -50.0f + (float)i * 50.0f);
-			cylinder[i * 2]->GetTransform()->Position(-30, 6.0f, -30.0f + (float)i * 15.0f);
-			cylinder[i * 2]->GetTransform()->Scale(5, 5, 5);
-
-			cylinder[i * 2 + 1] = new MeshCylinder(shader, 0.5f, 3.0f, false, 20, 20);
+			transform = cylinder->AddTransform();
+			transform->Position(-30, 6.0f, -30.0f + (float)i * 15.0f);
+			transform->Scale(5, 5, 5);
+			
 			//cylinder[i * 2 + 1]->GetTransform()->Position(100, 6.0f, -50.0f + (float)i * 50.0f);
-			cylinder[i * 2 + 1]->GetTransform()->Position(30, 6.0f, -30.0f + (float)i * 15.0f);
-			cylinder[i * 2 + 1]->GetTransform()->Scale(5, 5, 5);
+			transform = cylinder->AddTransform();
+			transform->Position(30, 6.0f, -30.0f + (float)i * 15.0f);
+			transform->Scale(5, 5, 5);
 
 
-			sphere[i * 2] = new MeshSphere(shader, 0.5f, false, 20, 20);
 			//sphere[i * 2]->GetTransform()->Position(-100.0f, 15.5f, -50.0f + i * 50.0f);
-			sphere[i * 2]->GetTransform()->Position(-30, 15.5f, -30.0f + (float)i * 15.0f);
-			sphere[i * 2]->GetTransform()->Scale(5, 5, 5);
+			transform = sphere->AddTransform();
+			transform->Position(-30, 15.5f, -30.0f + (float)i * 15.0f);
+			transform->Scale(5, 5, 5);
 
-			sphere[i * 2 + 1] = new MeshSphere(shader, 0.5f, false, 20, 20);
+			transform = sphere->AddTransform();
 			//sphere[i * 2 + 1]->GetTransform()->Position(100.0f, 15.5f, -50.0f + i * 50.0f);
-			sphere[i * 2 + 1]->GetTransform()->Position(30, 15.5f, -30.0f + (float)i * 15.0f);
-			sphere[i * 2 + 1]->GetTransform()->Scale(5, 5, 5);
+			transform->Position(30, 15.5f, -30.0f + (float)i * 15.0f);
+			transform->Scale(5, 5, 5);
 		}
 	}
 
 	//Load Model
 	{
-		model = new Model();
-		model->ReadMaterial(L"eclipse/eclipse");
-		model->ReadMesh(L"eclipse/eclipse");
-		modelRender = new ModelRender(shader, model);
-		modelRender->AddTransform();
-		modelRender->GetTransform(0)->Position(0,4.25f,0);
-		modelRender->GetTransform(0)->Scale(0.3f, 0.3f, 0.3f);
-		modelRender->UpdateTransform();
+		model = new Model(shader);
+		model->ReadMaterial(L"B787/Airplane");
+		model->ReadMesh(L"B787/Airplane");
+		modelRender = new ModelRender(model);
+		model->AddInstance();
+		model->GetTransform(0)->Position(0,4.25f,0);
+		model->GetTransform(0)->Scale(0.003f, 0.003f, 0.003f);
+		model->UpdateTransforms();
 
-		model = new Model();
-		model->ReadMaterial(L"Kachujin/Kachujin");
-		model->ReadMesh(L"Kachujin/Kachujin");
-		model->ReadClip(L"Kachujin/Ninja_Idle");
-		modelAnim = new ModelAnimator(shader, model);
-		modelAnim->AddTransform();
-		modelAnim->GetTransform(0)->Position(30, 0.0f, -40);
-		modelAnim->GetTransform(0)->Scale(0.05f, 0.05f, 0.05f);
-		modelAnim->UpdateTransform();
+		model = new Model(shader);
+		model->ReadMaterial(L"Kachujin/Mesh");
+		model->ReadMesh(L"Kachujin/Mesh");
+		model->AddInstance();
+		model->GetTransform(0)->Position(30, 0.0f, -40);
+		model->GetTransform(0)->Scale(0.05f, 0.05f, 0.05f);
+		model->UpdateTransforms();
+		modelAnim = new ModelAnimator( model);
+		modelAnim->ReadClip(L"Kachujin/Idle");
 	}
 	//PointLights
 	{
@@ -187,7 +199,7 @@ void DeferredPrac::Update()
 {
 	app_time += Time::Delta();
 	ocean->Update(app_time);
-
+	ocean->Property();
 	sky->Update();
 	terrain->Update();
 	terrain->TerrainController();
@@ -238,11 +250,8 @@ void DeferredPrac::Update()
 
 
 	/* 오브젝트 업데이트 */
-	for (UINT i = 0; i < 10; i++)
-	{
-		sphere[i]->Update();
-		cylinder[i]->Update();
-	}
+	sphere->Update();
+	cylinder->Update();
 
 	cube->Update();
 	grid->Update();
@@ -330,31 +339,23 @@ void DeferredPrac::SetGBuffer()
 	modelPass = 1;
 	animPass = 2;
 	//terrainPass = 3; 
-	terrain->Pass(3);
+	terrain->Tech(1);
+	terrain->Pass(0);
 	terrain->Render();
 
-	
-
-	wall->Render();
-
-	for (UINT i = 0; i < 10; i++)
 	{
-		sphere[i]->Tech(0);
-		sphere[i]->Pass(meshPass);
-		sphere[i]->Render();
+		sphere->Tech(0);
+		sphere->Pass(meshPass);
+		sphere->Render();
 	}
-	brick->Render();
-	for (UINT i = 0; i < 10; i++)
 	{
-		cylinder[i]->Tech(0);
-		cylinder[i]->Pass(meshPass);
-		cylinder[i]->Render();
+		cylinder->Tech(0);
+		cylinder->Pass(meshPass);
+		cylinder->Render();
 	}
-	stone->Render();
 	cube->Tech(0);
 	cube->Pass(meshPass);
 	cube->Render();
-	floor->Render();
 
 	grid->Tech(0);
 	grid->Pass(meshPass);
@@ -374,27 +375,20 @@ void DeferredPrac::SetShadow(UINT tech)
 	modelPass = 2;
 	animPass = 3;
 
-	wall->Render();
-
-	for (UINT i = 0; i < 10; i++)
 	{
-		sphere[i]->Tech(tech);
-		sphere[i]->Pass(meshPass);
-		sphere[i]->Render();
+		sphere->Tech(tech);
+		sphere->Pass(meshPass);
+		sphere->Render();
 	}
-	brick->Render();
-	for (UINT i = 0; i < 10; i++)
 	{
-		cylinder[i]->Tech(tech);
-		cylinder[i]->Pass(meshPass);
-		cylinder[i]->Render();
+		cylinder->Tech(tech);
+		cylinder->Pass(meshPass);
+		cylinder->Render();
 	}
-	stone->Render();
 	cube->Tech(tech);
 	cube->Pass(meshPass);
 	cube->Render();
 
-	floor->Render();
 	grid->Tech(tech);
 	grid->Pass(meshPass);
 	grid->Render();

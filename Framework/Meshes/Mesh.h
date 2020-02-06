@@ -11,6 +11,7 @@ public:
 
 	void SetShader(Shader* shader);
 	void Pass(UINT val) { pass = val; }
+	void Tech(UINT val) { tech = val; }
 
 	void Update();
 	void Render(UINT drawCount);
@@ -21,6 +22,7 @@ protected:
 protected:
 	Shader* shader;
 	UINT pass = 0;
+	UINT tech = 0;
 
 	PerFrame* perFrame = NULL;
 

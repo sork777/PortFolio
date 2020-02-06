@@ -8,8 +8,8 @@
 void Main::Initialize()
 {
 	//Push(new Convert());
-	//Push(new InstanceColliderDemo());
-	Push(new AnimEditorDemo());
+	Push(new InstanceColliderDemo());
+	//Push(new AnimEditorDemo());
 }
 
 void Main::Ready()

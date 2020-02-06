@@ -38,11 +38,11 @@ public:
 
 	virtual void End()
 	{
+		ImGui::End();
 		if (!bVisible)
 			return;
 
 		height = ImGui::GetWindowHeight();
-		ImGui::End();
 	}
 
 	const bool& IsVisible() const { return bVisible; }

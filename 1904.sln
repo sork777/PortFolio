@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "000", "000", "{C3024CE1-857
 	ProjectSection(SolutionItems) = preProject
 		_Shaders\000_Header.fx = _Shaders\000_Header.fx
 		_Shaders\000_Light.fx = _Shaders\000_Light.fx
+		_Shaders\000_Math.fx = _Shaders\000_Math.fx
 		_Shaders\000_Model.fx = _Shaders\000_Model.fx
 		_Shaders\000_Sky.fx = _Shaders\000_Sky.fx
 		_Shaders\000_Terrain.fx = _Shaders\000_Terrain.fx
@@ -118,6 +119,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effect", "Effect", "{A54CC457-CDB6-43DC-97B4-04179324A1C4}"
 	ProjectSection(SolutionItems) = preProject
 		_Shaders\Effect\Illusion.fx = _Shaders\Effect\Illusion.fx
+		_Shaders\Effect\Particle.fx = _Shaders\Effect\Particle.fx
+		_Shaders\Effect\ParticleSimulation.fx = _Shaders\Effect\ParticleSimulation.fx
 		_Shaders\Effect\TrailEffect.fx = _Shaders\Effect\TrailEffect.fx
 	EndProjectSection
 EndProject
@@ -125,6 +128,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LightPBR", "LightPBR", "{E6
 	ProjectSection(SolutionItems) = preProject
 		_Shaders\LightPBR\IBL.fx = _Shaders\LightPBR\IBL.fx
 		_Shaders\LightPBR\PBR.fx = _Shaders\LightPBR\PBR.fx
+		_Shaders\LightPBR\PBRHeader.fx = _Shaders\LightPBR\PBRHeader.fx
 	EndProjectSection
 EndProject
 Global

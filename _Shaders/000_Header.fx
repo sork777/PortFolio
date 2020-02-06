@@ -1,3 +1,5 @@
+#include "D:\GitHubPJ\PF\PortFolio\_Shaders/000_Math.fx"
+
 cbuffer CB_PerFrame
 {
     matrix View;
@@ -17,19 +19,12 @@ cbuffer CB_World
 Texture2D DiffuseMap;
 Texture2D SpecularMap;
 Texture2D NormalMap;
-Texture2D LoughMetalMap;
 Texture2D DisplaceMentMap;
 //중요 2D로 하면 샘플링 안됨
 TextureCube SkyCubeMap;
 /* DSV에 대한 SRV가 들어올거임 */ 
 Texture2D ShadowMap;
 
-//=============================================================================================
-// [Global Constant]
-//=============================================================================================
-#define PI 3.1415926535897932384626433832795
-#define INV_PI 1.0 / PI
-#define EPSILON 0.00000001
 ///////////////////////////////////////////////////////////////////////////////
 /*                                 States                                    */
 /*           Raster             */
@@ -87,6 +82,7 @@ SamplerState LinearSampler
     MaxAnisotropy = 1;
     ComparisonFunc = Always;
 };
+
 SamplerState PointSampler
 {
     Filter = MIN_MAG_MIP_POINT;
@@ -96,6 +92,7 @@ SamplerState PointSampler
     MaxAnisotropy = 1;
     ComparisonFunc = Always;
 };
+
 SamplerState CubeSampler
 {
     Filter = MIN_MAG_MIP_LINEAR;
@@ -652,6 +649,16 @@ pass name \
 pass name \
 { \
     SetRasterizerState(rs); \
+    SetVertexShader(CompileShader(vs_5_0, vs())); \
+    SetGeometryShader(CompileShader(gs_5_0, gs())); \
+    SetPixelShader(CompileShader(ps_5_0, ps())); \
+}
+
+#define P_RS_BS_VGP(name, rs, bs, vs,gs, ps) \
+pass name \
+{ \
+    SetRasterizerState(rs); \
+    SetBlendState(bs, float4(0, 0, 0, 0), 0xFF); \
     SetVertexShader(CompileShader(vs_5_0, vs())); \
     SetGeometryShader(CompileShader(gs_5_0, gs())); \
     SetPixelShader(CompileShader(ps_5_0, ps())); \

@@ -501,23 +501,6 @@ void AnimationEditor::SaveAnimationClip(wstring path)
 		path = Path::GetFileNameWithoutExtension(path);
 		curAnimator->SaveChangedClip(clip, path, dir, false);
 	}
-	//if (ImGui::BeginPopupModal("SaveClip?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-	//{
-	//	static char name[64] = "NewSocket";
-	//	//wstring name = L"Test_" + to_wstring(clip);
-
-	//	ImGui::Text("SocketName:");
-	//	ImGui::InputText("##edit", name, IM_ARRAYSIZE(name));
-	//	if (ImGui::Button("OK", ImVec2(120, 0))) {
-	//		ImGui::CloseCurrentPopup();
-	//	}
-	//	ImGui::SetItemDefaultFocus();
-	//	ImGui::SameLine();
-	//	if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-	//		ImGui::CloseCurrentPopup();
-	//	}
-	//	ImGui::EndPopup();
-	//}
 }
 
 void AnimationEditor::AddAnimationClip(wstring path)
@@ -687,8 +670,6 @@ void AnimationEditor::ModelsViewer()
 
 void AnimationEditor::ModelAttach()
 {
-	//if (ImGui::BeginPopupModal("Select_PrevAttachModel", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-	//if (ImGui::BeginPopup("Select_PrevAttachModel"))
 	{
 		ImGui::Text("prevAttach");
 		int selAttachAnim = -1;

@@ -2,12 +2,15 @@
 #include "Main.h"
 #include "Systems/Window.h"
 
-//#include "Practice/DeferredPrac.h"
-#include "Demo/TerrainLodDemo.h"
+#include "Practice/DeferredPrac.h"
+#include "Demo/PBRDemo.h"
+#include "Demo/CSDemo.h"
+//#include "Demo/AnimEditorDemo.h"
 
 void Main::Initialize()
 {
-	Push(new TerrainLodDemo());
+	//Push(new TerrainLodDemo());
+	Push(new CSDemo());
 }
 
 void Main::Ready()

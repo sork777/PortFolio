@@ -207,36 +207,36 @@ void FFTOceanSimulator::UpdateDisplacementMap(float time)
 	UINT group_count_y = (oceanParam.dmap_dim + BLOCK_SIZE_Y - 1) / BLOCK_SIZE_Y;
 	shader->Dispatch(0, CSPass,group_count_x, group_count_y, 1);
 
-	static bool bFile = false;
-	if (ImGui::Button("save"))
-		bFile = true;
-	if(bFile)
-	{
-		UINT size = Float2_Ht->OutputByteWidth() / sizeof(Vector2);
-		Vector2* output = new Vector2[size];
-		Float2_Ht->Copy(output, sizeof(Vector2)* size);
+	//static bool bFile = false;
+	//if (ImGui::Button("save"))
+	//	bFile = true;
+	//if(bFile)
+	//{
+	//	UINT size = Float2_Ht->OutputByteWidth() / sizeof(Vector2);
+	//	Vector2* output = new Vector2[size];
+	//	Float2_Ht->Copy(output, sizeof(Vector2)* size);
 
-		string str = "TestFFTOceanSimulator_Ht.csv";
-		FILE* file;
-		fopen_s(&file, str.c_str(), "w");
-		for (UINT i = 0; i < size; i++)
-		{
-			Vector2 temp = output[i];
+	//	string str = "TestFFTOceanSimulator_Ht.csv";
+	//	FILE* file;
+	//	fopen_s(&file, str.c_str(), "w");
+	//	for (UINT i = 0; i < size; i++)
+	//	{
+	//		Vector2 temp = output[i];
 
-			fprintf(file,
-				"%d,%f,%f\n",
-				i,
-				temp.x, temp.y
-			);
-		}
-		fclose(file);
+	//		fprintf(file,
+	//			"%d,%f,%f\n",
+	//			i,
+	//			temp.x, temp.y
+	//		);
+	//	}
+	//	fclose(file);
 
-		SafeDeleteArray(output);
-	}
+	//	SafeDeleteArray(output);
+	//}
 
 	// ------------------------------------ Perform FFT -------------------------------------------
 	fftPlan->fft_512x512_c2c(Float_Dxyz->UAV(), Float_Dxyz->SRV(), Float2_Ht->SRV());
-	if (bFile)
+	/*if (bFile)
 	{
 		UINT size = Float_Dxyz->OutputByteWidth() / sizeof(Vector2);
 		Vector2* output = new Vector2[size];
@@ -260,7 +260,7 @@ void FFTOceanSimulator::UpdateDisplacementMap(float time)
 		SafeDeleteArray(output);
 		bFile = false;
 	}
-
+*/
 	// --------------------------------- Wrap Dx, Dy and Dz ---------------------------------------
 	// Push RT
 	ID3D11RenderTargetView* old_target;
