@@ -119,7 +119,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effect", "Effect", "{A54CC457-CDB6-43DC-97B4-04179324A1C4}"
 	ProjectSection(SolutionItems) = preProject
 		_Shaders\Effect\Illusion.fx = _Shaders\Effect\Illusion.fx
-		_Shaders\Effect\Particle.fx = _Shaders\Effect\Particle.fx
+		_Shaders\Effect\ParticleEmitter.fx = _Shaders\Effect\ParticleEmitter.fx
 		_Shaders\Effect\ParticleSimulation.fx = _Shaders\Effect\ParticleSimulation.fx
 		_Shaders\Effect\TrailEffect.fx = _Shaders\Effect\TrailEffect.fx
 	EndProjectSection

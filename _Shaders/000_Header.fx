@@ -654,6 +654,14 @@ pass name \
     SetPixelShader(CompileShader(ps_5_0, ps())); \
 }
 
+#define P_BS_VGP(name, bs, vs,gs, ps) \
+pass name \
+{ \
+    SetBlendState(bs, float4(0, 0, 0, 0), 0xFF); \
+    SetVertexShader(CompileShader(vs_5_0, vs())); \
+    SetGeometryShader(CompileShader(gs_5_0, gs())); \
+    SetPixelShader(CompileShader(ps_5_0, ps())); \
+}
 #define P_RS_BS_VGP(name, rs, bs, vs,gs, ps) \
 pass name \
 { \

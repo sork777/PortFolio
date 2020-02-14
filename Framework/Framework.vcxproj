@@ -51,6 +51,7 @@
     <ClCompile Include="Model\ModelClip.cpp" />
     <ClCompile Include="Model\ModelMesh.cpp" />
     <ClCompile Include="Model\ModelRender.cpp" />
+    <ClCompile Include="Editor\ParticleEditor.cpp" />
     <ClCompile Include="ParticleSystem\ParticleEmitter.cpp" />
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
     <ClCompile Include="Effect\TrailRenderer.cpp" />
@@ -155,6 +156,8 @@
     <ClInclude Include="Model\ModelMesh.h" />
     <ClInclude Include="Model\ModelRender.h" />
     <ClInclude Include="Objects\BaseObject.h" />
+    <ClInclude Include="Editor\ParticleEditor.h" />
+    <ClInclude Include="ParticleSystem\ParticleData.h" />
     <ClInclude Include="ParticleSystem\ParticleEmitter.h" />
     <ClInclude Include="ParticleSystem\ParticleSystem.h" />
     <ClInclude Include="Effect\TrailRenderer.h" />

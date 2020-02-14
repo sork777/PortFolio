@@ -1,8 +1,11 @@
-#define MAX_INSTANCE 4096
+#define MAX_INSTANCE 512
 #define PI 3.1415926535897932384626433832795
 
 struct ParticleInfo
 {
+    float4 StartColor;
+    float4 EndColor;
+    
     float Time;
     float DeltaTime;
     float Velocity;
@@ -26,8 +29,7 @@ struct inputDesc
     float3  RotDir;
 
     float   LifeTime;
-    float4  StartColor;
-    float4  EndColor;
+    float   Time;  
 };
 StructuredBuffer<inputDesc> InputDatas;
 
@@ -36,6 +38,7 @@ struct OutputDesc
     float3  Postion;
     float3  Rotation;
     float   LifeTime;
+    float   Time;
     float4  ResultColor;
 };
 RWStructuredBuffer<OutputDesc> OutputDatas;
@@ -49,11 +52,13 @@ void CS(uint GroupIndex : SV_GroupIndex, uint3 GroupID : SV_GroupID)
     float3  rotation    = InputDatas[index].Rotation;
     float3  dir         = InputDatas[index].Direction;
     float3  rotdir      = InputDatas[index].RotDir;
-    float   life        = InputDatas[index].LifeTime;
-    float4  sColor      = InputDatas[index].StartColor;
-    float4  eColor      = InputDatas[index].EndColor;
+    float   lifespan    = InputDatas[index].LifeTime;
+    float   life        = InputDatas[index].Time;
     
-    float lifespan  = info.Time;
+    
+    float4 sColor   = info.StartColor;
+    float4 eColor   = info.EndColor;
+    
     float delta     = info.DeltaTime;
     float accel     = info.Accelation;
     float rotacc    = info.RotAccel;
@@ -63,24 +68,21 @@ void CS(uint GroupIndex : SV_GroupIndex, uint3 GroupID : SV_GroupID)
     //life °è»ê
     life += delta;
     
-    float   rate    = life / lifespan;
+    float   rate    = saturate(life / lifespan);
     float4  color   = lerp(sColor, eColor, rate);
     
     // v = v0+(a*t)/2
     vel += accel * life * 0.5f;
+    rotvel += rotacc * life * 0.5f;
     
-    position += vel * dir;
-    rotation += rotvel * rotdir;
-    [flatten]
-    if (rotation >= 2 * PI)
-        rotation -= 2 * PI;
-    [flatten]
-    if (rotation <0)
-        rotation += 2 * PI;
+    position += vel * dir * delta;
+    rotation += rotvel * rotdir * delta;
+  
     
     OutputDatas[index].Postion      = position;
     OutputDatas[index].Rotation     = rotation;
-    OutputDatas[index].LifeTime     = life;
+    OutputDatas[index].Time         = life;
+    OutputDatas[index].LifeTime     = lifespan;
     OutputDatas[index].ResultColor  = color;
 }
 

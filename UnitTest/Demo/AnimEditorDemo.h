@@ -15,6 +15,7 @@ public:
 	virtual void ResizeScreen() override {}
 
 private:
-	AnimationEditor* editor;
+	ParticleEditor* editor;
+	//AnimationEditor* editor;
 };
 

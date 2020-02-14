@@ -18,6 +18,7 @@
 #include <thread>
 #include <mutex>
 #include <type_traits>
+#include <iostream>
 
 using namespace std;
 
@@ -142,3 +143,4 @@ typedef D3DXPLANE Plane;
 
 
 #include "Editor/AnimationEditor.h"
+#include "Editor/ParticleEditor.h"

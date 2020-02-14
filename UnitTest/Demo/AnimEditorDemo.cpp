@@ -8,7 +8,8 @@ void AnimEditorDemo::Initialize()
 	Context::Get()->GetCamera()->Position(0, 32, -67);
 	((Freedom *)Context::Get()->GetCamera())->Speed(20, 2);
 
-	editor = new AnimationEditor();
+	//editor = new AnimationEditor();
+	editor = new ParticleEditor();
 }
 
 void AnimEditorDemo::Destroy()

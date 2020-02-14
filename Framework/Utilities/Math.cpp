@@ -117,15 +117,11 @@ void Math::LerpMatrixSRT(OUT D3DXMATRIX & out, const D3DXMATRIX & m1, const D3DX
 	n.Scale(&nS);
 	n.Rotation(&nR);
 	n.Position(&nT);
-
-	//rS.x = cS.x * pow(nS.x / cS.x, amount);
-	//rS.y = cS.y * pow(nS.y / cS.y, amount);
-	//rS.z = cS.z * pow(nS.z / cS.z, amount);
-	//D3DXVec3Lerp(&rS, &cS, &nS, amount);
-	rS = cS + (nS-cS)*amount;
-	rR = cR + (nR-cR)*amount;
-	rT = cT + (nT-cT)*amount;
-
+	
+	D3DXVec3Lerp(&rS, &cS, &nS, amount);
+	D3DXVec3Lerp(&rR, &cR, &nR, amount);
+	D3DXVec3Lerp(&rT, &cT, &nT, amount);
+	D3DXVec3Normalize(&rR, &rR);		//slerp	
 
 	r.Scale(rS);
 	r.Rotation(rR);
