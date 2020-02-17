@@ -167,6 +167,17 @@ BlendState TransparentBlend
     SrcBlendAlpha[0] = ONE;
     RenderTargetWriteMask[0] = 0x0f;
 };
+BlendState OpaqueBlend
+{
+    BlendEnable[0] = true;
+    DestBlend[0] = Zero;
+    SrcBlend[0] = ONE;
+    BlendOp[0] = Add;
+
+    DestBlendAlpha[0] = Zero;
+    SrcBlendAlpha[0] = ONE;
+    RenderTargetWriteMask[0] = 0x0f;
+};
 
 BlendState NoRenderTargetBlend
 {
@@ -191,6 +202,7 @@ BlendState AlphaBlend
     DestBlendAlpha[0] = Zero;
     RenderTargetWriteMask[0] = 0x0F;
 };
+
 BlendState AdditiveAlphaBlend
 {
     BlendEnable[0] = true;
@@ -204,6 +216,19 @@ BlendState AdditiveAlphaBlend
     RenderTargetWriteMask[0] = 0x0f;
 };
 
+BlendState AdditiveBlend_Particle
+{
+    BlendEnable[0] = true;
+    DestBlend[0] = One;
+    SrcBlend[0] = SRC_ALPHA;
+    BlendOp[0] = Add;
+
+    DestBlendAlpha[0] = One;
+    SrcBlendAlpha[0] = SRC_ALPHA;
+    BlendOpAlpha[0] = Add;
+    
+    RenderTargetWriteMask[0] = 0x0f;
+};
 
 BlendState TrailBlend
 {
@@ -382,7 +407,16 @@ DepthStencilState ShadowGenDSS
     BackFaceStencilDepthFail = Keep;
     BackFaceStencilFail = Keep;
 };
+DepthStencilState ParticleDSS
+{
+    DepthEnable = true;
+    DepthWriteMask = Zero;
+    DepthFunc = Always;
 
+    StencilEnable = false;
+    StencilReadMask = 0x00;
+    StencilWriteMask = 0x00;
+};
 ///////////////////////////////////////////////////////////////////////////////
 /*                            Basic Functions                                */
 float4 WorldPosition(float4 position)
@@ -662,6 +696,16 @@ pass name \
     SetGeometryShader(CompileShader(gs_5_0, gs())); \
     SetPixelShader(CompileShader(ps_5_0, ps())); \
 }
+
+#define P_DSS_VGP(name, dss, vs, gs, ps) \
+pass name \
+{ \
+    SetDepthStencilState(dss, 0); \
+    SetVertexShader(CompileShader(vs_5_0, vs())); \
+    SetGeometryShader(CompileShader(gs_5_0, gs())); \
+    SetPixelShader(CompileShader(ps_5_0, ps())); \
+}
+
 #define P_RS_BS_VGP(name, rs, bs, vs,gs, ps) \
 pass name \
 { \
@@ -682,6 +726,26 @@ pass name \
     SetPixelShader(CompileShader(ps_5_0, ps())); \
 }
 
+#define P_DSS_BS_VGP(name, dss, bs, vs, gs, ps) \
+pass name \
+{ \
+    SetDepthStencilState(dss, 0); \
+    SetBlendState(bs, float4(0, 0, 0, 0), 0xFF); \
+    SetVertexShader(CompileShader(vs_5_0, vs())); \
+    SetGeometryShader(CompileShader(gs_5_0, gs())); \
+    SetPixelShader(CompileShader(ps_5_0, ps())); \
+}
+
+#define P_RS_DSS_BS_VGP(name, rs,dss, bs, vs, gs, ps) \
+pass name \
+{ \
+    SetRasterizerState(rs); \
+    SetDepthStencilState(dss, 0); \
+    SetBlendState(bs, float4(0, 0, 0, 0), 0xFF); \
+    SetVertexShader(CompileShader(vs_5_0, vs())); \
+    SetGeometryShader(CompileShader(gs_5_0, gs())); \
+    SetPixelShader(CompileShader(ps_5_0, ps())); \
+}
 /* 일단 미러용 */
 
 #define P_DSS_Ref_VP(name, dss,ref,vs, ps) \

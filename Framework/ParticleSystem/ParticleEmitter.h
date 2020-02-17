@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_INSTANCE 512
+#define MAX_INSTANCE 4096
 
 // 방출기 형태
 enum class EmitterType
@@ -14,7 +14,6 @@ enum class EmittType
 {
 	Direct = 0,	// 주어진 방향으로 가는 형식
 	Around,		// 중심에서의 방향에 따라 주변으로 퍼지는 방식
-	Cone		
 };
 // 방출 방식
 enum class ParticleType
@@ -23,6 +22,7 @@ enum class ParticleType
 	Quad,
 	Diamond,		
 };
+
 class ParticleEmitter
 {
 public:
@@ -49,6 +49,10 @@ private:
 private:
 	void ChangeTex(wstring filePath =L"");
 
+public:
+	void LoadParticle(wstring path = L"");
+	void SaveParticle(wstring path = L"");
+
 private:
 	struct ParticleVertex
 	{
@@ -66,10 +70,10 @@ private:
 	Shader*		shader;
 	UINT		tech=0;
 	UINT		pass=0;
-
 	Transform*	transform;
 	PerFrame*	perFrame;
 
+	bool		bPlay = true;
 	bool		bPropertyOpen = true;
 private:
 	ParticleVertex		point;
@@ -78,7 +82,7 @@ private:
 	UINT				particleCount	= 0;
 	Texture*			particleTex		= NULL;
 	ParticleDesc		instDesc[MAX_INSTANCE];
-	ConstantBuffer*		instanceBuffer;	//인스턴싱용 버퍼
+	VertexBuffer*		instanceBuffer;	//인스턴싱용 버퍼
 
 	ID3DX11EffectConstantBuffer*			sInstanceBuffer;
 	ID3DX11EffectShaderResourceVariable*	sParticleTex;
@@ -86,36 +90,40 @@ private:
 /////////////////////////////////////////////////////
 //// 
 /////////////////////////////////////////////////////
+private:
 	EmittType		emittype	= EmittType::Direct;
 	EmitterType		emitter		= EmitterType::Point;
 	ParticleType	particle	= ParticleType::Texture;
-	string	current_emitter		= "Point";
+
 	string	current_emit		= "Direct";
+	string	current_emitter		= "Point";
 	string	current_particle	= "Texture";
 
 private:
-	Vector3	particleScale	= Vector3(1, 1, 1);		//얘만 따로 써서 공통으로 크기 조절
-	Vector3	particleRot		= Vector3(0, 0, 0);		//파티클 회전
-	Vector3	particleRotDir	= Vector3(0, 0, 0);		//파티클 회전방향
-	Vector3	ComDir			= Vector3(0, 0, 0);
+	// 초기 값
+	Vector3	InitScale	= Vector3(3, 3, 1);		//얘만 따로 써서 공통으로 크기 조절
+	Vector3	InitRot		= Vector3(0, 0, 0);		//파티클 초기 회전
+	Vector3	Torque		= Vector3(0, 0, 0);		//파티클 회전 값
+	Vector3	Force		= Vector3(1, 1, 0);
 
-	int		EmittPerSec		= 100;		//초당 방출량
-	float	radiusStep		= 0.5f;		//방출을 위한 간격
-	int		roundCount		= 0;
+	//랜덤 변동치 
+	float	randPosVar		= 1.0f;
+	float	randRotVar		= 0.0f;
+	float	randLifeVar		= 4.0f;
+	float	randForceVar	= 0.0f;
+	float	randTorqueVar	= 0.0f;
 
-	float	randPosSpan		= 0.0f;
-	float	randRotSpan		= 0.0f;
-	float	randLifeSpan	= 0.0f;
+	int		emittPerSec		= 100;		//초당 방출량
+	float	radiusStep		= 0.1f;		//방출을 위한 간격
+	float	cubeStep		= 0.5f;		//방출을 위한 간격
 
-	int		StackCount		= 10;		//구의 각도 구분치
-	int		cubeCount		= 0;		
-	float	CubeStep		= 0.5f;		//방출을 위한 간격
-	int		CubeSize[3]		= { 1,1,1 };
-	float	ConeAngle		= 10.0f;	//Degree
+	int		cubeSize[3]		= { 1,1,1 };
+	int		sphereDivide	= 10;		//구의 각도 구분치
+private:
+	int		cubeCount		= 0;		//방출 횟수 
+	int		roundCount		= 0;		//방출 횟수 
 
-	float	elapsed			= 0.0f;
-	//float	timeSinceUpdate	= 0.0f;
-
+	float	elapsed			= 0.0f;		//경과 시간
 /////////////////////////////////////////////////////
 ////	ComputeShader
 /////////////////////////////////////////////////////
@@ -126,8 +134,8 @@ private:
 private:
 	struct ParticleInfoDesc
 	{
-		Color StartColor	= Color(1, 1, 0, 1);
-		Color EndColor		= Color(1, 0, 0, 1);
+		Color StartColor	= Color(1, 1, 1, 1);
+		Color EndColor		= Color(1, 1, 1, 1);
 
 		float Time			= 10.0f;	// 기본 생존시간
 		float DeltaTime		= 0.0f;		// Delta

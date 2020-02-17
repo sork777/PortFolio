@@ -1,4 +1,4 @@
-#define MAX_INSTANCE 512
+#define MAX_INSTANCE 4096
 #define PI 3.1415926535897932384626433832795
 
 struct ParticleInfo

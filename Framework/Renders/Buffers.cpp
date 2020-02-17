@@ -290,17 +290,23 @@ void RawBuffer::CreateResult()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-StructuredBuffer::StructuredBuffer(void * inputData, UINT stride, UINT count, bool bCopy, UINT outputStride, UINT outputCount)
+StructuredBuffer::StructuredBuffer(void * inputData, UINT stride, UINT count, bool bCopy, UINT outputStride, UINT outputCount, bool bSwap)
 	: CsResource()
 	, inputData(inputData), stride(stride), count(count)
 	, outputStride(outputStride), outputCount(outputCount)
 	, bCopy(bCopy)
+	, srv2(NULL), uav2(NULL)
 {
 	if (outputStride == 0)
 		this->outputStride = stride;
 
 	if (outputCount == 0)
 		this->outputCount = count;
+
+	if (bCopy == false)
+		bSwap = false;
+	else
+		this->bSwap = bSwap;
 
 	CreateBuffer();
 }
@@ -334,6 +340,13 @@ void StructuredBuffer::UpdateInput()
 		stride*count,
 		0
 	);
+}
+void StructuredBuffer::SwapData()
+{
+	if (bSwap == false)
+		return;
+	swap(srv, srv2);
+	swap(uav, uav2);
 }
 void StructuredBuffer::CreateInput()
 {
@@ -397,6 +410,8 @@ void StructuredBuffer::CreateSRV()
 	srvDesc.Buffer.NumElements = desc.ByteWidth / desc.StructureByteStride;
 
 	Check(D3D::GetDevice()->CreateShaderResourceView(buffer, &srvDesc, &srv));
+	if (bSwap == true)
+		Check(D3D::GetDevice()->CreateShaderResourceView(buffer, &srvDesc, &srv2));
 }
 
 
@@ -417,6 +432,8 @@ void StructuredBuffer::CreateUAV()
 	uavDesc.Buffer.Flags = 0;
 
 	Check(D3D::GetDevice()->CreateUnorderedAccessView(buffer, &uavDesc, &uav));
+	if (bSwap == true)
+		Check(D3D::GetDevice()->CreateUnorderedAccessView(buffer, &uavDesc, &uav2));
 }
 
 void StructuredBuffer::CreateResult()

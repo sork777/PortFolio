@@ -1,26 +1,22 @@
 #include "../000_Header.fx"
 #include "../000_Light.fx"
 
-#define MAX_INSTANCE 512
 
 Texture2D ParticleTex;
-/* Instancing ¿ë */
-struct ParticleDesc
+
+struct Particle
 {
     matrix Global;
-    float4 color;
+    float4 color;    
 };
-cbuffer CB_Particle
-{
-    ParticleDesc Particle[MAX_INSTANCE];
-};
+
 
 struct VertexIntput
 {
     float4 Position : Position0;
     float2 Scale : Scale0;
 
-    uint InstID : SV_InstanceID;
+    Particle particle : inst0;
 };
 
 
@@ -29,8 +25,10 @@ struct VertexOutput
     float4 Position : Position0;
     float2 Scale : Scale0;
     
-    uint ID : Id0;
+    matrix Global : Transform0;
+    float4 color : Color0;
 };
+
 VertexOutput VS(VertexIntput input)
 {
     VertexOutput output;
@@ -38,7 +36,8 @@ VertexOutput VS(VertexIntput input)
 	output.Position = input.Position;
 	output.Scale = input.Scale;
 
-    output.ID = input.InstID;
+    output.Global = input.particle.Global;
+    output.color = input.particle.color;
    
     return output;
 };
@@ -48,7 +47,7 @@ struct GSOutput
     float4 Position : SV_Position0;
     float2 Uv : Uv0;
        
-    uint ID : Id0;
+    float4 color : Color0;
 };
 
 [maxvertexcount(4)]
@@ -58,10 +57,23 @@ void GS(point VertexOutput input[1], inout TriangleStream<GSOutput> stream)
     float3 forward = ViewPosition() - input[0].Position.xyz;
 
     forward = normalize(forward);
-    float3 right = cross(forward, up);
-    //up = cross(right,forward);
-    float3 x = right;//    float3(1, 0, 0);
-    float3 y = up;//    float3(0, 1, 0);
+    float3 right = normalize(cross(forward, up));
+    float dir = dot(up, forward);
+    
+    [flatten]
+    if (length(right) <= 0.01f)
+    {
+        [branch]
+        if (dir > 0)
+        {
+            right = float3(1, 0, 0);
+        }
+        else
+            right = float3(-1, 0, 0);
+    }
+    up = (cross(right, forward));
+    float3 x = normalize(right);
+    float3 y = normalize(up); 
     float2 size = input[0].Scale * 0.5f;
 
     float3 position[4];
@@ -76,15 +88,16 @@ void GS(point VertexOutput input[1], inout TriangleStream<GSOutput> stream)
     };
     GSOutput output;
 
-    matrix global = Particle[input[0].ID].Global;
+    matrix global = input[0].Global;
    //[roll(4)]
     for (int i = 0; i < 4; i++)
     {
-        output.Position = mul(float4(position[i], 1), global);
+        output.Position = float4(position[i], 1);
+        output.Position = mul(output.Position, global);
         output.Position = WorldPosition(output.Position);
         output.Position = ViewProjection(output.Position);
         output.Uv = uvs[i];
-        output.ID = input[0].ID;
+        output.color = input[0].color;
         stream.Append(output);
     }
 }
@@ -92,17 +105,14 @@ void GS(point VertexOutput input[1], inout TriangleStream<GSOutput> stream)
 float4 PSTexture(GSOutput input) : SV_Target0
 {
     float4 diffuse = ParticleTex.Sample(LinearSampler, input.Uv);
-    float4 color = Particle[input.ID].color;
+    float4 color =input.color;
     color = (diffuse * color);
-    [flatten]
-    if (color.a < 0.1f)
-        discard;
     return color;
 }
 
 float4 PSQuad(GSOutput input) : SV_Target0
 {
-    float4 color = Particle[input.ID].color;
+    float4 color = input.color;
 
     [flatten]
     if (color.a < 0.1f)
@@ -122,16 +132,14 @@ float4 PSDiamond(GSOutput input) : SV_Target0
         uv.y = 2.0f - uv.y;
     
     float dist2 = uv.x * uv.x + uv.y * uv.y;
-    //dist2 = saturate(dist2);
-    float4 result   = float4(0, 0, 0, 0);
-    float4 color    = Particle[input.ID].color;
-    result = lerp(result, color, dist2);
-    result.a = pow(result.a, 2);
-    [flatten]
-    if (result.a < 0.8f)
-        discard;
+    dist2 = saturate(dist2);
+    float4 color    =input.color;
+    color.a = lerp(0, color.a, dist2);    
     
-    return result;
+    [flatten]
+    if (color.a < 0.9f)
+        discard;
+    return color;
 }
 
 RasterizerState RS
@@ -141,8 +149,8 @@ RasterizerState RS
 
 technique11 T0
 {
-	//P_RS_BS_VGP(P0, NoneRS, IllusionBlend, VS, GS, PSTexture)
-    P_BS_VGP(P0, AlphaBlend, VS, GS, PSTexture)
-    P_BS_VGP(P1, AlphaBlend, VS, GS, PSQuad)
-    P_BS_VGP(P2, AlphaBlend, VS, GS, PSDiamond)
+    P_DSS_BS_VGP(P0, ParticleDSS, AlphaBlend, VS, GS, PSTexture)
+    //P_RS_DSS_BS_VGP(P0,RS, ParticleDSS, AlphaBlend, VS, GS, PSTexture)
+    P_DSS_BS_VGP(P1, ParticleDSS, AlphaBlend, VS, GS, PSQuad)
+    P_DSS_BS_VGP(P2, ParticleDSS, AlphaBlend, VS, GS, PSDiamond)
 }

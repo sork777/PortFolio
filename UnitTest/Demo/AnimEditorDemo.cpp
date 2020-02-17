@@ -19,7 +19,7 @@ void AnimEditorDemo::Destroy()
 
 void AnimEditorDemo::Update()
 {
-	editor->Update();
+	editor->Update();	
 }
 
 void AnimEditorDemo::Render()

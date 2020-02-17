@@ -54,6 +54,10 @@ void ParticleEditor::Update()
 	sky->Update();
 	grid->Update();
 	emitter->Update();
+	if (ImGui::Button("SaveTest"))
+		emitter->SaveParticle();
+	if (ImGui::Button("LoadTest"))
+		emitter->LoadParticle();
 }
 
 void ParticleEditor::Render()

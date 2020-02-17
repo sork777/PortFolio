@@ -126,6 +126,7 @@ private:
 private:
 	void* inputData;
 	UINT byteWidth;
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,13 +135,17 @@ class StructuredBuffer : public CsResource
 {
 public:
 	/* stride(데이터 하나의 크기)를 받는 이유 : 구조체 별 크기 때문 */
-	StructuredBuffer(void* inputData, UINT stride, UINT count, bool bCopy=false, UINT outputStride = 0, UINT outputCount = 0);
+	StructuredBuffer(void* inputData, UINT stride, UINT count, bool bCopy=false, UINT outputStride = 0, UINT outputCount = 0, bool bSwap=false);
 	~StructuredBuffer();
 
 	UINT InputByteWidth() { return stride * count; }
 	UINT OutputByteWidth() { return outputStride * outputCount; }
 
 	void UpdateInput();
+
+	ID3D11ShaderResourceView* SRV2() { return srv2; }
+	ID3D11UnorderedAccessView* UAV2() { return uav2; }
+	void SwapData();
 private:
 	void CreateInput() override;
 	void CreateSRV() override;
@@ -153,12 +158,16 @@ private:
 private:
 	void* inputData;
 	bool bCopy;
+	bool bSwap;
 
 	UINT stride;
 	UINT count;
 
 	UINT outputStride;
 	UINT outputCount;
+
+	ID3D11ShaderResourceView* srv2;
+	ID3D11UnorderedAccessView* uav2;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
