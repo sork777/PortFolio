@@ -255,9 +255,6 @@
     </ClCompile>
     <ClCompile Include="Effect\TrailRenderer.cpp" />
     <ClCompile Include="Effect\ModelIllusion.cpp" />
-    <ClCompile Include="Components\Base\Collider.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
     <ClCompile Include="Renders\Renderer.cpp">
       <Filter>Renders</Filter>
     </ClCompile>
@@ -266,6 +263,11 @@
     <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="ParticleSystem\ParticleEmitter.cpp" />
     <ClCompile Include="Editor\ParticleEditor.cpp" />
+    <ClCompile Include="PostEffects\Fog.cpp" />
+    <ClCompile Include="Physics\Collider.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Actor\Actor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -587,9 +589,6 @@
     <ClInclude Include="Editor\IEditor.h" />
     <ClInclude Include="Effect\TrailRenderer.h" />
     <ClInclude Include="Effect\ModelIllusion.h" />
-    <ClInclude Include="Components\Base\Collider.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
     <ClInclude Include="Renders\Renderer.h">
       <Filter>Renders</Filter>
     </ClInclude>
@@ -600,5 +599,10 @@
     <ClInclude Include="ParticleSystem\ParticleEmitter.h" />
     <ClInclude Include="ParticleSystem\ParticleData.h" />
     <ClInclude Include="Editor\ParticleEditor.h" />
+    <ClInclude Include="PostEffects\Fog.h" />
+    <ClInclude Include="Physics\Collider.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Actor\Actor.h" />
   </ItemGroup>
 </Project>

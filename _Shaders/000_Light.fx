@@ -233,3 +233,75 @@ float4 VS_Shadow(GeometryOutput input, float4 color)
 
     return VS_Shadow(output, color);
 }
+////////////////////////////////////////////////////////////////////////////
+#include "LightPBR/PBR.fx"
+
+float4 CalcNormaltoPBR(MeshOutput input)
+{
+    float3 albedo = DiffuseMap.Sample(BasicSampler, input.Uv).rgb;
+    albedo *= Material.Diffuse;
+    albedo = pow(albedo, 2.2f);
+
+    NormalMapping(input.Uv, input.Normal, input.Tangent, BasicSampler);
+	
+    float3 NormalVec = normalize(input.Normal);
+	
+	//Metallic
+
+	//Rough
+    float rough = (SpecularMap.Sample(BasicSampler, input.Uv).r);
+    float metallic = 1.0f - rough;
+	
+    float3 viewDir = normalize(ViewPosition() - input.wPosition);
+    
+    if (any(Material.Specular.rgb))
+    {
+        float3 direction = -GlobalLight.Direction;
+    
+        float3 R = normalize(reflect(-direction, input.Normal));
+        float RdotE = saturate(dot(R, viewDir));
+
+        float specular = pow(RdotE, Material.Specular.a);
+        Material.Specular *= specular * GlobalLight.Specular;
+    }
+    
+	
+    float3 R = reflect(-viewDir, NormalVec);
+
+    float3 F0 = float3(0.04f, 0.04f, 0.04f);
+    F0 = lerp(F0, albedo, metallic);
+
+    float3 rad = float3(0.0f, 0.0f, 0.0f);
+	//reflectance equation
+    float3 Lo = float3(0.0f, 0.0f, 0.0f);
+    
+    float3 lightpos = GlobalLight.Postition - GlobalLight.Direction * 1000;
+    float3 lightCol = GlobalLight.Ambient;
+    // ºû°úÀÇ ¹Ý»ç?
+    CalcRadiance(input, viewDir, NormalVec, albedo, rough, metallic, lightpos, lightCol, F0, rad);
+    Lo += rad;
+    
+    float3 kS = FresnelSchlickRoughness(max(dot(NormalVec, viewDir), 0.0f), F0, rough) + Material.Specular.rgb * metallic;
+    float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
+    //kD *= 1.0 - metallic;
+    
+    float3 irradiance = CalcSkyIrradiance(NormalVec);
+    float3 diffuse = albedo * irradiance;
+
+    const float MAX_REF_LOD = 4.0f;
+    float3 prefilteredColor = SkyCubeMap.SampleLevel(BasicSampler, R, rough * MAX_REF_LOD).rgb;
+    float2 brdf = BRDFLUT.Sample(BasicSampler, float2(max(dot(NormalVec, viewDir), 0.0f), rough)).rg;
+    float3 specular = prefilteredColor * (kS * brdf.x + brdf.y) * metallic;
+
+    float3 ambient = (kD * diffuse + specular); // * ao;
+    float3 color = ambient + Lo;
+    //float3 color = ambient;
+    float NdotE = dot(NormalVec, viewDir);
+    float emissive = smoothstep(1.0f - Material.Emissive.a, 1.0f, 1.0f - saturate(NdotE));
+    float3 emiss = Material.Emissive.rgb * emissive;
+    
+    // color = color / (color + float3(1.0f, 1.0f, 1.0f));
+    color = pow(color, float3(1.0f / 2.2f, 1.0f / 2.2f, 1.0f / 2.2f));
+    color += emiss;
+    return float4(color, 1.0f);
+}

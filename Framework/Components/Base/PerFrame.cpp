@@ -4,7 +4,6 @@
 
 
 PerFrame::PerFrame(Shader* shader)
-	:shader(shader)
 {
 	type = BaseCompType::PerFrame;
 
@@ -21,6 +20,7 @@ PerFrame::~PerFrame()
 
 void PerFrame::SetShader(Shader * shader)
 {
+	this->shader = shader;
 	buffer = new ConstantBuffer(&bufferDesc, sizeof(BufferDesc));
 	sBuffer = shader->AsConstantBuffer("CB_PerFrame");
 

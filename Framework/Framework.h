@@ -102,13 +102,14 @@ typedef D3DXPLANE Plane;
 #include "Components/Base/MaterialPBR.h"	
 #include "Components/Base/PerFrame.h"
 #include "Components/Base/Transform.h"
-#include "Components/Base/Collider.h"
 
 #include "Utilities/DebugLine.h"
 #include "Utilities/Math.h"
 #include "Utilities/String.h"
 #include "Utilities/Path.h"
 #include "Utilities/BinaryFile.h"
+
+#include "Physics/Collider.h"
 
 #include "Meshes/Mesh.h"
 #include "Meshes/MeshRender.h"

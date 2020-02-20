@@ -41,8 +41,6 @@ private:
 	}lightDesc;
 
 private:
-	Shader * shader;
-
 	ConstantBuffer* buffer;
 	ID3DX11EffectConstantBuffer* sBuffer;
 

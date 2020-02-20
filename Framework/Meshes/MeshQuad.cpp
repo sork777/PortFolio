@@ -33,4 +33,8 @@ void MeshQuad::Create()
 
 	indexCount = 6;
 	indices = new UINT[indexCount]{ 0, 1, 2, 2, 1, 3 };
+
+
+	tessICount = 4;
+	this->TessIndices = new UINT[tessICount]{ 0, 1, 3, 2 };
 }

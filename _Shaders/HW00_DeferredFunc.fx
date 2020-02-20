@@ -1,9 +1,4 @@
 
-float ConvertZToLinearDepth(float depth)
-{
-    float linearDepth = PerspectiveValues.z / (depth + PerspectiveValues.w);
-    return linearDepth;
-}
 
 SURFACE_DATA UnpackGBuffer(float2 uv)
 {

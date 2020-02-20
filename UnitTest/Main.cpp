@@ -4,13 +4,13 @@
 
 #include "Practice/DeferredPrac.h"
 //#include "Demo/PBRDemo.h"
-//#include "Demo/CSDemo.h"
+#include "Demo/FogDemo.h"
 #include "Demo/AnimEditorDemo.h"
 
 void Main::Initialize()
 {
 	//Push(new TerrainLodDemo());
-	Push(new AnimEditorDemo());
+	Push(new FogDemo());
 }
 
 void Main::Ready()

@@ -11,8 +11,8 @@ protected:
 	void Create() override;
 
 private:
-	void BuildTopCap(vector<MeshVertex>& vertices, vector<UINT>& indices);
-	void BuildBottomCap(vector<MeshVertex>& vertices, vector<UINT>& indices);
+	void BuildTopCap(vector<MeshVertex>& vertices, vector<UINT>& indices, vector<UINT>& tessindices);
+	void BuildBottomCap(vector<MeshVertex>& vertices, vector<UINT>& indices, vector<UINT>& tessindices);
 
 private:
 	float topRadius;

@@ -137,18 +137,6 @@ RasterizerState RS
     CullMode = Front;
 };
 
-BlendState AlphaBlend
-{
-    BlendEnable[0] = true;
-    DestBlend[0] = INV_SRC_ALPHA;
-    SrcBlend[0] = SRC_ALPHA;
-    BlendOp[0] = Add;
-
-    DestBlendAlpha[0] = ONE;
-    SrcBlendAlpha[0] = ONE;
-    RenderTargetWriteMask[0] = 0x0F;
-};
-
 technique11 T0
 {
     /* Depth */

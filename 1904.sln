@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "000", "000", "{C3024CE1-857
 		_Shaders\000_Math.fx = _Shaders\000_Math.fx
 		_Shaders\000_Model.fx = _Shaders\000_Model.fx
 		_Shaders\000_Sky.fx = _Shaders\000_Sky.fx
+		_Shaders\000_Status.fx = _Shaders\000_Status.fx
 		_Shaders\000_Terrain.fx = _Shaders\000_Terrain.fx
 		_Shaders\001_Vertex.fx = _Shaders\001_Vertex.fx
 		_Shaders\002_Rect.fx = _Shaders\002_Rect.fx
@@ -131,6 +132,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LightPBR", "LightPBR", "{E6
 		_Shaders\LightPBR\PBRHeader.fx = _Shaders\LightPBR\PBRHeader.fx
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "temp", "temp", "{BC88212E-0345-47F5-9018-F033CAFB6AFB}"
+	ProjectSection(SolutionItems) = preProject
+		_Shaders\Fog.fx = _Shaders\Fog.fx
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -162,6 +168,7 @@ Global
 		{13B5923E-6619-4CA4-B8F6-01E9E87CED2F} = {6EEA8452-5781-471C-8346-675D4685B85A}
 		{A54CC457-CDB6-43DC-97B4-04179324A1C4} = {6EEA8452-5781-471C-8346-675D4685B85A}
 		{E6FF44BD-FB3B-445F-812E-744DC8A7C66C} = {6EEA8452-5781-471C-8346-675D4685B85A}
+		{BC88212E-0345-47F5-9018-F033CAFB6AFB} = {6EEA8452-5781-471C-8346-675D4685B85A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {50571E8E-9188-42A1-B8AF-8C0AFAC06065}

@@ -46,9 +46,9 @@ public:
 	void LoadAlbedoMap(string file, string dir = "../../_Textures/MaterialPBR/");
 	void LoadAlbedoMapW(wstring file, wstring dir = L"../../_Textures/MaterialPBR/");
 
-	//Texture* HeightMap() { return heightMap; }
-	//void LoadHeightMap(string file, string dir = "../../_Textures/");
-	//void LoadHeightMapW(wstring file, wstring dir = L"../../_Textures/");
+	Texture* HeightMap() { return heightMap; }
+	void LoadHeightMap(string file, string dir = "../../_Textures/");
+	void LoadHeightMapW(wstring file, wstring dir = L"../../_Textures/");
 
 	Texture* NormalMap() { return normalMap; }
 	void LoadNormalMap(string file, string dir = "../../_Textures/MaterialPBR/");
@@ -74,13 +74,12 @@ private:
 	} colorDesc;
 
 private:
-	Shader * shader;
 
 	wstring name;
 
 	Texture* albedoMap;
 	Texture* normalMap;
-	//Texture* heightMap;
+	Texture* heightMap;
 	Texture* loughnessMap;
 	Texture* metalicMap;
 
@@ -89,7 +88,7 @@ private:
 	ID3DX11EffectConstantBuffer* sBuffer;
 	ID3DX11EffectShaderResourceVariable* sAlbedoMap;
 	ID3DX11EffectShaderResourceVariable* sNormalMap;
-	//ID3DX11EffectShaderResourceVariable* sHeightMap;
+	ID3DX11EffectShaderResourceVariable* sHeightMap;
 	ID3DX11EffectShaderResourceVariable* sLoughnessMap;
 	ID3DX11EffectShaderResourceVariable* sMetalicMap;
 };

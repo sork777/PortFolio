@@ -23,10 +23,10 @@ cbuffer CB_Raise
 {
     RaiseDesc HRaise;
 };
-Texture2D<float4> HeightMap;
+Texture2D<float4> AlphaMap;
 RWTexture2D<float4> OutputMap;
 
-Texture2D<float4> HeightMap2;
+Texture2D<float4> AlphaMap2;
 RWTexture2D<float4> OutputMap2;
 Texture2D PerlinMap;
 
@@ -174,7 +174,7 @@ void SmoothingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
             for (int i = -r; i < r + 1; i++)
                 for (int j = -r; j < r + 1; j++)
                 {
-                    color += HeightMap.Load(int3(uv + int2(i, j), 0));
+                    color += AlphaMap.Load(int3(uv + int2(i, j), 0));
                 }
             color /= (2 * r + 1) * (2 * r + 1);
             OutputMap[CurPixel.xy] *= float4(1, 1, 1, 0);
@@ -193,7 +193,7 @@ void SmoothingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
             for (int i = -r; i < r + 1; i++)
                 for (int j = -r; j < r + 1; j++)
                 {
-                    color += HeightMap.Load(int3(uv + int2(i, j), 0));
+                    color += AlphaMap.Load(int3(uv + int2(i, j), 0));
                 }
             color /= (2 * r + 1) * (2 * r + 1);
             OutputMap[CurPixel.xy] *= float4(1, 1, 1, 0);
@@ -251,7 +251,7 @@ void InitCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
     //= float4(0, 0, 0, 0);    color +
-    float4 color = HeightMap.Load(CurPixel);
+    float4 color = AlphaMap.Load(CurPixel);
     OutputMap[CurPixel.xy] = float4(0, 0, 0, color.b);
 }
 
@@ -260,7 +260,7 @@ void InitCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 void InitNoAlphaCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
-    OutputMap[CurPixel.xy] = HeightMap.Load(CurPixel);
+    OutputMap[CurPixel.xy] = AlphaMap.Load(CurPixel);
 }
 
 
@@ -268,7 +268,7 @@ void InitNoAlphaCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 void SetCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
-    OutputMap2[CurPixel.xy] = HeightMap2.Load(CurPixel);
+    OutputMap2[CurPixel.xy] = AlphaMap2.Load(CurPixel);
 }
 
 technique11 T0_Raise

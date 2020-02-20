@@ -16,11 +16,13 @@ Object
 class BaseObject
 {
 public:
-	BaseObject(){ id = GUID_Generator::Generate(); }
+	BaseObject(){ Object_ID = GUID_Generator::Generate(); }
 	virtual ~BaseObject() = default;
 
-	const UINT& GetID() { return id; }
+	const UINT& GetID() { return Object_ID; }
 	
+	const wstring& GetName() { return Object_Name; }
+
 	virtual void Initailize() = 0;
 	virtual void Destroy() = 0;
 
@@ -30,5 +32,6 @@ public:
 	virtual void PostRender() = 0;
 
 private:	
-	UINT id;
+	UINT Object_ID;
+	wstring Object_Name;
 };

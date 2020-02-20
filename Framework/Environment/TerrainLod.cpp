@@ -34,7 +34,7 @@ TerrainLod::TerrainLod(InitializeInfo& info)
 	sBaseTexture = shader->AsSRV("BaseMap");
 	sLayerTexture = shader->AsSRV("LayerMaps");
 	sNormalTexture = shader->AsSRV("NormalMap");
-	sAlphaTexture = shader->AsSRV("HeightMap");
+	sAlphaTexture = shader->AsSRV("AlphaMap");
 	
 	/* 기본 높이맵 호출 - 손 안댄것*/	
 	{
@@ -625,11 +625,11 @@ void TerrainLod::UpdateAlphaMap(UINT pass, UINT tech)
 	raiseBuffer->Apply();
 	sRaiseBuffer->SetConstantBuffer(raiseBuffer->Buffer());
 	
-	raiseCS->AsSRV("HeightMap")->SetResource(HMapSrv);
+	raiseCS->AsSRV("AlphaMap")->SetResource(HMapSrv);
 	raiseCS->AsUAV("OutputMap")->SetUnorderedAccessView(raiseCT[0]->UAV());
 	raiseCS->Dispatch(tech, pass, (int)(AlphaMapPixel.size()) / 1024, 1, 1);
 
-	raiseCS->AsSRV("HeightMap2")->SetResource(raiseCT[0]->SRV());
+	raiseCS->AsSRV("AlphaMap2")->SetResource(raiseCT[0]->SRV());
 	raiseCS->AsUAV("OutputMap2")->SetUnorderedAccessView(raiseCT[1]->UAV());
 	raiseCS->Dispatch(3, 2, (int)(AlphaMapPixel.size()) / 1024, 1, 1);
 	HMapSrv = raiseCT[1]->SRV();

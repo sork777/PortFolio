@@ -1,7 +1,6 @@
 Texture2D BaseMap;
 Texture2D LayerMap;
 Texture2D AlphaMap;
-Texture2D HeightMap;
 
 Texture2D LayerMaps[3];
 

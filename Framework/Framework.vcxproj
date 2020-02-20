@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Objects\Actor\Actor.cpp" />
     <ClCompile Include="Components\Base\MaterialPBR.cpp" />
     <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="Effect\ModelIllusion.cpp" />
@@ -55,12 +56,13 @@
     <ClCompile Include="ParticleSystem\ParticleEmitter.cpp" />
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
     <ClCompile Include="Effect\TrailRenderer.cpp" />
+    <ClCompile Include="PostEffects\Fog.cpp" />
     <ClCompile Include="Utilities\GUID_Generator.cpp" />
     <ClCompile Include="Utilities\ImGuizmo.cpp" />
     <ClCompile Include="Utilities\Perlin.cpp" />
     <ClCompile Include="PostEffects\HDR_Tone.cpp" />
     <ClCompile Include="ScreenSpace\GBuffer.cpp" />
-    <ClCompile Include="Components\Base\Collider.cpp" />
+    <ClCompile Include="Physics\Collider.cpp" />
     <ClCompile Include="Objects\CSM.cpp" />
     <ClCompile Include="Objects\Light.cpp" />
     <ClCompile Include="Objects\Mirror.cpp" />
@@ -116,6 +118,7 @@
     <ClCompile Include="Viewer\Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Objects\Actor\Actor.h" />
     <ClInclude Include="Components\Base\MaterialPBR.h" />
     <ClInclude Include="Components\BaseComponent.h" />
     <ClInclude Include="Editor\AnimationEditor.h" />
@@ -161,12 +164,13 @@
     <ClInclude Include="ParticleSystem\ParticleEmitter.h" />
     <ClInclude Include="ParticleSystem\ParticleSystem.h" />
     <ClInclude Include="Effect\TrailRenderer.h" />
+    <ClInclude Include="PostEffects\Fog.h" />
     <ClInclude Include="Utilities\GUID_Generator.h" />
     <ClInclude Include="Utilities\ImGuizmo.h" />
     <ClInclude Include="Utilities\Perlin.h" />
     <ClInclude Include="PostEffects\HDR_Tone.h" />
     <ClInclude Include="ScreenSpace\GBuffer.h" />
-    <ClInclude Include="Components\Base\Collider.h" />
+    <ClInclude Include="Physics\Collider.h" />
     <ClInclude Include="Objects\CSM.h" />
     <ClInclude Include="Objects\Light.h" />
     <ClInclude Include="Objects\Mirror.h" />

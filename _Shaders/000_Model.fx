@@ -43,6 +43,18 @@ MeshOutput VS_Mesh(VertexMesh input)
 
 }
 
+MeshTessOutput VS_Tess_Mesh(VertexMesh input)
+{
+    MeshTessOutput output;
+    
+    SetMeshWorld(World, input);
+    output.Position = WorldPosition(input.Position);
+    output.Normal = WorldNormal(input.Normal);
+    output.Tangent = WorldTangent(input.Tangent);
+    output.Uv = input.Uv;
+    return output;
+
+}
 
 MeshOutput VS_Mesh_GS(VertexMesh input)
 {

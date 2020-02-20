@@ -2,6 +2,7 @@
 #include "AnimEditorDemo.h"
 #include "Viewer/Freedom.h"
 
+
 void AnimEditorDemo::Initialize()
 {
 	Context::Get()->GetCamera()->RotationDegree(23, 0, 0);
@@ -10,6 +11,7 @@ void AnimEditorDemo::Initialize()
 
 	//editor = new AnimationEditor();
 	editor = new ParticleEditor();
+
 }
 
 void AnimEditorDemo::Destroy()
@@ -22,6 +24,9 @@ void AnimEditorDemo::Update()
 	editor->Update();	
 }
 
+void AnimEditorDemo::PreRender()
+{
+}
 void AnimEditorDemo::Render()
 {
 	editor->Render();

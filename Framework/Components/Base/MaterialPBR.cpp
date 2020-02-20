@@ -20,7 +20,7 @@ void MaterialPBR::Initialize()
 	name = L"";
 
 	albedoMap = NULL;
-	//heightMap = NULL;
+	heightMap = NULL;
 	normalMap = NULL;
 	loughnessMap = NULL;
 	metalicMap = NULL;
@@ -31,7 +31,7 @@ void MaterialPBR::Initialize()
 MaterialPBR::~MaterialPBR()
 {
 	SafeDelete(albedoMap);
-	//SafeDelete(heightMap);
+	SafeDelete(heightMap);
 	SafeDelete(normalMap);
 	SafeDelete(loughnessMap);
 
@@ -45,7 +45,7 @@ void MaterialPBR::SetShader(Shader * shader)
 	sBuffer = shader->AsConstantBuffer("CB_MaterialPBR");
 
 	sAlbedoMap = shader->AsSRV("AlbedoMap");
-	//sHeightMap = shader->AsSRV("HeightMap");
+	sHeightMap = shader->AsSRV("HeightMap");
 	sNormalMap = shader->AsSRV("NormalMap");
 	sLoughnessMap = shader->AsSRV("LoughnessMap");
 	sMetalicMap = shader->AsSRV("MetalicMap");
@@ -67,11 +67,11 @@ void MaterialPBR::Render()
 		sAlbedoMap->SetResource(NULL);
 
 
-	/*if (heightMap != NULL)
+	if (heightMap != NULL)
 		sHeightMap->SetResource(heightMap->SRV());
 	else
 		sHeightMap->SetResource(NULL);
-*/
+
 	if (normalMap != NULL)
 		sNormalMap->SetResource(normalMap->SRV());
 	else
@@ -136,7 +136,7 @@ bool MaterialPBR::Property()
 		{
 
 			MapButton(albedoMap, "AlbedoMap", bind(&MaterialPBR::LoadAlbedoMap, this, placeholders::_1, placeholders::_2));
-			//MapButton(heightMap, "HeightMap", bind(&MaterialPBR::LoadHeightMap, this, placeholders::_1, placeholders::_2));
+			MapButton(heightMap, "HeightMap", bind(&MaterialPBR::LoadHeightMap, this, placeholders::_1, placeholders::_2));
 			MapButton(normalMap, "NormalMap", bind(&MaterialPBR::LoadNormalMap, this, placeholders::_1, placeholders::_2));
 			MapButton(loughnessMap, "LoughnessMap", bind(&MaterialPBR::LoadLoughnessMap, this, placeholders::_1, placeholders::_2));
 			MapButton(metalicMap, "MetalicMap", bind(&MaterialPBR::LoadMetalicMap, this, placeholders::_1, placeholders::_2));
@@ -197,18 +197,18 @@ void MaterialPBR::LoadAlbedoMapW(wstring file, wstring dir)
 
 	albedoMap = new Texture(file, dir);
 }
-//
-//void MaterialPBR::LoadHeightMap(string file, string dir)
-//{
-//	LoadHeightMapW(String::ToWString(file), String::ToWString(dir));
-//}
-//
-//void MaterialPBR::LoadHeightMapW(wstring file, wstring dir)
-//{
-//	SafeDelete(heightMap);
-//
-//	heightMap = new Texture(file, dir);
-//}
+
+void MaterialPBR::LoadHeightMap(string file, string dir)
+{
+	LoadHeightMapW(String::ToWString(file), String::ToWString(dir));
+}
+
+void MaterialPBR::LoadHeightMapW(wstring file, wstring dir)
+{
+	SafeDelete(heightMap);
+
+	heightMap = new Texture(file, dir);
+}
 
 void MaterialPBR::LoadNormalMap(string file, string dir)
 {

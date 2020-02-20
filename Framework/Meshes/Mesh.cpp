@@ -3,7 +3,7 @@
 
 Mesh::Mesh()
 {
-
+	topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 }
 
 Mesh::~Mesh()
@@ -37,12 +37,22 @@ void Mesh::Render(UINT drawCount)
 		vertexBuffer = new VertexBuffer(vertices, vertexCount, sizeof(MeshVertex));
 		indexBuffer = new IndexBuffer(indices, indexCount);
 	}
+	if(indexTessBuffer == NULL && bTess)
+		indexTessBuffer = new IndexBuffer(TessIndices, tessICount);
 
 	
 	perFrame->Render();
 	vertexBuffer->Render();
-	indexBuffer->Render();
-
-	D3D::GetDC()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	shader->DrawIndexedInstanced(tech, pass, indexCount, drawCount);
+	shader->AsScalar("DisplacementFactor")->SetFloat(displacement);
+	D3D::GetDC()->IASetPrimitiveTopology(topology);
+	if (bTess)
+	{
+		indexTessBuffer->Render();
+		shader->DrawIndexedInstanced(tech, pass, tessICount, drawCount);
+	}
+	else
+	{
+		indexBuffer->Render();
+		shader->DrawIndexedInstanced(tech, pass, indexCount, drawCount);
+	}
 }

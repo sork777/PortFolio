@@ -22,6 +22,7 @@ void Material::Initialize()
 	diffuseMap = NULL;
 	specularMap = NULL;
 	normalMap = NULL;
+	heightMap = NULL;
 	
 	buffer = new ConstantBuffer(&colorDesc, sizeof(ColorDesc));
 }
@@ -31,6 +32,7 @@ Material::~Material()
 	SafeDelete(diffuseMap);
 	SafeDelete(specularMap);
 	SafeDelete(normalMap);
+	SafeDelete(heightMap);
 
 	SafeDelete(buffer);
 }
@@ -44,6 +46,7 @@ void Material::SetShader(Shader * shader)
 	sDiffuseMap = shader->AsSRV("DiffuseMap");
 	sSpecularMap = shader->AsSRV("SpecularMap");
 	sNormalMap = shader->AsSRV("NormalMap");
+	sHeightMap = shader->AsSRV("HeightMap");
 }
 
 void Material::CloneMaterial(Material* material)
@@ -70,6 +73,11 @@ void Material::CloneMaterial(Material* material)
 			material->NormalMap()->GetFile(),
 			material->NormalMap()->GetDir()
 		);
+	if (material->HeightMap() != NULL)
+		this->LoadNormalMapW(
+			material->HeightMap()->GetFile(),
+			material->HeightMap()->GetDir()
+		);
 }
 void Material::Render()
 {
@@ -91,6 +99,11 @@ void Material::Render()
 		sNormalMap->SetResource(normalMap->SRV());
 	else
 		sNormalMap->SetResource(NULL);
+
+	if (heightMap != NULL)
+		sHeightMap->SetResource(heightMap->SRV());
+	else
+		sHeightMap->SetResource(NULL);
 }
 
 bool Material::Property()
@@ -105,7 +118,10 @@ bool Material::Property()
 		ID3D11ShaderResourceView* srv = NULL;
 		if(tex!=NULL)
 			srv = tex->SRV();
-		ImGui::ImageButton(srv, ImVec2(itemSize, itemSize));
+		if (ImGui::ImageButton(srv, ImVec2(itemSize, itemSize)))
+		{
+			LoadTexture(func);
+		}
 
 		{
 			item = DragDrop::GetDragDropPayload_Item(DragDropPayloadType::Texture);
@@ -137,10 +153,10 @@ bool Material::Property()
 		ImGui::ColorEdit4("Emissive", (float*)colorDesc.Emissive);
 		
 		{
-
 			MapButton(diffuseMap, "DiffuseMap", bind(&Material::LoadDiffuseMap, this, placeholders::_1, placeholders::_2));
-			MapButton(specularMap, "SpeculatMap", bind(&Material::LoadSpecularMap, this, placeholders::_1, placeholders::_2));
+			MapButton(specularMap, "SpecularMap", bind(&Material::LoadSpecularMap, this, placeholders::_1, placeholders::_2));
 			MapButton(normalMap, "NormalMap", bind(&Material::LoadNormalMap, this, placeholders::_1, placeholders::_2));
+			MapButton(heightMap, "HeightMap", bind(&Material::LoadHeightMap, this, placeholders::_1, placeholders::_2));
 		}
 		//ImGui::SameLine();
 		ImGui::PopID();
@@ -191,39 +207,62 @@ void Material::Emissive(float r, float g, float b, float a)
 	Emissive(Color(r, g, b, a));
 }
 
-void Material::LoadDiffuseMap(string file, string dir)
+void Material::LoadDiffuseMap(const string& file, const string& dir)
 {
 	LoadDiffuseMapW(String::ToWString(file), String::ToWString(dir));
 }
 
-void Material::LoadDiffuseMapW(wstring file, wstring dir)
+void Material::LoadDiffuseMapW(const wstring& file, const wstring& dir)
 {
 	SafeDelete(diffuseMap);
 
 	diffuseMap = new Texture(file, dir);
 }
 
-void Material::LoadSpecularMap(string file, string dir)
+void Material::LoadSpecularMap(const string& file, const string& dir)
 {
 	LoadSpecularMapW(String::ToWString(file), String::ToWString(dir));
 }
 
-void Material::LoadSpecularMapW(wstring file, wstring dir)
+void Material::LoadSpecularMapW(const wstring& file, const wstring& dir)
 {
 	SafeDelete(specularMap);
 
 	specularMap = new Texture(file, dir);
 }
 
-void Material::LoadNormalMap(string file, string dir)
+void Material::LoadNormalMap(const string& file, const string& dir)
 {
 	LoadNormalMapW(String::ToWString(file), String::ToWString(dir));
 }
 
-void Material::LoadNormalMapW(wstring file, wstring dir)
+void Material::LoadNormalMapW(const wstring& file, const wstring& dir)
 {
 	SafeDelete(normalMap);
 
 	normalMap = new Texture(file,dir);
+}
+void Material::LoadHeightMap(const string & file, const string & dir)
+{
+	LoadHeightMapW(String::ToWString(file), String::ToWString(dir));
+}
+void Material::LoadHeightMapW(const wstring & file, const wstring & dir)
+{
+	SafeDelete(heightMap);
+
+	heightMap = new Texture(file, dir);
+}
+void Material::LoadTexture(function<void(string, string)> func, const wstring& filePath)
+{
+	if (filePath.length() < 1)
+	{
+		Path::OpenFileDialog(L"", Path::ImageFilter, L"../../_Textures/", bind(&Material::LoadTexture, this,func, placeholders::_1));
+	}
+	else
+	{
+		string dir  = String::ToString( Path::GetDirectoryName(filePath));
+		string file = String::ToString(Path::GetFileName(filePath));
+		func(file, dir);
+	}
 }
 #pragma endregion

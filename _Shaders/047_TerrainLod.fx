@@ -90,10 +90,10 @@ DomainOutput_Lod DS(ConstantHullOutput_Lod input, const OutputPatch<HullOutput_L
 
     //구한 uv를 통해 heightmap에서 해당 위치의 높이를 구한다.
     //노멀,탄젠트를 구할수 있다.
-    float leftY = HeightMap.SampleLevel(LinearSampler, left, 0).a * Lod.TerrainHeightRatio;
-    float rightY = HeightMap.SampleLevel(LinearSampler, right, 0).a * Lod.TerrainHeightRatio;
-    float topY = HeightMap.SampleLevel(LinearSampler, top, 0).a * Lod.TerrainHeightRatio;
-    float bottomY = HeightMap.SampleLevel(LinearSampler, bottom, 0).a * Lod.TerrainHeightRatio;
+    float leftY = AlphaMap.SampleLevel(LinearSampler, left, 0).a * Lod.TerrainHeightRatio;
+    float rightY = AlphaMap.SampleLevel(LinearSampler, right, 0).a * Lod.TerrainHeightRatio;
+    float topY = AlphaMap.SampleLevel(LinearSampler, top, 0).a * Lod.TerrainHeightRatio;
+    float bottomY = AlphaMap.SampleLevel(LinearSampler, bottom, 0).a * Lod.TerrainHeightRatio;
 
     //탄젠트는 x축 기울기와 같다
     float3 tangent = normalize(float3(Lod.WorldCellSpace * 2.0f, rightY - leftY, 0.0f));
@@ -111,7 +111,7 @@ DomainOutput_Lod DS(ConstantHullOutput_Lod input, const OutputPatch<HullOutput_L
     //samplelevel mipmap 제거?
     //                      해당 위치에 대한 픽셀을 가져올 수 있음
     output.wPosition.xyz += (4.5f * (h)) * normalize(output.Normal);
-    output.wPosition.y += HeightMap.SampleLevel(LinearSampler, output.Uv, 0).a* Lod.TerrainHeightRatio;
+    output.wPosition.y += AlphaMap.SampleLevel(LinearSampler, output.Uv, 0).a* Lod.TerrainHeightRatio;
     //output.wPosition.xyz += displacement*normal;
     
     output.Position = ViewProjection(float4(output.wPosition, 1));
@@ -132,7 +132,7 @@ DomainOutput_Lod DS(ConstantHullOutput_Lod input, const OutputPatch<HullOutput_L
 
 float4 PS(DomainOutput_Lod input) : SV_Target0
 {
-    float4 alpha = HeightMap.Sample(LinearSampler, input.Uv);
+    float4 alpha = AlphaMap.Sample(LinearSampler, input.Uv);
     float4 diffuse = GetTerrainColor(alpha, input.Uv);
     float3 gridColor = GetLineColor(input.wPosition);
     float3 normal = input.Normal;
@@ -145,7 +145,7 @@ float4 PS(DomainOutput_Lod input) : SV_Target0
     ComputeLight(output, normal, input.wPosition);
     AddMaterial(result, output);
     
-    //return HeightMap.SampleLevel(LinearSampler, input.Uv, 0);
+    //return AlphaMap.SampleLevel(LinearSampler, input.Uv, 0);
     return float4(MaterialToColor(result), 1) + float4(gridColor, 1) + float4(brushColor, 1);
     //return float4(1, 0, 0, 1);
 }
@@ -166,7 +166,7 @@ PS_Output PS_Seperate(DomainOutput_Lod input)
 {
     PS_Output output;
 
-    float4 alpha = HeightMap.Sample(LinearSampler, input.Uv);
+    float4 alpha = AlphaMap.Sample(LinearSampler, input.Uv);
     float4 diffuse = GetTerrainColor(alpha, input.Uv);
     float3 gridColor = GetLineColor(input.wPosition);
     float3 brushColor = GetBrushColor(input.wPosition);

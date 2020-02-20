@@ -21,8 +21,8 @@ private:
 	void Initialize();
 
 public:
-	void Name(wstring val) { name = val; }
-	wstring Name() { return name; }
+	void Name(const wstring& val) { name = val; }
+	const wstring& Name() { return name; }
 
 	// Desc
 
@@ -46,33 +46,40 @@ public:
 	// Texture
 
 	Texture* DiffuseMap() { return diffuseMap; }
-	void LoadDiffuseMap(string file, string dir = "../../_Textures/Material/");
-	void LoadDiffuseMapW(wstring file, wstring dir = L"../../_Textures/Material/");
+	void LoadDiffuseMap(const string& file, const string& dir = "../../_Textures/Material/");
+	void LoadDiffuseMapW(const wstring& file, const wstring& dir = L"../../_Textures/Material/");
 
 	Texture* SpecularMap() { return specularMap; }
-	void LoadSpecularMap(string file, string dir = "../../_Textures/Material/");
-	void LoadSpecularMapW(wstring file, wstring dir = L"../../_Textures/Material/");
+	void LoadSpecularMap(const string& file, const string& dir = "../../_Textures/Material/");
+	void LoadSpecularMapW(const wstring& file, const wstring& dir = L"../../_Textures/Material/");
 
 	Texture* NormalMap() { return normalMap; }
-	void LoadNormalMap(string file, string dir = "../../_Textures/Material/");
-	void LoadNormalMapW(wstring file, wstring dir = L"../../_Textures/Material/");
+	void LoadNormalMap(const string& file, const string& dir = "../../_Textures/Material/");
+	void LoadNormalMapW(const wstring& file, const wstring& dir = L"../../_Textures/Material/");
+
+	Texture* HeightMap() { return heightMap; }
+	void LoadHeightMap(const string& file, const string& dir = "../../_Textures/Material/");
+	void LoadHeightMapW(const wstring& file, const wstring& dir = L"../../_Textures/Material/");
+
+private:
+	void LoadTexture(function<void(string, string)> func, const wstring& filePath = L"");
+
 private:
 	struct ColorDesc
 	{
 		Color Ambient = Color(0, 0, 0, 1);
 		Color Emissive = Color(0, 0, 0, 1);
 		Color Diffuse = Color(1, 1, 1, 1);
-		Color Specular = Color(0, 0, 0, 1);
+		Color Specular = Color(1, 1, 1, 1);
 	} colorDesc;
 
 private:
-	Shader * shader;
-
 	wstring name;
 
 	Texture* diffuseMap;
 	Texture* specularMap;
 	Texture* normalMap;
+	Texture* heightMap;
 
 	ConstantBuffer* buffer;
 
@@ -80,4 +87,5 @@ private:
 	ID3DX11EffectShaderResourceVariable* sDiffuseMap;
 	ID3DX11EffectShaderResourceVariable* sSpecularMap;
 	ID3DX11EffectShaderResourceVariable* sNormalMap;
+	ID3DX11EffectShaderResourceVariable* sHeightMap;
 };

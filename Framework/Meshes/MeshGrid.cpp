@@ -47,6 +47,7 @@ void MeshGrid::Create()
 
 
 	vector<UINT> indices;
+	vector<UINT> indicetess;
 	for (UINT z = 0; z < countZ - 1; z++)
 	{
 		for (UINT x = 0; x < countX - 1; x++)
@@ -58,6 +59,11 @@ void MeshGrid::Create()
 			indices.push_back(countX * z + x + 1);
 			indices.push_back(countX * (z + 1) + x);
 			indices.push_back(countX * (z + 1) + x + 1);
+
+			indicetess.push_back(countX * z + x);
+			indicetess.push_back(countX * (z + 1) + x);
+			indicetess.push_back(countX * z + x + 1);
+			indicetess.push_back(countX * (z + 1) + x + 1);
 		}
 	}
 
@@ -67,5 +73,13 @@ void MeshGrid::Create()
 	(
 		indices.begin(), indices.end(),
 		stdext::checked_array_iterator<UINT *>(this->indices, indexCount)
+	);
+
+	this->TessIndices = new UINT[indicetess.size()];
+	tessICount = indicetess.size();
+	copy
+	(
+		indicetess.begin(), indicetess.end(),
+		stdext::checked_array_iterator<UINT *>(this->TessIndices, tessICount)
 	);
 }

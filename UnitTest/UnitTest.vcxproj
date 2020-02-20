@@ -22,6 +22,7 @@
     <ClInclude Include="Demo\AnimEditorDemo.h" />
     <ClInclude Include="Demo\CSDemo.h" />
     <ClInclude Include="Demo\TerrainLodDemo.h" />
+    <ClInclude Include="Demo\FogDemo.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="Demo\PBRDemo.h" />
     <ClInclude Include="Practice\DeferredPrac.h" />
@@ -31,6 +32,7 @@
     <ClCompile Include="Demo\AnimEditorDemo.cpp" />
     <ClCompile Include="Demo\CSDemo.cpp" />
     <ClCompile Include="Demo\TerrainLodDemo.cpp" />
+    <ClCompile Include="Demo\FogDemo.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Demo\PBRDemo.cpp" />
     <ClCompile Include="Practice\DeferredPrac.cpp" />
