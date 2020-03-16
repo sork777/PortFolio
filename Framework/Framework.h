@@ -97,11 +97,18 @@ typedef D3DXPLANE Plane;
 #include "Renders/Context.h"
 #include "Renders/Renderer.h"
 
-#include "Components/BaseComponent.h"	
-#include "Components/Base/Material.h"	
-#include "Components/Base/MaterialPBR.h"	
-#include "Components/Base/PerFrame.h"
-#include "Components/Base/Transform.h"
+#include "Components/ObjectBaseComponent.h"	
+//#include "Components/ObjectBase/AnimationComponent.h"	
+#include "Components/ObjectBase/ModelMeshComponent.h"	
+#include "Components/ObjectBase/FigureMeshComponent.h"	
+#include "Components/ObjectBase/CameraComponent.h"	
+#include "Components/ObjectBase/CollisionComponent.h"	
+
+#include "Components/CommonComponent.h"	
+#include "Components/Common/Material.h"	
+#include "Components/Common/MaterialPBR.h"	
+#include "Components/Common/PerFrame.h"
+#include "Components/Common/Transform.h"
 
 #include "Utilities/DebugLine.h"
 #include "Utilities/Math.h"
@@ -109,7 +116,10 @@ typedef D3DXPLANE Plane;
 #include "Utilities/Path.h"
 #include "Utilities/BinaryFile.h"
 
-#include "Physics/Collider.h"
+#include "Collision/Collider.h"
+#include "Collision/OBBCollider.h"
+#include "Collision/SphereCollider.h"
+#include "Collision/CapsuleCollider.h"
 
 #include "Meshes/Mesh.h"
 #include "Meshes/MeshRender.h"

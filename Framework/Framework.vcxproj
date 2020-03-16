@@ -19,8 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Objects\Actor\Actor.cpp" />
-    <ClCompile Include="Components\Base\MaterialPBR.cpp" />
+    <ClCompile Include="Collision\CapsuleCollider.cpp" />
+    <ClCompile Include="Collision\OBBCollider.cpp" />
+    <ClCompile Include="Collision\SphereCollider.cpp" />
+    <ClCompile Include="Components\ObjectBaseComponent.cpp" />
+    <ClCompile Include="Components\ObjectBase\CameraComponent.cpp" />
+    <ClCompile Include="Components\ObjectBase\CollisionComponent.cpp" />
+    <ClCompile Include="Components\ObjectBase\ModelMeshComponent.cpp" />
+    <ClCompile Include="Components\ObjectBase\FigureMeshComponent.cpp" />
+    <ClCompile Include="Components\Object\Actor\Actor.cpp" />
+    <ClCompile Include="Components\Common\MaterialPBR.cpp" />
     <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="Effect\ModelIllusion.cpp" />
     <ClCompile Include="ImguiWidget\WidgetUtility\IconProvider.cpp" />
@@ -62,7 +70,7 @@
     <ClCompile Include="Utilities\Perlin.cpp" />
     <ClCompile Include="PostEffects\HDR_Tone.cpp" />
     <ClCompile Include="ScreenSpace\GBuffer.cpp" />
-    <ClCompile Include="Physics\Collider.cpp" />
+    <ClCompile Include="Collision\Collider.cpp" />
     <ClCompile Include="Objects\CSM.cpp" />
     <ClCompile Include="Objects\Light.cpp" />
     <ClCompile Include="Objects\Mirror.cpp" />
@@ -82,10 +90,10 @@
     <ClCompile Include="Utilities\QuadTree.cpp" />
     <ClCompile Include="Renders\Buffers.cpp" />
     <ClCompile Include="Utilities\DebugLine.cpp" />
-    <ClCompile Include="Components\Base\Material.cpp" />
+    <ClCompile Include="Components\Common\Material.cpp" />
     <ClCompile Include="ScreenSpace\Render2D.cpp" />
     <ClCompile Include="Renders\Renderer.cpp" />
-    <ClCompile Include="Components\Base\PerFrame.cpp" />
+    <ClCompile Include="Components\Common\PerFrame.cpp" />
     <ClCompile Include="Renders\Context.cpp" />
     <ClCompile Include="Renders\Shader.cpp" />
     <ClCompile Include="Renders\Texture.cpp" />
@@ -98,7 +106,7 @@
     <ClCompile Include="Systems\Time.cpp" />
     <ClCompile Include="Systems\Window.cpp" />
     <ClCompile Include="Environment\Terrain.cpp" />
-    <ClCompile Include="Components\Base\Transform.cpp" />
+    <ClCompile Include="Components\Common\Transform.cpp" />
     <ClCompile Include="Utilities\BinaryFile.cpp" />
     <ClCompile Include="Utilities\Math.cpp" />
     <ClCompile Include="Utilities\Path.cpp" />
@@ -118,9 +126,18 @@
     <ClCompile Include="Viewer\Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Objects\Actor\Actor.h" />
-    <ClInclude Include="Components\Base\MaterialPBR.h" />
-    <ClInclude Include="Components\BaseComponent.h" />
+    <ClInclude Include="Collision\CapsuleCollider.h" />
+    <ClInclude Include="Collision\OBBCollider.h" />
+    <ClInclude Include="Collision\SphereCollider.h" />
+    <ClInclude Include="Components\ObjectBase\CameraComponent.h" />
+    <ClInclude Include="Components\ObjectBase\CollisionComponent.h" />
+    <ClInclude Include="Components\ObjectBaseComponent.h" />
+    <ClInclude Include="Components\IComponent.h" />
+    <ClInclude Include="Components\ObjectBase\ModelMeshComponent.h" />
+    <ClInclude Include="Components\ObjectBase\FigureMeshComponent.h" />
+    <ClInclude Include="Components\Object\Actor\Actor.h" />
+    <ClInclude Include="Components\Common\MaterialPBR.h" />
+    <ClInclude Include="Components\CommonComponent.h" />
     <ClInclude Include="Editor\AnimationEditor.h" />
     <ClInclude Include="Editor\IEditor.h" />
     <ClInclude Include="Effect\ModelIllusion.h" />
@@ -158,7 +175,7 @@
     <ClInclude Include="Model\ModelClip.h" />
     <ClInclude Include="Model\ModelMesh.h" />
     <ClInclude Include="Model\ModelRender.h" />
-    <ClInclude Include="Objects\BaseObject.h" />
+    <ClInclude Include="Components\Object\BaseObject.h" />
     <ClInclude Include="Editor\ParticleEditor.h" />
     <ClInclude Include="ParticleSystem\ParticleData.h" />
     <ClInclude Include="ParticleSystem\ParticleEmitter.h" />
@@ -170,7 +187,7 @@
     <ClInclude Include="Utilities\Perlin.h" />
     <ClInclude Include="PostEffects\HDR_Tone.h" />
     <ClInclude Include="ScreenSpace\GBuffer.h" />
-    <ClInclude Include="Physics\Collider.h" />
+    <ClInclude Include="Collision\Collider.h" />
     <ClInclude Include="Objects\CSM.h" />
     <ClInclude Include="Objects\Light.h" />
     <ClInclude Include="Objects\Mirror.h" />
@@ -190,10 +207,10 @@
     <ClInclude Include="Utilities\QuadTree.h" />
     <ClInclude Include="Renders\Buffers.h" />
     <ClInclude Include="Utilities\DebugLine.h" />
-    <ClInclude Include="Components\Base\Material.h" />
+    <ClInclude Include="Components\Common\Material.h" />
     <ClInclude Include="ScreenSpace\Render2D.h" />
     <ClInclude Include="Renders\Renderer.h" />
-    <ClInclude Include="Components\Base\PerFrame.h" />
+    <ClInclude Include="Components\Common\PerFrame.h" />
     <ClInclude Include="Renders\Context.h" />
     <ClInclude Include="Renders\Shader.h" />
     <ClInclude Include="Renders\Texture.h" />
@@ -208,7 +225,7 @@
     <ClInclude Include="Systems\Time.h" />
     <ClInclude Include="Systems\Window.h" />
     <ClInclude Include="Environment\Terrain.h" />
-    <ClInclude Include="Components\Base\Transform.h" />
+    <ClInclude Include="Components\Common\Transform.h" />
     <ClInclude Include="Utilities\BinaryFile.h" />
     <ClInclude Include="Utilities\Math.h" />
     <ClInclude Include="Utilities\Path.h" />

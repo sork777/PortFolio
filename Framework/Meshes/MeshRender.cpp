@@ -39,6 +39,18 @@ void MeshRender::Render()
 	mesh->Render(transforms.size());
 }
 
+void MeshRender::AddInstance()
+{
+	AddTransform();
+}
+
+void MeshRender::DelInstance(const UINT & instance)
+{
+	if (instance >= transforms.size())
+		return;
+	transforms.erase(transforms.begin() + instance);
+}
+
 Material * MeshRender::GetMaterial()
 {
 	if (type == MaterialType::Material)
@@ -72,12 +84,10 @@ void MeshRender::SetMaterialPBR(MaterialPBR * material)
 	}
 }
 
-Transform * MeshRender::AddTransform()
+void MeshRender::AddTransform()
 {
 	Transform* transform = new Transform();
 	transforms.push_back(transform);
-
-	return transform;
 }
 
 void MeshRender::UpdateTransforms()

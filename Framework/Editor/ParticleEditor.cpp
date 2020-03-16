@@ -30,7 +30,8 @@ void ParticleEditor::Initialize()
 		Transform* transform = NULL;
 
 		grid = new MeshRender(shader, new MeshGrid(5, 5));
-		transform = grid->AddTransform();
+		grid->AddInstance();
+		transform = grid->GetTransform(0);
 		transform->Position(0, 0, 0);
 		transform->Scale(12, 1, 12);
 	}

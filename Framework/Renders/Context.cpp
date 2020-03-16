@@ -72,20 +72,33 @@ void Context::Render()
 
 	string str = string("Frame Rate : ") + to_string(ImGui::GetIO().Framerate);
 	Gui::Get()->RenderText(5, 5, 1, 1, 1, str);
-
+	
+	string Pos,Rot;
+	
 	D3DXVECTOR3 camPos;
-	Context::Get()->GetCamera()->Position(&camPos);
-
 	D3DXVECTOR3 camDir;
-	Context::Get()->GetCamera()->RotationDegree(&camDir);
 
-	str = "Cam Position : ";
-	str += to_string((int)camPos.x) + ", " + to_string((int)camPos.y) + ", " + to_string((int)camPos.z);
-	Gui::Get()->RenderText(5, 20, 1, 1, 1, str);
+	if (subCamera != NULL)
+	{
+		Context::Get()->GetSubCamera()->Position(&camPos);
+		Context::Get()->GetSubCamera()->RotationDegree(&camDir);
+		Pos = "SubCam Position : ";
+		Rot = "SubCam Rotation : ";
+	}
+	else
+	{
 
-	str = "Cam Rotation : ";
-	str += to_string((int)camDir.x) + ", " + to_string((int)camDir.y);
-	Gui::Get()->RenderText(5, 35, 1, 1, 1, str);
+		Context::Get()->GetCamera()->Position(&camPos);
+		Context::Get()->GetCamera()->RotationDegree(&camDir);
+		Pos = "Cam Position : ";
+		Rot = "Cam Rotation : ";
+	}
+
+	Pos += to_string((int)camPos.x) + ", " + to_string((int)camPos.y) + ", " + to_string((int)camPos.z);
+	Gui::Get()->RenderText(5, 20, 1, 1, 1, Pos);
+
+	Rot += to_string((int)camDir.x) + ", " + to_string((int)camDir.y);
+	Gui::Get()->RenderText(5, 35, 1, 1, 1, Rot);
 
 }
 

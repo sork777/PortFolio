@@ -121,7 +121,10 @@ void InstanceColliderDemo::Render()
 		trail->Property();
 		ImGui::End();
 	}
-	
+	for (int i = 0; i < model->GetInstSize(); i++)
+	{
+		colliders[i].Collider->Render(Color(1,1,0,1));
+	}
 }
 
 void InstanceColliderDemo::Pass(UINT mesh, UINT model, UINT anim)
@@ -133,7 +136,7 @@ void InstanceColliderDemo::Pass(UINT mesh, UINT model, UINT anim)
 		temp->Pass(model);
 
 	for (ModelAnimator* temp : animators)
-		temp->Pass(anim);
+		temp->GetModel()->Pass(anim);
 	/*if(ModelList[selectedModel])
 		ModelList[selectedModel]->animator->Pass(anim);*/
 }
@@ -156,7 +159,8 @@ void InstanceColliderDemo::Mesh()
 		Transform* transform = NULL;
 
 		grid = new MeshRender(shader, new MeshGrid(5, 5));
-		transform = grid->AddTransform();
+		grid->AddInstance();
+		transform = grid->GetTransform(0);
 		transform->Position(0, 0, 0);
 		transform->Scale(12, 1, 12);
 
@@ -243,7 +247,7 @@ void InstanceColliderDemo::ModelLoad()
 		colliders[i].Init->Position(10, -5, -65);
 		
 		colliders[i].Transform = new Transform();
-		colliders[i].Collider = new Collider(colliders[i].Transform, colliders[i].Init);
+		colliders[i].Collider = new OBBCollider(colliders[i].Transform, colliders[i].Init);
 	}
 }
 
@@ -448,11 +452,11 @@ void InstanceColliderDemo::AnimationController()
 			}
 			if (ImGui::Button("ChangeAnimModel"))
 			{
-				if (testModels[selectmodel]->IsAnimationModel())
+				/*if (testModels[selectmodel]->IsAnimationModel())
 				{
 					model = testModels[selectmodel];
 					kachujin->ChangeModel(model);
-				}
+				}*/
 			}
 		}
 		ImGui::Separator();

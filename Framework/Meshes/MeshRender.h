@@ -7,23 +7,30 @@ public:
 	MeshRender(Shader* shader, Mesh* mesh);
 	~MeshRender();
 
-	Mesh* GetMesh() { return mesh; }
-
 	void Update();
 	void Render();
 
-	void Tech(UINT val) { mesh->Tech(val); }
-	void Pass(UINT val) { mesh->Pass(val); }
+	inline void Tech(const UINT& val) { mesh->Tech(val); }
+	inline void Pass(const UINT& val) { mesh->Pass(val); }
 
+	inline Mesh* GetMesh() { return mesh; }
+	inline const UINT& GetInstSize() { return transforms.size(); }
+public:
+	void AddInstance();
+	void DelInstance(const UINT& instance);
+
+public:
 	Material* GetMaterial();
 	void SetMaterial(Material* material);
 
 	MaterialPBR* GetMaterialPBR();
 	void SetMaterialPBR(MaterialPBR* material);
 
-	Transform* AddTransform();
-	Transform* GetTransform(UINT index) { return transforms[index]; }
+	inline Transform* GetTransform(const UINT& index) { return transforms[index]; }
 	void UpdateTransforms();
+
+private:
+	void AddTransform();
 
 private:
 	enum class MaterialType

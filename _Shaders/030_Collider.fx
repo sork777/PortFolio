@@ -11,12 +11,13 @@ struct ResultMatrix
 StructuredBuffer<ClipFrameBoneMatrix> Input;
 RWStructuredBuffer<ResultMatrix> Output;
 
-Texture2DArray TransformsMap;
-Texture2D AnimEditTransformMap;
-
 #define MAX_MODEL_TRANSFORMS 250
 #define MAX_MODEL_INSTANCE 500
 #define MAX_MODEL_KEYFRAMES 500
+
+Texture2DArray TransformsMap;
+Texture2D AnimEditTransformMap;
+
 #include "000_Math.fx"
 
 ///////////////////////////////////////////////////////////////////////////////

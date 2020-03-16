@@ -105,7 +105,7 @@ private:
 	struct Attach
 	{
 		int			bone		= -1;
-		Collider*	collider	= NULL;
+		OBBCollider* collider	= NULL;
 		AttachType	type		= AttachType::None;
 		union AttachModel
 		{

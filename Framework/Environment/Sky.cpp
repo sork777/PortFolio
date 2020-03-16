@@ -10,7 +10,7 @@ Sky::Sky()
 	sBuffer = shader->AsConstantBuffer("CB_Sky");
 
 	sphere = new MeshRender(shader, new MeshSphere(0.5f));
-	sphere->AddTransform();
+	sphere->AddInstance();
 
 }
 
@@ -21,7 +21,7 @@ Sky::Sky(wstring cubeMapFile)
 	sBuffer = shader->AsConstantBuffer("CB_Sky");
 
 	sphere = new MeshRender(shader,new MeshSphere( 0.5f));
-	sphere->AddTransform();
+	sphere->AddInstance();
 
 	wstring temp = L"../../_Textures/" + cubeMapFile;
 	Check(D3DX11CreateShaderResourceViewFromFile

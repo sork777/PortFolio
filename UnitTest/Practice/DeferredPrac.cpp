@@ -70,44 +70,51 @@ void DeferredPrac::Initialize()
 		Transform* transform;
 		cube = new MeshRender(shader,new MeshCube());
 		cube->SetMaterial(stone);
-		transform = cube->AddTransform();
+		cube->AddInstance();
+		transform = cube->GetTransform(0);
 		transform->Position(0, 2.5f, 0);
 		transform->Scale(15.0f, 5.0f, 25.0);
+		cube->UpdateTransforms();
 
 		grid = new MeshRender(shader, new MeshGrid(10, 10));
 		grid->SetMaterial(floor);
-		transform = grid->AddTransform();
+		grid->AddInstance();
+		transform = grid->GetTransform(0);
 		transform->Position(0, 0, 0);
 		transform->Scale(20, 1, 20);
+		grid->UpdateTransforms();
 
 
 		cylinder = new MeshRender(shader,new MeshCylinder(0.5f, 3.0f, 20, 20));
 		cylinder->SetMaterial(brick);
 		sphere = new MeshRender(shader,new MeshSphere(0.5f, 20, 20));
 		sphere->SetMaterial(wall);
+		UINT cyCount = 0;
+		UINT spCount = 0;
 		for (UINT i = 0; i < 5; i++)
 		{
-			//cylinder[i * 2]->GetTransform()->Position(-100, 6.0f, -50.0f + (float)i * 50.0f);
-			transform = cylinder->AddTransform();
+			cylinder->AddInstance();
+			transform = cylinder->GetTransform(cyCount++);
 			transform->Position(-30, 6.0f, -30.0f + (float)i * 15.0f);
 			transform->Scale(5, 5, 5);
-			
-			//cylinder[i * 2 + 1]->GetTransform()->Position(100, 6.0f, -50.0f + (float)i * 50.0f);
-			transform = cylinder->AddTransform();
+
+			cylinder->AddInstance();
+			transform = cylinder->GetTransform(cyCount++);
 			transform->Position(30, 6.0f, -30.0f + (float)i * 15.0f);
 			transform->Scale(5, 5, 5);
 
-
-			//sphere[i * 2]->GetTransform()->Position(-100.0f, 15.5f, -50.0f + i * 50.0f);
-			transform = sphere->AddTransform();
+			sphere->AddInstance();
+			transform = sphere->GetTransform(spCount++);
 			transform->Position(-30, 15.5f, -30.0f + (float)i * 15.0f);
 			transform->Scale(5, 5, 5);
 
-			transform = sphere->AddTransform();
-			//sphere[i * 2 + 1]->GetTransform()->Position(100.0f, 15.5f, -50.0f + i * 50.0f);
+			sphere->AddInstance();
+			transform = sphere->GetTransform(spCount++);
 			transform->Position(30, 15.5f, -30.0f + (float)i * 15.0f);
 			transform->Scale(5, 5, 5);
 		}
+		cylinder->UpdateTransforms();
+		sphere->UpdateTransforms();
 	}
 
 	//Load Model
@@ -364,8 +371,8 @@ void DeferredPrac::SetGBuffer()
 	modelRender->Tech(0);
 	modelRender->Pass(modelPass);
 	modelRender->Render();
-	modelAnim->Tech(0);
-	modelAnim->Pass(animPass);
+	modelAnim->GetModel()->Tech(0);
+	modelAnim->GetModel()->Pass(animPass);
 	modelAnim->Render();
 }
 
@@ -396,6 +403,6 @@ void DeferredPrac::SetShadow(UINT tech)
 	modelRender->Tech(tech);
 	modelRender->Pass(modelPass);
 	modelRender->Render();
-	modelAnim->Tech(tech);
+	modelAnim->GetModel()->Tech(tech);
 	modelAnim->Render();
 }

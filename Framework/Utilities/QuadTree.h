@@ -12,15 +12,15 @@ public:
 	QuadTreeNode* GetParent() { return Parent; }
 	bool HasChilds() { return !children.empty(); }
 
-	void SetCollider(Collider * collider);
-	Collider* GetCollider() { return collider; }
+	void SetCollider(OBBCollider * collider);
+	OBBCollider* GetCollider() { return collider; }
 	void AddChild(QuadTreeNode* child);
 	vector< QuadTreeNode*>& GetChildren() { return children; }
 	QuadTreeNode* GetPickedNode(Vector3& rayPos, Vector3& rayDir, float& minDist);
 	QuadTreeNode* GetPickedNode(Vector3& position);
 
 private:
-	Collider* collider;	//픽킹 충돌처리용
+	OBBCollider* collider;	//픽킹 충돌처리용
 	Vector2 BoundsY;	//터레인 높이 측정용
 
 	QuadTreeNode* Parent;

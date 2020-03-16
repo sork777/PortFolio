@@ -15,8 +15,10 @@ public:
 	void SetRad(const float& rad, const float& minRad, const float& maxRad);
 
 	void ViewCameraArea();
-	void OrbitStaus();
+	void Property();
+
 private:
+	void CameraMove();
 	void OrbitUp();
 	void View() override;
 

@@ -14,21 +14,13 @@ Mesh::~Mesh()
 	SafeDeleteArray(indices);
 }
 
-void Mesh::SetShader(Shader * shader)
-{
-	this->shader = shader;
-
-	SafeDelete(perFrame);
-	perFrame = new PerFrame(shader);
-}
-
 void Mesh::Update()
 {
 	assert(perFrame != NULL);
 
 	perFrame->Update();
 }
-void Mesh::Render(UINT drawCount)
+void Mesh::Render(const UINT& drawCount)
 {
 	if (vertexBuffer == NULL || indexBuffer == NULL)
 	{
@@ -55,4 +47,12 @@ void Mesh::Render(UINT drawCount)
 		indexBuffer->Render();
 		shader->DrawIndexedInstanced(tech, pass, indexCount, drawCount);
 	}
+}
+
+void Mesh::SetShader(Shader * shader)
+{
+	this->shader = shader;
+
+	SafeDelete(perFrame);
+	perFrame = new PerFrame(shader);
 }

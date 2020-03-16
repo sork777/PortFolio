@@ -29,7 +29,8 @@ void AnimationEditor::Initialize()
 		Transform* transform = NULL;
 
 		grid = new MeshRender(shader, new MeshGrid(5, 5));
-		transform = grid->AddTransform();
+		grid->AddInstance();
+		transform = grid->GetTransform(0);
 		transform->Position(0, 0, 0);
 		transform->Scale(12, 1, 12);
 	}
@@ -145,7 +146,7 @@ void AnimationEditor::Pass(UINT mesh, UINT render, UINT anim)
 			temp->attach.render->Pass(render);
 			break;
 		case AttachType::Animator:
-			temp->attach.animator->Pass(anim);
+			temp->attach.animator->GetModel()->Pass(anim);
 			break;
 		default:
 			break;
@@ -154,7 +155,7 @@ void AnimationEditor::Pass(UINT mesh, UINT render, UINT anim)
 
 	if (curAnimator != NULL)
 	{
-		curAnimator->Pass(anim);
+		curAnimator->GetModel()->Pass(anim);
 	}
 }
 

@@ -160,3 +160,141 @@ float4 CatMulRom_CalPtoC(float4 P[4], float T[4], float t)
     
     return C;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// 선분내에서 점과 가장 가까운 점을 리턴
+float3 ClosestPtPointSegment(float3 pt, float3 segA, float3 segB)
+{
+    float t;
+    float3 d;
+    float3 segDir = segB - segA;
+    t = dot((pt - segA), segDir);
+    
+    [branch]
+    if(t<=0.0f)      //dot이 음수라 segA 앞쪽으로 수선의 발이 내림
+    {
+        t = 0.0f;
+        d = segA;    //가장 가까운 지점은 segA
+    }
+    else
+    {
+        float denom = dot(segDir, segDir);    //선분의 길이 제곱.
+        [branch]
+        if(t>=denom)  //선분 길이를 벗어남 segB 뒤로 수선의 발
+        {
+            t = 1.0f;
+            d = segB;
+        }
+        else          //선분 내에 안착
+        {
+            t /= denom;
+            d = segA + t * segDir;
+        }
+    }
+    return d;
+}
+
+void ClosestPtPointOBB(float3 pt, float3 obbCenter,float3 obbAxis[3], float obbSize[3], inout float3 q)
+{
+    float3 d = pt - obbCenter;
+    q = obbCenter;
+    [unroll(3)]
+    for (int i = 0; i < 3;i++)
+    {
+        /*
+            점과 박스의 센터를 연결한 선분을
+            각 축에 투영시켜 해당 축으로 얼만큼 크기가 커져야 하는지 계산.
+        */
+        float dist = dot(d, obbAxis[i]);
+        [flatten]
+        if (dist > obbSize[i])
+            dist = obbSize[i];
+        [flatten]
+        if (dist < -obbSize[i])
+            dist = -obbSize[i];
+        q += dist * obbAxis[i];
+    }
+}
+void ClosestPtSegmentSegment(float3 segAS, float3 segAE, float3 segBS, float3 segBE, inout float3 c1, inout float3 c2)
+{
+    /*
+        segA(s) = segAS + s * segA_Dir
+        segB(t) = segBS + t * segB_Dir
+        0 <= s,t <= 1
+    */
+    
+    float s, t;
+    float3 segA_Dir = segAE - segAS;
+    float3 segB_Dir = segBE - segBS;
+    float3 r = segAS - segBS;
+    
+    float segA_SqLen = dot(segA_Dir, segA_Dir);
+    float segB_SqLen = dot(segB_Dir, segB_Dir);
+    float f = dot(segB_Dir, r);
+
+    //길이 없음이면 포인트인데...? 이것도 따지는듯.
+    [flatten]
+    if (segA_SqLen <= EPSILON && segB_SqLen <= EPSILON)
+    {
+        //서로가 점인경우
+        s = t = 0.0f;
+        c1 = segAS;
+        c2 = segBS;
+    }
+
+    [branch]
+    if (segA_SqLen <= EPSILON)
+    {
+        //A가 선분이 아니라 점인경우.
+        s = 0.0f;
+        t = f / segB_SqLen;
+        t = clamp(t, 0.0f, 1.0f);
+    }
+    else
+    {
+        float c = dot(segA_Dir, r);
+        if (segB_SqLen <= EPSILON)
+        {
+        //A가 선분이 아니라 점인경우.
+            t = 0.0f;
+            s = -c / segA_SqLen;
+            s = clamp(s, 0.0f, 1.0f);
+        }
+        else
+        {
+            float b = dot(segA_Dir, segB_Dir);
+        // (|A||B|)^2*(1-cos()^2) = (|A||B|)^2*sin()^2  즉 양수
+            float denom = segA_SqLen * segB_SqLen - b * b;
+        [branch]
+            if (denom <= EPSILON)
+            {
+                s = 0.0f;
+            }
+            else
+            {
+                s = b * f - c * segB_SqLen;
+                s /= denom;
+                s = clamp(s, 0.0f, 1.0f);
+            }
+        
+            t = (b * s + f) / segB_SqLen;
+        
+        [branch]
+            if (t <= 0.0f)
+            {
+                t = 0.0f;
+                s = -c / segA_SqLen;
+                s = clamp(s, 0.0f, 1.0f);
+            }
+            else if (t >= 1.0f)
+            {
+                t = 1.0f;
+                s = (b - c) / segA_SqLen;
+                s = clamp(s, 0.0f, 1.0f);
+            }
+        }
+    }
+    
+    c1 = segAS + s * segA_Dir;
+    c2 = segBS + t * segB_Dir;
+}

@@ -162,14 +162,16 @@ void FogDemo::Mesh()
 	Transform* transform;
 	cube = new MeshRender(shader, new MeshCube());
 	cube->SetMaterial(stone);
-	transform = cube->AddTransform();
+	cube->AddInstance();
+	transform = cube->GetTransform(0);
 	transform->Position(0, 12.5f, 0);
 	transform->Scale(15.0f, 5.0f, 25.0);
 	cube->UpdateTransforms();
 
 	grid = new MeshRender(shader, new MeshGrid(10, 10));
 	grid->SetMaterial(floor);
-	transform = grid->AddTransform();
+	grid->AddInstance();
+	transform = grid->GetTransform(0);
 	transform->Position(0, 0, 0);
 	transform->Scale(20, 1, 20);
 	grid->UpdateTransforms();
@@ -179,21 +181,27 @@ void FogDemo::Mesh()
 	cylinder->SetMaterial(brick);
 	sphere = new MeshRender(shader, new MeshSphere(0.5f, 20, 20));
 	sphere->SetMaterial(stone);
+	UINT cyCount = 0;
+	UINT spCount = 0;
 	for (UINT i = 0; i < 5; i++)
 	{
-		transform = cylinder->AddTransform();
+		cylinder->AddInstance();
+		transform = cylinder->GetTransform(cyCount++);
 		transform->Position(-30, 6.0f, -30.0f + (float)i * 15.0f);
 		transform->Scale(5, 5, 5);
 
-		transform = cylinder->AddTransform();
+		cylinder->AddInstance();
+		transform = cylinder->GetTransform(cyCount++);
 		transform->Position(30, 6.0f, -30.0f + (float)i * 15.0f);
 		transform->Scale(5, 5, 5);
 
-		transform = sphere->AddTransform();
+		sphere->AddInstance();
+		transform = sphere->GetTransform(spCount++);
 		transform->Position(-30, 15.5f, -30.0f + (float)i * 15.0f);
 		transform->Scale(5, 5, 5);
 
-		transform = sphere->AddTransform();
+		sphere->AddInstance();
+		transform = sphere->GetTransform(spCount++);
 		transform->Position(30, 15.5f, -30.0f + (float)i * 15.0f);
 		transform->Scale(5, 5, 5);
 	}

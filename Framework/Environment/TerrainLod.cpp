@@ -76,9 +76,9 @@ TerrainLod::TerrainLod(InitializeInfo& info)
 	indexBuffer = new IndexBuffer(indices, indexCount);
 
 
-	TestCol = new Collider();
+	TestCol = new OBBCollider();
 	TestCol->GetTransform()->Scale(1, 3, 1);
-	AreaCol = new Collider();
+	AreaCol = new OBBCollider();
 }
 
 
@@ -737,7 +737,7 @@ void TerrainLod::UpdateQuadHeight()
 	float cellF = 1.0f / info.CellSpacing;
 	for (QuadTreeNode* node : temp4updateNode)
 	{
-		Collider* col = node->GetCollider();
+		OBBCollider* col = node->GetCollider();
 		Vector2 TopLeft, BottomRight;
 		//생성 역순으로 되찾기
 		TopLeft = Vector2(col->GetMinRound().x+w, -col->GetMaxRound().z+h)*cellF;
@@ -817,7 +817,7 @@ QuadTreeNode* TerrainLod::CreateQuadTreeData(QuadTreeNode* parent,Vector2& TopLe
 	Transform* transform = new Transform();
 	transform->Position(position);
 	transform->Scale(scale);
-	Collider* collider = new Collider(transform);
+	OBBCollider* collider = new OBBCollider(transform);
 
 	quadNode->SetCollider(collider);
 	float narrow = (BottomRight.x - TopLeft.x)*0.5f;

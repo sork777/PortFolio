@@ -16,8 +16,25 @@ Orbit::~Orbit()
 
 void Orbit::Update()
 {
+	CameraMove();
+}
 
-	
+void Orbit::Speed(float rSpeed)
+{
+	this->rSpeed = rSpeed;
+}
+
+void Orbit::SetRad(const float & rad, const float & minRad, const float & maxRad)
+{
+	this->rad = rad;
+	this->minRad = minRad;
+	this->maxRad = maxRad;
+}
+
+
+void Orbit::CameraMove()
+{
+
 	Vector3 position;
 
 	Position(&position);
@@ -26,7 +43,7 @@ void Orbit::Update()
 	Vector3 val = Mouse::Get()->GetMoveValue();
 
 	//카메라와 오브젝트간의 거리(반지름)
-	
+
 
 	//반지름이 최소 반지름에서 최대 반지름 사이면 휠로 이동
 	rad += val.z *Time::Delta();
@@ -35,10 +52,10 @@ void Orbit::Update()
 		rad = minRad;
 	else if (rad > maxRad)
 		rad = maxRad;
-		
+
 	Vector3 R;
 	Rotation(&R);
-	
+
 	//쉬프트 누르고 변환 시.
 	if (Mouse::Get()->Press(1) == true)
 	{
@@ -46,11 +63,11 @@ void Orbit::Update()
 		theta += Math::PI * 0.5f*val.x*Time::Delta();
 	}
 	//각도 제한(윗점과 아랫점 기준으로 제한
-	
-	phi=Math::Clamp(phi,0.1f, Math::PI- 0.1f);
-	
+
+	phi = Math::Clamp(phi, 0.1f, Math::PI - 0.1f);
+
 	////각도 보정
-	
+
 	if (theta >= 2.0f*Math::PI)
 		theta -= 2.0f*Math::PI;
 	else if (theta < 0.0f)
@@ -66,21 +83,7 @@ void Orbit::Update()
 	OrbitUp();
 
 	Position(position);
-
 }
-
-void Orbit::Speed(float rSpeed)
-{
-	this->rSpeed = rSpeed;
-}
-
-void Orbit::SetRad(const float & rad, const float & minRad, const float & maxRad)
-{
-	this->rad = rad;
-	this->minRad = minRad;
-	this->maxRad = maxRad;
-}
-
 
 void Orbit::OrbitUp()
 {
@@ -110,7 +113,7 @@ void Orbit::View()
 	SetMatrix(matView);
 }
 
-void Orbit::OrbitStaus()
+void Orbit::Property()
 {
 
 	Vector3 position;
@@ -139,7 +142,7 @@ void Orbit::OrbitStaus()
 
 void Orbit::ViewCameraArea()
 {
-	UINT stackCount = 60;
+	UINT stackCount = 20;
 	float thetaStep = 2.0f * Math::PI / stackCount;
 
 	vector<Vector3> v, v2, v3;

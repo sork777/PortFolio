@@ -87,7 +87,7 @@ private:
 	{
 		Transform* Init;
 		Transform* Transform;
-		Collider* Collider;
+		OBBCollider* Collider;
 	} colliders[4];
 	
 private:
@@ -98,7 +98,7 @@ private:
 	vector<ModelRender *> attachModels;
 	vector<ModelAnimator *> attachAnimators;
 
-	vector<Collider*> Colliders;
+	vector<OBBCollider*> Colliders;
 	vector<class IWidget*> widgets;
 
 	TrailRenderer* trail;

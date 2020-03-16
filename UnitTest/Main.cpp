@@ -10,7 +10,7 @@
 void Main::Initialize()
 {
 	//Push(new TerrainLodDemo());
-	Push(new FogDemo());
+	Push(new AnimEditorDemo());
 }
 
 void Main::Ready()

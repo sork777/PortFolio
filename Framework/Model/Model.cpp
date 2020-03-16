@@ -81,13 +81,13 @@ void Model::Render()
 		mesh->Render(transforms.size());	
 }
 
-void Model::Pass(UINT pass)
+void Model::Pass(const UINT& pass)
 {
 	for (ModelMesh* mesh : meshes)
 		mesh->Pass(pass);
 }
 
-void Model::Tech(UINT tech)
+void Model::Tech(const UINT& tech)
 {
 	for (ModelMesh* mesh : meshes)
 		mesh->Tech(tech);
@@ -125,7 +125,7 @@ void Model::AddInstance()
 	AddTransform();	
 }
 
-void Model::DelInstance(UINT instance)
+void Model::DelInstance(const UINT& instance)
 {
 	if (instance >= transforms.size())
 		return;
@@ -144,7 +144,7 @@ void Model::AddTransform()
 
 #pragma region 이름으로 데이터 읽기
 
-Material * Model::MaterialByName(wstring name)
+Material * Model::MaterialByName(const wstring& name)
 {
 	for (Material* material : materials)
 	{
@@ -155,7 +155,7 @@ Material * Model::MaterialByName(wstring name)
 	return NULL;
 }
 
-ModelBone * Model::BoneByName(wstring name)
+ModelBone * Model::BoneByName(const wstring& name)
 {
 	for (ModelBone* bone : bones)
 	{
@@ -166,7 +166,7 @@ ModelBone * Model::BoneByName(wstring name)
 	return NULL;
 }
 
-int Model::BoneIndexByName(wstring name)
+int Model::BoneIndexByName(const wstring& name)
 {
 	int result = -1;
 	for (ModelBone* bone : bones)
@@ -179,7 +179,7 @@ int Model::BoneIndexByName(wstring name)
 	return -1;
 }
 
-ModelMesh * Model::MeshByName(wstring name)
+ModelMesh * Model::MeshByName(const wstring& name)
 {
 	for (ModelMesh* mesh : meshes)
 	{
@@ -196,14 +196,14 @@ ModelMesh * Model::MeshByName(wstring name)
 
 #pragma region ReadData
 
-void Model::ReadMaterial(wstring file, wstring directoryPath)
+void Model::ReadMaterial(const wstring& file, const wstring& directoryPath)
 {
 	materialFilePath = file;
 	materialDirPath= directoryPath;
-	file = directoryPath + file + L".material";
+	wstring readfile = directoryPath + file + L".material";
 
 	Xml::XMLDocument* document = new Xml::XMLDocument();
-	Xml::XMLError error = document->LoadFile(String::ToString(file).c_str());
+	Xml::XMLError error = document->LoadFile(String::ToString(readfile).c_str());
 	assert(error == Xml::XML_SUCCESS);
 
 	Xml::XMLElement* root = document->FirstChildElement();
@@ -222,7 +222,7 @@ void Model::ReadMaterial(wstring file, wstring directoryPath)
 		material->Name(String::ToWString(node->GetText()));
 
 
-		wstring directory = Path::GetDirectoryName(file);
+		wstring directory = Path::GetDirectoryName(readfile);
 		String::Replace(&directory, directoryPath, L"");
 
 
@@ -281,15 +281,15 @@ void Model::ReadMaterial(wstring file, wstring directoryPath)
 	} while (materialNode != NULL);
 }
 
-void Model::ReadMesh(wstring file, wstring directoryPath)
+void Model::ReadMesh(const wstring& file, const wstring& directoryPath)
 {
 	meshFilePath = file;
 	meshDirPath = directoryPath;
-	file = directoryPath + file + L".mesh";
-	name = Path::GetDirectDirectoryName(file);
+	wstring readfile = directoryPath + file + L".mesh";
+	name = Path::GetDirectDirectoryName(readfile);
 
 	BinaryReader* r = new BinaryReader();
-	r->Open(file);
+	r->Open(readfile);
 
 	UINT count = 0;
 
@@ -414,7 +414,7 @@ void Model::BindMesh()
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void Model::AddSocket(int parentBoneIndex, wstring socketName)
+void Model::AddSocket(const int& parentBoneIndex, const wstring& socketName)
 {
 	//메시에는 변동 없음에 주의
 	ModelBone* parentBone = BoneByIndex(parentBoneIndex);

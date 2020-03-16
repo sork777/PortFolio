@@ -9,20 +9,22 @@ public:
 	Mesh();
 	virtual ~Mesh();
 
-	void SetShader(Shader* shader);
-	void Pass(UINT val) { pass = val; }
-	void Tech(UINT val) { tech = val; }
-
 	void Update();
-	void Render(UINT drawCount);
+	void Render(const UINT& drawCount);
 
-	void Topology(D3D11_PRIMITIVE_TOPOLOGY val) { topology = val; }
+	void SetShader(Shader* shader);
 
-	void Tessellation(const bool& bTess) { this->bTess = bTess; }
-	void Displacement(const float& dist) { displacement = dist < 0.0f ? 0.0f : dist; }
+public:
+	inline Shader* GetShader() { return shader; }
+	inline void Pass(const UINT& val) { pass = val; }
+	inline void Tech(const UINT& val) { tech = val; }
+
+	inline void Topology(D3D11_PRIMITIVE_TOPOLOGY val) { topology = val; }
+	inline void Tessellation(const bool& bTess) { this->bTess = bTess; }
+	inline void Displacement(const float& dist) { displacement = dist < 0.0f ? 0.0f : dist; }
+
 protected:
 	virtual void Create() = 0;
-	void CreateTess();
 
 private:
 	bool bTess = false;
@@ -37,12 +39,10 @@ protected:
 	PerFrame* perFrame = NULL;
 
 	VertexBuffer* vertexBuffer = NULL;
-	//VertexBuffer* vertexTesBuffer = NULL;
 	IndexBuffer* indexBuffer = NULL;
 	IndexBuffer* indexTessBuffer = NULL;
 
 	MeshVertex* vertices;
-	//MeshVertex* tessVertices;
 	UINT* indices;
 	UINT* TessIndices;
 

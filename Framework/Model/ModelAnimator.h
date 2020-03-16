@@ -31,6 +31,7 @@ struct TweenDesc
 		Next.Clip = -1;
 	}
 };
+
 class ModelAnimator //: public Model
 {
 public:
@@ -40,43 +41,39 @@ public:
 	void Update();
 	void Render();
 
-	void Pass(UINT pass) { model->Pass(pass); }
-	void Tech(UINT tech) { model->Tech(tech); }
-
-	void ChangeModel(Model* newmodel) { model = newmodel; }
+	inline Model* GetModel() { return model; }
 public:
-	ID3D11ShaderResourceView* GetClipTransformSrv() { return clipSrv; }
-	Model* GetModel() { return model; }
+	inline ID3D11ShaderResourceView* GetClipTransformSrv() { return clipSrv; }
 	
 public:	
-	Matrix GetboneWorld(UINT instance, UINT boneIndex) ;
+	Matrix GetboneWorld(const UINT& instance, const UINT& boneIndex) ;
 
 public:	
-	void AddClip(wstring file, wstring directoryPath = L"../../_Models/");
-	void ReadClip(wstring file, wstring directoryPath = L"../../_Models/");
-	void SaveChangedClip(UINT clip, wstring file, wstring directoryPath = L"../../_Models/", bool bOverwrite=false);
+	void AddClip(const wstring& file, const wstring& directoryPath = L"../../_Models/");
+	void ReadClip(const wstring& file, const wstring& directoryPath = L"../../_Models/");
+	void SaveChangedClip(const UINT& clip, const wstring& file, const wstring& directoryPath = L"../../_Models/", bool bOverwrite=false);
 
-	void AddSocket(int parentBoneIndex, wstring bonename = L"");
-
-public:
-	void PlayAnim(UINT instance = 0);
-	void PlayClip(UINT instance, UINT clip, float speed = 1.0f, float takeTime = 1.0f);
-	UINT GetCurrClip(UINT instance);
-	UINT GetCurrFrame(UINT instance)		{ return tweenDesc[instance].Curr.CurrFrame; }
-	TweenDesc GetCurrTween(UINT instance)	{ return tweenDesc[instance]; }
-	void SetFrame(UINT instance, int frameNum);
-	UINT GetFrameCount(UINT instance);
+	void AddSocket(const int& parentBoneIndex, const wstring& bonename = L"");
 
 public:
-	UINT ClipCount()					{ return clips.size(); }
-	vector<ModelClip *>& Clips()		{ return clips; }
-	ModelClip* ClipByIndex(UINT index)	{ return clips[index]; }
-	ModelClip* ClipByName(wstring name);
+	void PlayAnim(const UINT& instance = 0);
+	void PlayClip(const UINT& instance, const UINT& clip, float speed = 1.0f, float takeTime = 1.0f);
+	UINT GetCurrClip(const UINT& instance);
+	void SetFrame(const UINT& instance, int frameNum);
+	UINT GetFrameCount(const UINT& instance);
+	inline const UINT& GetCurrFrame(const UINT& instance)		{ return tweenDesc[instance].Curr.CurrFrame; }
+	inline const TweenDesc& GetCurrTween(const UINT& instance)	{ return tweenDesc[instance]; }
+
+public:
+	inline const UINT& ClipCount()			{ return clips.size(); }
+	inline vector<ModelClip *>& Clips()		{ return clips; }
+	inline ModelClip* ClipByIndex(const UINT& index)	{ return clips[index]; }
+	ModelClip* ClipByName(const wstring& name);
 
 private:
-	void CreateTexture();
-	void CreateClipTransform(UINT index);
-	void CreateNoClipTransform(UINT index);
+	void UpdateTextureArray();
+	void CreateClipTransform(const UINT& index);
+	void CreateNoClipTransform(const UINT& index);
 	void CreateComputeDesc();
 
 private:
@@ -88,13 +85,13 @@ private:
 		{
 			Transform = new Matrix*[MAX_MODEL_KEYFRAMES];
 
-			for (UINT i = 0; i < MAX_MODEL_KEYFRAMES; i++)
+			for(UINT i = 0; i < MAX_MODEL_KEYFRAMES; i++)
 				Transform[i] = new Matrix[MAX_MODEL_TRANSFORMS];
 		}
 
 		~ClipTransform()
 		{
-			for (UINT i = 0; i < MAX_MODEL_KEYFRAMES; i++)
+			for(UINT i = 0; i < MAX_MODEL_KEYFRAMES; i++)
 				SafeDeleteArray(Transform[i]);
 
 			SafeDeleteArray(Transform);
@@ -112,10 +109,8 @@ private:
 	Shader* shader;
 	Model* model;
 
-	ID3D11Texture2D* clipTexture = NULL;
-	//vector<ID3D11Texture2D*> clipTextures;
+	ID3D11Texture2D* clipTextureArray = NULL;
 	ID3D11ShaderResourceView* clipSrv;
-	//vector<ID3D11ShaderResourceView*> clipSrvs;
 	ID3DX11EffectShaderResourceVariable* sTransformsSRV;
 private:
 	struct CS_OutputDesc
@@ -137,9 +132,9 @@ private:
 
 #pragma region 애니메이션의 변화 조정 영역
 public:
-	void UpdateBoneTransform(UINT part, UINT clipID, Transform* transform);
-	void UpdateChildBones(UINT parentID, UINT childID, UINT clipID);
-	ID3D11ShaderResourceView* GetEditSrv() { return editSrv; }
+	void UpdateBoneTransform(const UINT& part, const UINT& clipID, Transform* transform);
+	void UpdateChildBones(const UINT& parentID, const UINT& childID, const UINT& clipID);
+	inline ID3D11ShaderResourceView* GetEditSrv() { return editSrv; }
 
 private:
 	void CreateAnimEditTexture();

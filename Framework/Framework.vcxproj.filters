@@ -244,30 +244,38 @@
     <ClCompile Include="Environment\Sky\Scattering.cpp">
       <Filter>Environment\Sky</Filter>
     </ClCompile>
-    <ClCompile Include="Components\Base\Material.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
-    <ClCompile Include="Components\Base\PerFrame.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
-    <ClCompile Include="Components\Base\Transform.cpp">
-      <Filter>Renders</Filter>
-    </ClCompile>
     <ClCompile Include="Effect\TrailRenderer.cpp" />
     <ClCompile Include="Effect\ModelIllusion.cpp" />
     <ClCompile Include="Renders\Renderer.cpp">
       <Filter>Renders</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\GUID_Generator.cpp" />
-    <ClCompile Include="Components\Base\MaterialPBR.cpp" />
     <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="ParticleSystem\ParticleEmitter.cpp" />
     <ClCompile Include="Editor\ParticleEditor.cpp" />
     <ClCompile Include="PostEffects\Fog.cpp" />
-    <ClCompile Include="Physics\Collider.cpp">
+    <ClCompile Include="Components\Common\Material.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Common\MaterialPBR.cpp" />
+    <ClCompile Include="Components\Common\PerFrame.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Common\Transform.cpp">
+      <Filter>Renders</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\Object\Actor\Actor.cpp" />
+    <ClCompile Include="Components\ObjectBase\ModelMeshComponent.cpp" />
+    <ClCompile Include="Components\ObjectBase\FigureMeshComponent.cpp" />
+    <ClCompile Include="Components\ObjectBase\CameraComponent.cpp" />
+    <ClCompile Include="Components\ObjectBase\CollisionComponent.cpp" />
+    <ClCompile Include="Components\ObjectBaseComponent.cpp" />
+    <ClCompile Include="Collision\Collider.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\Actor\Actor.cpp" />
+    <ClCompile Include="Collision\CapsuleCollider.cpp" />
+    <ClCompile Include="Collision\SphereCollider.cpp" />
+    <ClCompile Include="Collision\OBBCollider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -555,7 +563,6 @@
     </ClInclude>
     <ClInclude Include="ImguiWidget\Widget_Contents.h" />
     <ClInclude Include="ImguiWidget\WidgetUtility\IconProvider.h" />
-    <ClInclude Include="Components\BaseComponent.h" />
     <ClInclude Include="Utilities\DebugLine.h">
       <Filter>Renders</Filter>
     </ClInclude>
@@ -577,32 +584,42 @@
     <ClInclude Include="Environment\Sky\Scattering.h">
       <Filter>Environment\Sky</Filter>
     </ClInclude>
-    <ClInclude Include="Components\Base\Material.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\Base\PerFrame.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
-    <ClInclude Include="Components\Base\Transform.h">
-      <Filter>Renders</Filter>
-    </ClInclude>
     <ClInclude Include="Editor\IEditor.h" />
     <ClInclude Include="Effect\TrailRenderer.h" />
     <ClInclude Include="Effect\ModelIllusion.h" />
     <ClInclude Include="Renders\Renderer.h">
       <Filter>Renders</Filter>
     </ClInclude>
-    <ClInclude Include="Objects\BaseObject.h" />
     <ClInclude Include="Utilities\GUID_Generator.h" />
-    <ClInclude Include="Components\Base\MaterialPBR.h" />
     <ClInclude Include="Editor\AnimationEditor.h" />
     <ClInclude Include="ParticleSystem\ParticleEmitter.h" />
     <ClInclude Include="ParticleSystem\ParticleData.h" />
     <ClInclude Include="Editor\ParticleEditor.h" />
     <ClInclude Include="PostEffects\Fog.h" />
-    <ClInclude Include="Physics\Collider.h">
+    <ClInclude Include="Components\IComponent.h" />
+    <ClInclude Include="Components\CommonComponent.h" />
+    <ClInclude Include="Components\Common\Material.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Common\MaterialPBR.h" />
+    <ClInclude Include="Components\Common\PerFrame.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Common\Transform.h">
+      <Filter>Renders</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Object\Actor\Actor.h" />
+    <ClInclude Include="Components\Object\BaseObject.h" />
+    <ClInclude Include="Components\ObjectBaseComponent.h" />
+    <ClInclude Include="Components\ObjectBase\ModelMeshComponent.h" />
+    <ClInclude Include="Components\ObjectBase\FigureMeshComponent.h" />
+    <ClInclude Include="Components\ObjectBase\CollisionComponent.h" />
+    <ClInclude Include="Components\ObjectBase\CameraComponent.h" />
+    <ClInclude Include="Collision\Collider.h">
       <Filter>Objects</Filter>
     </ClInclude>
-    <ClInclude Include="Objects\Actor\Actor.h" />
+    <ClInclude Include="Collision\CapsuleCollider.h" />
+    <ClInclude Include="Collision\SphereCollider.h" />
+    <ClInclude Include="Collision\OBBCollider.h" />
   </ItemGroup>
 </Project>

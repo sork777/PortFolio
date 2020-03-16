@@ -146,7 +146,7 @@ private:
 	Shader* raiseCS;
 
 	Vector4 BrushedArea;
-	Collider* AreaCol;
+	OBBCollider* AreaCol;
 
 	/* Controller */
 private:
@@ -219,5 +219,5 @@ private:
 
 
 private:
-	Collider* TestCol;
+	OBBCollider* TestCol;
 };

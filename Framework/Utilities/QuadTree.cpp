@@ -30,7 +30,7 @@ void QuadTreeNode::Render(Color color)
 	}
 }
 
-void QuadTreeNode::SetCollider(Collider * collider)
+void QuadTreeNode::SetCollider(OBBCollider * collider)
 {
 	this->collider = collider;
 }
@@ -46,7 +46,7 @@ QuadTreeNode* QuadTreeNode::GetPickedNode(Vector3& rayPos, Vector3 & rayDir, flo
 	collider->Update();
 	float dist;
 	//충돌 통과 시 실행
-	if (collider->IsIntersect(rayPos, rayDir, dist))
+	if (collider->IsIntersectRay(rayPos, rayDir, dist))
 	{
 		//충돌 했는데 자식 없으면 최종 노드로 내보냄
 		if (children.size() < 1)

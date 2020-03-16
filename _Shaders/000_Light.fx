@@ -234,7 +234,7 @@ float4 VS_Shadow(GeometryOutput input, float4 color)
     return VS_Shadow(output, color);
 }
 ////////////////////////////////////////////////////////////////////////////
-#include "LightPBR/PBR.fx"
+#include "D:\GitHubPJ\PF\PortFolio\_Shaders/LightPBR/PBR.fx"
 
 float4 CalcNormaltoPBR(MeshOutput input)
 {

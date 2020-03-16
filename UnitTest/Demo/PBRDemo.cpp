@@ -23,7 +23,8 @@ void PBRDemo::Initialize()
 		floor->LoadSpecularMap("Floor_Specular.png");
 
 		grid = new MeshRender(shader, new MeshGrid(5, 5));
-		transform = grid->AddTransform();
+		grid->AddInstance();
+		transform = grid->GetTransform(0);
 		transform->Position(0, 0, 0);
 		transform->Scale(12, 1, 12);
 		grid->SetMaterial(floor);
@@ -79,7 +80,8 @@ void PBRDemo::Initialize()
 		materials[8]->LoadMetalicMap("Wood_Metallic.png");
 
 		sphere = new MeshRender(shader, new MeshSphere(5));
-		transform = sphere->AddTransform();
+		sphere->AddInstance();
+		transform = sphere->GetTransform(0);
 		transform->Position(0, 20, 0);
 		sphere->UpdateTransforms();
 		//for (int i = 0; i < 3; i++)
@@ -88,7 +90,7 @@ void PBRDemo::Initialize()
 		//	{
 		//		int index = i * 3 + j;
 		//		sphere[index] = new MeshRender(shader, new MeshSphere(4));
-		//		transform = sphere[index]->AddTransform();
+		//		transform = sphere[index]->GetTransform(0);
 		//		transform->Position(-10 * j + 20, 10 * i + 10, 0);
 		//		/*Vector3 initpos;
 		//		transform->Position(&initpos);

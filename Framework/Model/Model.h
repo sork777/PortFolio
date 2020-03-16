@@ -19,58 +19,58 @@ public:
 	void Update();
 	void Render();
 	
-	void Pass(UINT pass);
-	void Tech(UINT tech);
+	void Pass(const UINT& pass);
+	void Tech(const UINT& tech);
 
 	void UpdateTransforms();
 	
 	void AddInstance();
-	void DelInstance(UINT instance);
+	void DelInstance(const UINT& instance);
 
-	UINT GetInstSize()						{ return transforms.size(); }
-	Transform* GetTransform(UINT instance)	{ return transforms[instance]; }
+	inline const UINT& GetInstSize()						{ return transforms.size(); }
+	inline Transform* GetTransform(const UINT& instance)	{ return transforms[instance]; }
 protected:
 	void AddTransform();
 
 public:
-	Shader* GetShader()						{ return shader; }
-	ID3D11ShaderResourceView* GetBoneSrv()	{ return boneSrv; }
-	bool& IsAnimationModel()				{ return bAnimated; }
+	inline Shader* GetShader()						{ return shader; }
+	inline ID3D11ShaderResourceView* GetBoneSrv()	{ return boneSrv; }
+	inline const bool& IsAnimationModel()			{ return bAnimated; }
 
 public:
-	wstring& Name()			{ return name; }
-	wstring& MaterialPath() { return materialFilePath; }
-	wstring& MaterialDir()	{ return materialDirPath; }
-	wstring& MeshPath()		{ return meshFilePath; }
-	wstring& MeshDir()		{ return meshDirPath; }
+	inline const wstring& Name()			{ return name; }
+	inline const wstring& MaterialPath()	{ return materialFilePath; }
+	inline const wstring& MaterialDir()		{ return materialDirPath; }
+	inline const wstring& MeshPath()		{ return meshFilePath; }
+	inline const wstring& MeshDir()			{ return meshDirPath; }
 
 public:
-	UINT MaterialCount()					{ return materials.size(); }
-	vector<Material *>& Materials()			{ return materials; }
-	Material* MaterialByIndex(UINT index)	{ return materials[index]; }
-	Material* MaterialByName(wstring name);
+	inline const UINT& MaterialCount()					{ return materials.size(); }
+	inline vector<Material *>& Materials()				{ return materials; }
+	inline Material* MaterialByIndex(const UINT& index)	{ return materials[index]; }
+	Material* MaterialByName(const wstring& name);
 
-	UINT BoneCount()						{ return bones.size(); }
-	vector<ModelBone *>& Bones()			{ return bones; }
-	ModelBone* BoneByIndex(UINT index)		{ return bones[index]; }
-	ModelBone* BoneByName(wstring name);
-	int BoneIndexByName(wstring name);
+	inline const UINT& BoneCount()						{ return bones.size(); }
+	inline vector<ModelBone *>& Bones()					{ return bones; }
+	inline ModelBone* BoneByIndex(const UINT& index)	{ return bones[index]; }
+	ModelBone* BoneByName(const wstring& name);
+	int BoneIndexByName(const wstring& name);
 
-	UINT MeshCount()						{ return meshes.size(); }
-	vector<ModelMesh *>& Meshes()			{ return meshes; }
-	ModelMesh* MeshByIndex(UINT index)		{ return meshes[index]; }
-	ModelMesh* MeshByName(wstring name);
+	inline const UINT& MeshCount()						{ return meshes.size(); }
+	inline vector<ModelMesh *>& Meshes()				{ return meshes; }
+	inline ModelMesh* MeshByIndex(const UINT& index)	{ return meshes[index]; }
+	ModelMesh* MeshByName(const wstring& name);
 
 public:
-	void ReadMaterial(wstring file, wstring directoryPath = L"../../_Textures/Model/");
-	void ReadMesh(wstring file, wstring directoryPath = L"../../_Models/");
+	void ReadMaterial(const wstring& file, const wstring& directoryPath = L"../../_Textures/Model/");
+	void ReadMesh(const wstring& file, const wstring& directoryPath = L"../../_Models/");
 
 private:
 	void BindBone();
 	void BindMesh();
 
 public:
-	void AddSocket(int parentBoneIndex, wstring socketName = L"");
+	void AddSocket(const int& parentBoneIndex, const wstring& socketName = L"");
 
 private:
 	void CreateBoneBuffer();
