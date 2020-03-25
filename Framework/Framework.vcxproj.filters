@@ -166,20 +166,11 @@
     <ClCompile Include="Viewer\DepthStencil.cpp">
       <Filter>Renders</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\Light.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="Objects\CSM.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
     <ClCompile Include="Environment\Terrain.cpp">
       <Filter>Environment</Filter>
     </ClCompile>
     <ClCompile Include="Environment\TerrainLod.cpp">
       <Filter>Environment</Filter>
-    </ClCompile>
-    <ClCompile Include="Objects\Mirror.cpp">
-      <Filter>Objects</Filter>
     </ClCompile>
     <ClCompile Include="PostEffects\HDR_Tone.cpp">
       <Filter>PostEffects</Filter>
@@ -208,9 +199,6 @@
     </ClCompile>
     <ClCompile Include="Model\AnimationUtility\AnimationNotify.cpp">
       <Filter>Model</Filter>
-    </ClCompile>
-    <ClCompile Include="Objects\Shadow.cpp">
-      <Filter>Objects</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\QuadTree.cpp">
       <Filter>Utilities</Filter>
@@ -264,18 +252,34 @@
     <ClCompile Include="Components\Common\Transform.cpp">
       <Filter>Renders</Filter>
     </ClCompile>
-    <ClCompile Include="Components\Object\Actor\Actor.cpp" />
     <ClCompile Include="Components\ObjectBase\ModelMeshComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\FigureMeshComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\CameraComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\CollisionComponent.cpp" />
-    <ClCompile Include="Components\ObjectBaseComponent.cpp" />
     <ClCompile Include="Collision\Collider.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
     <ClCompile Include="Collision\CapsuleCollider.cpp" />
     <ClCompile Include="Collision\SphereCollider.cpp" />
     <ClCompile Include="Collision\OBBCollider.cpp" />
+    <ClCompile Include="Components\ObjectBase\ObjectBaseComponent.cpp" />
+    <ClCompile Include="LightEffects\CSM.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="LightEffects\Light.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="LightEffects\Mirror.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="LightEffects\Shadow.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Actor\Actor.cpp" />
+    <ClCompile Include="Assets\ContentsAsset.cpp" />
+    <ClCompile Include="Assets\ContentsAsset\ModelAsset.cpp" />
+    <ClCompile Include="Assets\AssetManager.cpp" />
+    <ClCompile Include="Assets\ContentsAsset\TextureAsset.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -494,20 +498,11 @@
     <ClInclude Include="Viewer\DepthStencil.h">
       <Filter>Renders</Filter>
     </ClInclude>
-    <ClInclude Include="Objects\Light.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\CSM.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
     <ClInclude Include="Environment\Terrain.h">
       <Filter>Environment</Filter>
     </ClInclude>
     <ClInclude Include="Environment\TerrainLod.h">
       <Filter>Environment</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Mirror.h">
-      <Filter>Objects</Filter>
     </ClInclude>
     <ClInclude Include="PostEffects\HDR_Tone.h">
       <Filter>PostEffects</Filter>
@@ -548,9 +543,6 @@
     </ClInclude>
     <ClInclude Include="Model\AnimationUtility\AnimationNotify.h">
       <Filter>Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Shadow.h">
-      <Filter>Objects</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\QuadTree.h">
       <Filter>Utilities</Filter>
@@ -608,9 +600,6 @@
     <ClInclude Include="Components\Common\Transform.h">
       <Filter>Renders</Filter>
     </ClInclude>
-    <ClInclude Include="Components\Object\Actor\Actor.h" />
-    <ClInclude Include="Components\Object\BaseObject.h" />
-    <ClInclude Include="Components\ObjectBaseComponent.h" />
     <ClInclude Include="Components\ObjectBase\ModelMeshComponent.h" />
     <ClInclude Include="Components\ObjectBase\FigureMeshComponent.h" />
     <ClInclude Include="Components\ObjectBase\CollisionComponent.h" />
@@ -621,5 +610,24 @@
     <ClInclude Include="Collision\CapsuleCollider.h" />
     <ClInclude Include="Collision\SphereCollider.h" />
     <ClInclude Include="Collision\OBBCollider.h" />
+    <ClInclude Include="Components\ObjectBase\ObjectBaseComponent.h" />
+    <ClInclude Include="LightEffects\CSM.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="LightEffects\Light.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="LightEffects\Mirror.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="LightEffects\Shadow.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Actor\Actor.h" />
+    <ClInclude Include="Objects\BaseObject.h" />
+    <ClInclude Include="Assets\ContentsAsset.h" />
+    <ClInclude Include="Assets\ContentsAsset\ModelAsset.h" />
+    <ClInclude Include="Assets\AssetManager.h" />
+    <ClInclude Include="Assets\ContentsAsset\TextureAsset.h" />
   </ItemGroup>
 </Project>

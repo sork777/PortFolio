@@ -39,6 +39,7 @@ public:
 	void World(Matrix& matrix);
 	Matrix& World() { return bufferDesc.World; }
 
+	void Local(Transform* localTransform);
 	void Local(Matrix& matrix);
 	Matrix& Local() { return local; }
 

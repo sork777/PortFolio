@@ -30,6 +30,7 @@ private:
 	RenderTarget * targetNormal;
 	RenderTarget * targetDepth;
 	RenderTarget * targetSpec;
+	RenderTarget * targetEmissve;
 	RenderTarget * targetMetalLoughcoef;
 
 	DepthStencil* depthStencil;

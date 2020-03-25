@@ -19,15 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Assets\ContentsAsset.cpp" />
+    <ClCompile Include="Assets\AssetManager.cpp" />
+    <ClCompile Include="Assets\ContentsAsset\TextureAsset.cpp" />
     <ClCompile Include="Collision\CapsuleCollider.cpp" />
     <ClCompile Include="Collision\OBBCollider.cpp" />
     <ClCompile Include="Collision\SphereCollider.cpp" />
-    <ClCompile Include="Components\ObjectBaseComponent.cpp" />
+    <ClCompile Include="Components\ObjectBase\ObjectBaseComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\CameraComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\CollisionComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\ModelMeshComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\FigureMeshComponent.cpp" />
-    <ClCompile Include="Components\Object\Actor\Actor.cpp" />
+    <ClCompile Include="Objects\Actor\Actor.cpp" />
     <ClCompile Include="Components\Common\MaterialPBR.cpp" />
     <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="Effect\ModelIllusion.cpp" />
@@ -61,6 +64,7 @@
     <ClCompile Include="Model\ModelMesh.cpp" />
     <ClCompile Include="Model\ModelRender.cpp" />
     <ClCompile Include="Editor\ParticleEditor.cpp" />
+    <ClCompile Include="Assets\ContentsAsset\ModelAsset.cpp" />
     <ClCompile Include="ParticleSystem\ParticleEmitter.cpp" />
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
     <ClCompile Include="Effect\TrailRenderer.cpp" />
@@ -71,10 +75,10 @@
     <ClCompile Include="PostEffects\HDR_Tone.cpp" />
     <ClCompile Include="ScreenSpace\GBuffer.cpp" />
     <ClCompile Include="Collision\Collider.cpp" />
-    <ClCompile Include="Objects\CSM.cpp" />
-    <ClCompile Include="Objects\Light.cpp" />
-    <ClCompile Include="Objects\Mirror.cpp" />
-    <ClCompile Include="Objects\Shadow.cpp" />
+    <ClCompile Include="LightEffects\CSM.cpp" />
+    <ClCompile Include="LightEffects\Light.cpp" />
+    <ClCompile Include="LightEffects\Mirror.cpp" />
+    <ClCompile Include="LightEffects\Shadow.cpp" />
     <ClCompile Include="PostEffects\Bloom.cpp" />
     <ClCompile Include="PostEffects\Default.cpp" />
     <ClCompile Include="PostEffects\Distortion.cpp" />
@@ -126,16 +130,18 @@
     <ClCompile Include="Viewer\Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Assets\AssetManager.h" />
+    <ClInclude Include="Assets\ContentsAsset\TextureAsset.h" />
     <ClInclude Include="Collision\CapsuleCollider.h" />
     <ClInclude Include="Collision\OBBCollider.h" />
     <ClInclude Include="Collision\SphereCollider.h" />
     <ClInclude Include="Components\ObjectBase\CameraComponent.h" />
     <ClInclude Include="Components\ObjectBase\CollisionComponent.h" />
-    <ClInclude Include="Components\ObjectBaseComponent.h" />
+    <ClInclude Include="Components\ObjectBase\ObjectBaseComponent.h" />
     <ClInclude Include="Components\IComponent.h" />
     <ClInclude Include="Components\ObjectBase\ModelMeshComponent.h" />
     <ClInclude Include="Components\ObjectBase\FigureMeshComponent.h" />
-    <ClInclude Include="Components\Object\Actor\Actor.h" />
+    <ClInclude Include="Objects\Actor\Actor.h" />
     <ClInclude Include="Components\Common\MaterialPBR.h" />
     <ClInclude Include="Components\CommonComponent.h" />
     <ClInclude Include="Editor\AnimationEditor.h" />
@@ -175,7 +181,9 @@
     <ClInclude Include="Model\ModelClip.h" />
     <ClInclude Include="Model\ModelMesh.h" />
     <ClInclude Include="Model\ModelRender.h" />
-    <ClInclude Include="Components\Object\BaseObject.h" />
+    <ClInclude Include="Assets\ContentsAsset\ModelAsset.h" />
+    <ClInclude Include="Assets\ContentsAsset.h" />
+    <ClInclude Include="Objects\BaseObject.h" />
     <ClInclude Include="Editor\ParticleEditor.h" />
     <ClInclude Include="ParticleSystem\ParticleData.h" />
     <ClInclude Include="ParticleSystem\ParticleEmitter.h" />
@@ -188,10 +196,10 @@
     <ClInclude Include="PostEffects\HDR_Tone.h" />
     <ClInclude Include="ScreenSpace\GBuffer.h" />
     <ClInclude Include="Collision\Collider.h" />
-    <ClInclude Include="Objects\CSM.h" />
-    <ClInclude Include="Objects\Light.h" />
-    <ClInclude Include="Objects\Mirror.h" />
-    <ClInclude Include="Objects\Shadow.h" />
+    <ClInclude Include="LightEffects\CSM.h" />
+    <ClInclude Include="LightEffects\Light.h" />
+    <ClInclude Include="LightEffects\Mirror.h" />
+    <ClInclude Include="LightEffects\Shadow.h" />
     <ClInclude Include="PostEffects\Bloom.h" />
     <ClInclude Include="PostEffects\Default.h" />
     <ClInclude Include="PostEffects\Distortion.h" />

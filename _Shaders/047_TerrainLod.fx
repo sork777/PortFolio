@@ -160,6 +160,7 @@ struct PS_Output
     float4 Normal : SV_Target1;
     float4 Spec : SV_Target2;
     float4 Depth : SV_Target3;
+    float4 Emissive : SV_Target4;
 };
 
 PS_Output PS_Seperate(DomainOutput_Lod input)
@@ -175,12 +176,13 @@ PS_Output PS_Seperate(DomainOutput_Lod input)
     Texture(Material.Specular, SpecularMap, input.Uv);
     
     diffuse = diffuse + float4(gridColor, 1) + float4(brushColor, 1);
-    float4 SpecularColor = SpecularMap.Sample(LinearSampler, input.Uv);
+    float4 SpecularColor = Material.Specular;
 
     output.Color = float4(diffuse.rgb, SpecularColor.a);
     output.Normal = float4(normal * 0.5f + 0.5f, 0);
     output.Spec = float4(SpecularColor.rgb, 0);
     output.Depth = float4(depth, depth, depth, 1);
+    output.Emissive = Material.Emissive;
     return output;
 }
 

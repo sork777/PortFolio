@@ -22,6 +22,13 @@ public:
 	virtual void Render() override;
 	virtual void PostRender() override;
 
+public:
+	void ShowCompHeirarchy(OUT ObjectBaseComponent** selectedComp);
+	//밖에서 터레인 좌표같은걸 받아서 오기.
+	void SetSpawnPosition(const Vector3& position);
+
+public:
+	Transform* GetTransform(const UINT& instance = 0);
 	void AddInstanceData();
 	void DelInstanceData(const UINT& instance);
 
@@ -29,6 +36,8 @@ public:
 private:
 	ModelMeshComponent* root;
 
-	vector<ObjectBaseComponent*> compHeirarchy;
+	bool bSpawningObject = false;
+	int spawnInstance = -1;
+	Vector3 spawnPos = Vector3(-1, -1, -1);
 };
 

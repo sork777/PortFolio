@@ -58,11 +58,6 @@ Context::~Context()
 
 void Context::Update()
 {
-	if(Keyboard::Get()->Down('1'))
-		camera = freeCam;
-	else if (Keyboard::Get()->Down('2'))
-		camera = orbitCam;
-
 	camera->Update();
 }
 
@@ -70,36 +65,43 @@ void Context::Render()
 {
 	viewport->RSSetViewport();
 
-	string str = string("Frame Rate : ") + to_string(ImGui::GetIO().Framerate);
-	Gui::Get()->RenderText(5, 5, 1, 1, 1, str);
-	
-	string Pos,Rot;
-	
-	D3DXVECTOR3 camPos;
-	D3DXVECTOR3 camDir;
-
-	if (subCamera != NULL)
+	ImGui::Begin("Context");
 	{
-		Context::Get()->GetSubCamera()->Position(&camPos);
-		Context::Get()->GetSubCamera()->RotationDegree(&camDir);
-		Pos = "SubCam Position : ";
-		Rot = "SubCam Rotation : ";
+		string str = string("Frame Rate : ") + to_string(ImGui::GetIO().Framerate);
+
+		ImGui::Text(str.c_str());
+		//Gui::Get()->RenderText(5, 5, 1, 1, 1, str);
+
+		string Pos, Rot;
+
+		D3DXVECTOR3 camPos;
+		D3DXVECTOR3 camDir;
+
+		if (subCamera != NULL)
+		{
+			Context::Get()->GetSubCamera()->Position(&camPos);
+			Context::Get()->GetSubCamera()->RotationDegree(&camDir);
+			Pos = "SubCam Position : ";
+			Rot = "SubCam Rotation : ";
+		}
+		else
+		{
+
+			Context::Get()->GetCamera()->Position(&camPos);
+			Context::Get()->GetCamera()->RotationDegree(&camDir);
+			Pos = "Cam Position : ";
+			Rot = "Cam Rotation : ";
+		}
+
+		Pos += to_string((int)camPos.x) + ", " + to_string((int)camPos.y) + ", " + to_string((int)camPos.z);
+		//Gui::Get()->RenderText(5, 20, 1, 1, 1, Pos);
+		ImGui::Text(Pos.c_str());
+
+		Rot += to_string((int)camDir.x) + ", " + to_string((int)camDir.y);
+		//Gui::Get()->RenderText(5, 35, 1, 1, 1, Rot);
+		ImGui::Text(Rot.c_str());
+		ImGui::End();
 	}
-	else
-	{
-
-		Context::Get()->GetCamera()->Position(&camPos);
-		Context::Get()->GetCamera()->RotationDegree(&camDir);
-		Pos = "Cam Position : ";
-		Rot = "Cam Rotation : ";
-	}
-
-	Pos += to_string((int)camPos.x) + ", " + to_string((int)camPos.y) + ", " + to_string((int)camPos.z);
-	Gui::Get()->RenderText(5, 20, 1, 1, 1, Pos);
-
-	Rot += to_string((int)camDir.x) + ", " + to_string((int)camDir.y);
-	Gui::Get()->RenderText(5, 35, 1, 1, 1, Rot);
-
 }
 
 void Context::ResizeScreen()
@@ -125,4 +127,14 @@ Matrix Context::Projection()
 	perspective->GetMatrix(&projection);
 
 	return projection;
+}
+
+void Context::SetFree()
+{
+	camera = freeCam;
+}
+
+void Context::SetObit()
+{
+	camera = orbitCam;
 }

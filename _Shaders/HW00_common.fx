@@ -10,6 +10,7 @@ Texture2D DepthTexture;
 Texture2D ColorSpecIntTexture;
 Texture2D NormalTexture;
 Texture2D SpecPowTexture;
+Texture2D EmissiveTexture;
 Texture2D AOTexture;
 
 
@@ -23,11 +24,12 @@ SamplerComparisonState PCFSampler;
 
 struct SURFACE_DATA
 {
-    float LinearDepth;
     float3 Color;
+    float LinearDepth;
     float3 Normal;
     float3 SpecPow;
     float SpecIntensity;
+    float4 Emissive;
 };
 
 struct DeferredMaterial
@@ -36,6 +38,7 @@ struct DeferredMaterial
     float4 diffuseColor;
     float3 specPow;
     float specIntensity;
+    float4 emissive;
 };
 
 static const float2 arrBasePos[4] =

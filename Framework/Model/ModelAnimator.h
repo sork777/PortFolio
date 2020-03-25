@@ -41,6 +41,9 @@ public:
 	void Update();
 	void Render();
 
+	void SetShader(Shader* shader);
+
+	void AnimatorClone(ModelAnimator* clone);
 	inline Model* GetModel() { return model; }
 public:
 	inline ID3D11ShaderResourceView* GetClipTransformSrv() { return clipSrv; }
@@ -127,25 +130,5 @@ private:
 	ID3DX11EffectConstantBuffer* sComputeFrameBuffer;
 
 	ID3DX11EffectUnorderedAccessViewVariable* sUav;
-	bool bChangeCS=true;
 
-
-#pragma region 애니메이션의 변화 조정 영역
-public:
-	void UpdateBoneTransform(const UINT& part, const UINT& clipID, Transform* transform);
-	void UpdateChildBones(const UINT& parentID, const UINT& childID, const UINT& clipID);
-	inline ID3D11ShaderResourceView* GetEditSrv() { return editSrv; }
-
-private:
-	void CreateAnimEditTexture();
-
-private:
-	// 애니메이션의 글로벌 변화
-	// 최종적으로 클립 저장시 곱해서 변화된 애를 저장할 것.
-	ID3D11Texture2D* editTexture = NULL;
-	ID3D11ShaderResourceView* editSrv;
-	ID3DX11EffectShaderResourceVariable* sAnimEditSRV;
-
-	Matrix animEditTrans[MAX_ANIMATION_CLIPS][MAX_MODEL_TRANSFORMS];
-#pragma endregion
 };

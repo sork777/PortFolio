@@ -5,6 +5,7 @@
 
 CameraComponent::CameraComponent()
 {
+	componentName=L"CameraComp";
 	type = ObjectBaseComponentType::Camera;
 }
 
@@ -20,9 +21,10 @@ void CameraComponent::Update()
 
 void CameraComponent::Render()
 {
+	Super::Render();
 }
 
-bool CameraComponent::Property(const UINT & instance)
+bool CameraComponent::Property()
 {
 	return false;
 }

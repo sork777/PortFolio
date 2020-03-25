@@ -28,6 +28,12 @@ void ModelRender::Render()
 	model->Render();
 }
 
+void ModelRender::SetShader(Shader * shader)
+{
+	model->SetShader(shader);
+	sTransformsSRV = shader->AsSRV("TransformsMap");
+}
+
 void ModelRender::UpdateTransform(UINT instanceId, UINT boneIndex, Transform & transform)
 {
 	Matrix destMatrix = transform.World();

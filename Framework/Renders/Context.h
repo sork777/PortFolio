@@ -20,7 +20,7 @@ public:
 	Matrix View();
 	Matrix Projection();
 
-
+	
 public:
 	inline class Perspective* GetPerspective() { return perspective; }
 	inline class Viewport* GetViewport() { return viewport; }
@@ -29,10 +29,10 @@ public:
 	inline class Camera* GetSubCamera() { return subCamera; }
 
 	//외부에서 수정하는 경우도 많아서...
-	inline const Color& LightAmbient() { return lightAmbient; }
-	inline const Color& LightSpecular() { return lightSpecular; }
-	inline const Vector3& LightDirection() { return lightDirection; }
-	inline const Vector3& LightPosition() { return lightPosition; }
+	Color& LightAmbient() { return lightAmbient; }
+	Color& LightSpecular() { return lightSpecular; }
+	Vector3& LightDirection() { return lightDirection; }
+	Vector3& LightPosition() { return lightPosition; }
 
 	/* NULL이면 메인카메라 존재? */
 	inline void SetMainCamera() { subCamera = NULL; }
@@ -59,4 +59,7 @@ public:
 	/* 카메라로 받아서 세팅하면 꼬여서 따로 호출 */
 	inline Orbit* GetOrbitCam() { return orbitCam; }
 	inline Freedom* GetFreeCam() { return freeCam; }
+
+	void SetFree();
+	void SetObit();
 };

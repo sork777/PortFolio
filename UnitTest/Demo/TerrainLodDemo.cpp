@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "TerrainLodDemo.h"
-#include "Objects/CSM.h"
+#include "Objects/Actor/Actor.h"
 #include "Environment/Sky/Atmosphere.h"
 #include "Environment/TerrainLod.h"
 
@@ -40,9 +40,16 @@ void TerrainLodDemo::Initialize()
 	}
 	//디퍼드를 위한 터레인용 마테리얼
 	terrainMat = new Material(shader);
-
+	//terrainMat->Specular(1, 1, 1, 50);
+	
 	ssao = new SSAO();
+		
+	CreateBaseActor();
 
+	cubeTex = new TextureCube((Vector3&)Vector3(0, 0, 0), 256, 256);
+	Texture* brdfLut = new Texture(L"MaterialPBR/ibl_brdf_lut.png");	
+	shader->AsSRV("SkyCubeMap")->SetResource(cubeTex->SRV());
+	shader->AsSRV("BRDFLUT")->SetResource(brdfLut->SRV());
 }
 
 void TerrainLodDemo::Destroy()
@@ -53,19 +60,81 @@ void TerrainLodDemo::Destroy()
 
 void TerrainLodDemo::Update()
 {
-	sky->Update();
+	sky->Update();	
 	terrain->TerrainController();
 	terrain->Update();
+	Vector3 pos = Vector3(0, 30, 0);
+	cubeTex->Position(pos);
 
 	gBuffer->Update();
+	if (NULL != actor)
+	{
+		static bool bSpwan = false;
+		actor->Update();
+
+		if (true == bSpwan )
+		{
+			actor->SetSpawnPosition(terrain->GetPickedPosition());
+			if(Mouse::Get()->Down(0))
+				bSpwan = false;
+		}
+
+
+		if (ImGui::Button("TestSpwanActor"))
+		{
+			actor->AddInstanceData();
+			bSpwan = true;
+		}
+
+		ImGui::Separator();
+		actor->ShowCompHeirarchy(&selecedComp);
+		if (selecedComp != NULL)
+			selecedComp->Property();
+		ImGui::Begin("TextArea");
+		{
+			/*ContentsAsset* testasset = NULL;
+			testasset = AssetManager::Get()->ViewAssets();
+			if (testasset != NULL)
+			{
+				int a = 0;
+			}
+			ImGui::Separator();
+			testasset= AssetManager::Get()->ViewAssets(ContentsAssetType::Model);
+			if (testasset != NULL)
+			{
+				int a = 0;
+			}
+			ImGui::Separator();
+			AssetManager::Get()->ViewAssets(ContentsAssetType::Texture);*/
+		}
+		ImGui::End();
+	}
 
 }
 
 void TerrainLodDemo::PreRender()
 {
-	sky->PreRender();
-	//shadow->Set();
+	for (ContentsAsset* asset : AssetManager::Get()->GetAllAssets())
+	{
+		asset->CreateButtonImage();
+	}
 
+	sky->PreRender();
+	{
+		shadow->Set();
+		if (NULL != actor)
+		{
+			ObjectBaseComponent* root = actor->GetRootMeshData();
+			root->Tech(1, 1, 1);
+			root->Pass(1, 2, 3);
+			actor->Render();
+		}
+	}
+	{
+	//	cubeTex->Set(shader);
+	//	sky->Render(false);		
+	//	shader->AsSRV("SkyCubeMap")->SetResource(cubeTex->SRV());
+	}
 	SetGBuffer();
 
 	sky->Render();
@@ -82,8 +151,10 @@ void TerrainLodDemo::Render()
 	gBuffer->Tech(1);
 	gBuffer->Render();
 	
-	//gBuffer->RenderGBuffers();
-	//ssao->RenderSSAO();
+	gBuffer->RenderGBuffers();
+	ssao->RenderSSAO();
+	AssetManager::Get()->ShowAssets();
+
 }
 
 void TerrainLodDemo::SetGBuffer()
@@ -97,4 +168,60 @@ void TerrainLodDemo::SetGBuffer()
 	//terrain->Pass(0);
 	terrain->Render();
 
+	if (NULL != actor)
+	{
+		ObjectBaseComponent* root = actor->GetRootMeshData();
+		//ActorTech(root, 0, 0, 0);
+		//ActorPass(root, 0, 1, 2);
+		root->Tech(0, 0, 0);
+		root->Pass(0, 1, 2);
+		actor->Render();
+	}
+
+}
+
+void TerrainLodDemo::CreateBaseActor()
+{
+	Texture* testTex =new Texture(L"MaterialPBR/ibl_brdf_lut.png");
+	TextureAsset* textasset = new TextureAsset(testTex);
+
+	Model* model = new Model(shader);
+	model->ReadMaterial(L"Kachujin/Mesh", L"../../_Textures/Model/");
+	model->ReadMesh(L"Kachujin/Mesh", L"../../_Models/");
+	
+	ModelAsset* modelasset = new ModelAsset(model);
+	ModelMeshComponent* modelMesh = modelasset->GetModelMeshCompFromModelAsset();
+	
+	Transform* transform = modelMesh->GetBaseTransform();
+	transform->Position(0, 5, 0);
+	transform->Scale(0.075f, 0.075f, 0.075f);
+
+	ModelAnimator* animator = modelMesh->GetAnimation();
+	if(animator != NULL)
+	{
+		animator->ReadClip(L"Kachujin/S_M_H_Attack", L"../../_Models/");
+		animator->ReadClip(L"Kachujin/Mesh", L"../../_Models/");
+		animator->ReadClip(L"Kachujin/Idle", L"../../_Models/");
+		animator->ReadClip(L"Kachujin/Running", L"../../_Models/");
+		animator->ReadClip(L"Kachujin/Jump", L"../../_Models/");
+	}
+
+	actor = new Actor(modelMesh);
+	actor->GetRootMeshData()->SetShader(shader);
+
+	model = new Model(shader);
+	model->ReadMaterial(L"Weapon/Sword", L"../../_Textures/Model/");
+	model->ReadMesh(L"Weapon/Sword", L"../../_Models/");
+	
+	modelasset = new ModelAsset(model);
+	modelMesh = modelasset->GetModelMeshCompFromModelAsset();
+	transform = modelMesh->GetBaseTransform();
+
+	transform->RotationDegree(0, 0, 90);
+	transform->Position(-10, -5, -15);
+
+	//modelMesh->AttachSocket(L"RightHand");
+	actor->GetRootMeshData()->LinkChildComponent(modelMesh);
+
+	selecedComp = actor->GetRootMeshData();
 }

@@ -1,0 +1,89 @@
+#pragma once
+#include "../IComponent.h"
+
+/*
+	Component 추가 객체로 들어갈 녀석들.
+	메인 오브젝트에서 기본 설정값 들어가고
+	인스턴스 데이터는 인스턴싱 오브젝트에서 확인할것.
+	인스턴싱 오브젝트는 메인의 컴포넌트를 공유 할것.
+
+	?? 그러나 컴포넌트 계층 구조에서 인스턴싱 구분을 어떻게 하지?
+	-> 그냥 함수에 인스턴스 넘버 받기. 나머지는 모른다...
+
+	루트는 오브젝트에서 설정.
+	소켓 어태치는 어디서?
+	언리얼의 경우 해당 컴포넌트에서 부모의 소켓을 찾아서 붙는다.
+*/
+class Model;
+class ModelAnimator;
+class ModelRender;
+
+enum class ObjectBaseComponentType
+{
+	ModelMesh,
+	FigureMesh,
+	Camera,
+	Collision
+};
+
+class ObjectBaseComponent : public IComponent
+{
+public:
+	ObjectBaseComponent();
+	virtual ~ObjectBaseComponent();
+	
+	// IComponent을(를) 통해 상속됨
+	virtual void Update() override;
+	virtual void Render() override;
+	virtual bool Property();
+	virtual Transform* GetTransform(const UINT& instance = 0) abstract;
+
+	virtual void Tech(const UINT& mesh, const UINT& model, const UINT& anim);
+	virtual void Pass(const UINT& mesh, const UINT& model, const UINT& anim);
+	
+	virtual void SetShader(Shader* shader);
+	virtual void AddInstanceData();
+	virtual void DelInstanceData(const UINT& instance);
+
+public:
+	//컴포넌트 인스턴싱의 초기 트랜스폼
+	inline Transform* GetBaseTransform()		{ return baseTransform; }
+	inline virtual const UINT& GetInstSize()	{ return instancingCount; }
+	inline ObjectBaseComponentType& GetType()	{ return type; }
+	inline wstring& ComponentName()				{ return componentName; }
+	//inline vector<ObjectBaseComponent*>& GetChildrenComp() { return children; }
+
+public:
+	//얘를 통해 계층에서 선택한 컴포넌트 내보내고 그 정보를 확인 수정할거임.
+	void ComponentHeirarchy(OUT ObjectBaseComponent** selectedComp);
+	void ComponentPopup();
+	void AddSkeletonMeshComponentPopup();
+	void AddFigureMeshComponentPopup();
+	void AddCollisionComponentPopup();
+
+protected:
+	// 계층 구조용 컴포넌트 링크.
+	//부모 설정은 child 링크할때 함수 내에서만 쓸거임
+	void LinkParentComponent(ObjectBaseComponent* component);
+	void UnlinkParentComponent();
+
+public:
+	void LinkChildComponent(ObjectBaseComponent* component);
+	void UnlinkChildComponent(ObjectBaseComponent* component);
+
+protected:
+	Transform* baseTransform;
+	Shader* shader;
+
+protected:
+	ObjectBaseComponentType type;
+
+	ObjectBaseComponent*			parent;
+	vector< ObjectBaseComponent*>	children;
+	
+	wstring	parentSocketName = L"None";
+	wstring componentName	= L"";
+
+	int	 parentSocket	= -1;
+	UINT instancingCount = 0;
+};

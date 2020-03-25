@@ -16,6 +16,8 @@ public:
 	Model(Model* model);
 	~Model();
 
+	void SetShader(Shader* shader);
+
 	void Update();
 	void Render();
 	
@@ -54,7 +56,7 @@ public:
 	inline vector<ModelBone *>& Bones()					{ return bones; }
 	inline ModelBone* BoneByIndex(const UINT& index)	{ return bones[index]; }
 	ModelBone* BoneByName(const wstring& name);
-	int BoneIndexByName(const wstring& name);
+	const int& BoneIndexByName(const wstring& name);
 
 	inline const UINT& MeshCount()						{ return meshes.size(); }
 	inline vector<ModelMesh *>& Meshes()				{ return meshes; }
@@ -99,5 +101,39 @@ protected:
 	ID3D11Texture1D*						bonebuffer = NULL;
 	ID3D11ShaderResourceView*				boneSrv;
 	ID3DX11EffectShaderResourceVariable*	sBoneTransformsSRV;
+
+
+#pragma region 애니메이션의 변화 조정 영역
+public:
+	void UpdateBoneTransform(const UINT& part, const UINT& clipID, Transform* transform);
+	void UpdateChildBones(const UINT& parentID, const UINT& childID, const UINT& clipID);
+	void AddSocketEditData(const UINT& boneID, const UINT& clipCount);
+
+	inline ID3D11ShaderResourceView* GetEditSrv() { return editSrv; }
+private:
+	void CreateAnimEditTexture();
+
+private:
+	// 애니메이션의 글로벌 변화
+	// 최종적으로 클립 저장시 곱해서 변화된 애를 저장할 것.
+	ID3D11Texture2D* editTexture = NULL;
+	ID3D11ShaderResourceView* editSrv;
+	ID3DX11EffectShaderResourceVariable* sAnimEditSRV;
+
+	Matrix animEditTrans[MAX_ANIMATION_CLIPS][MAX_MODEL_TRANSFORMS];
+
+public:
+	inline const bool& IsDataChanged() { return bChangeCS; }
+	inline void SetChangeStateOff() { bChangeCS=false; }
+private:
+	bool bChangeCS = true;
+
+#pragma endregion
+public:
+	const int& BoneHierarchy(int* click);
+	void ChildBones(ModelBone * bone,int* click);
+
+private:
+	int selectedBoneNum = -1;
 
 };

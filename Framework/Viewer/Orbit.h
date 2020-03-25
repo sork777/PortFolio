@@ -8,7 +8,7 @@ public:
 	
 
 	//궤도를 돌 포지션
-	void GetObjPos(const Vector3& objPos) { this->objPos = objPos; }
+	void SetObjPos(const Vector3& objPos) { this->objPos = objPos; }
 
 	void Update() override;
 	void Speed(float rot);

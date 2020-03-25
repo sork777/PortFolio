@@ -9,7 +9,7 @@ GBuffer::GBuffer(Shader* shader)
 	float height = D3D::Height();
 
 	
-	for (UINT i = 0; i < 4; i++)
+	for (UINT i = 0; i < 5; i++)
 	{
 		DepNorDifSpe[i] = new Render2D();
 		DepNorDifSpe[i]->GetTransform()->Position(60 + 100 * i, 60, 0);
@@ -20,6 +20,7 @@ GBuffer::GBuffer(Shader* shader)
 	targetNormal = new RenderTarget((UINT)width, (UINT)height, DXGI_FORMAT_R11G11B10_FLOAT);
 	targetSpec = new RenderTarget((UINT)width, (UINT)height);
 	targetDepth = new RenderTarget((UINT)width, (UINT)height);
+	targetEmissve = new RenderTarget((UINT)width, (UINT)height);
 	targetMetalLoughcoef = new RenderTarget((UINT)width, (UINT)height);
 
 	depthStencil = new DepthStencil((UINT)width, (UINT)height, true);
@@ -31,6 +32,7 @@ GBuffer::GBuffer(Shader* shader)
 	shader->AsSRV("ColorSpecIntTexture")->SetResource(targetColor->SRV());
 	shader->AsSRV("NormalTexture")->SetResource(targetNormal->SRV());
 	shader->AsSRV("SpecPowTexture")->SetResource(targetSpec->SRV());
+	shader->AsSRV("EmissiveTexture")->SetResource(targetEmissve->SRV());
 	shader->AsSRV("DepthTexture")->SetResource(depthStencil->SRV());
 }
 
@@ -42,6 +44,7 @@ GBuffer::~GBuffer()
 	SafeDelete(targetColor);
 	SafeDelete(targetNormal);
 	SafeDelete(targetSpec);
+	SafeDelete(targetEmissve);
 	
 	for (UINT i = 0; i < 4; i++)
 		SafeDelete(DepNorDifSpe[i]);
@@ -74,6 +77,7 @@ void GBuffer::SetRTVs()
 	rtvs.push_back(targetNormal);		//Normal
 	rtvs.push_back(targetSpec);			//Specular
 	rtvs.push_back(targetDepth);		//Depth
+	rtvs.push_back(targetEmissve);		//Emissive
 	RenderTarget::Sets(rtvs, depthStencil->DSV());
 	viewport->RSSetViewport();
 }
@@ -91,4 +95,7 @@ void GBuffer::RenderGBuffers()
 
 	DepNorDifSpe[3]->SRV(targetDepth->SRV());
 	DepNorDifSpe[3]->Render();
+
+	DepNorDifSpe[4]->SRV(targetEmissve->SRV());
+	DepNorDifSpe[4]->Render();
 }

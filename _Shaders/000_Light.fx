@@ -278,7 +278,7 @@ float4 CalcNormaltoPBR(MeshOutput input)
     float3 lightpos = GlobalLight.Postition - GlobalLight.Direction * 1000;
     float3 lightCol = GlobalLight.Ambient;
     // ºû°úÀÇ ¹Ý»ç?
-    CalcRadiance(input, viewDir, NormalVec, albedo, rough, metallic, lightpos, lightCol, F0, rad);
+    CalcRadiance(input.wPosition, viewDir, NormalVec, albedo, rough, metallic, lightpos, lightCol, F0, rad);
     Lo += rad;
     
     float3 kS = FresnelSchlickRoughness(max(dot(NormalVec, viewDir), 0.0f), F0, rough) + Material.Specular.rgb * metallic;

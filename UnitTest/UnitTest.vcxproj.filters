@@ -8,7 +8,6 @@
     </ClInclude>
     <ClInclude Include="Demo\AnimEditorDemo.h" />
     <ClInclude Include="Practice\DeferredPrac.h" />
-    <ClInclude Include="Demo\PBRDemo.h" />
     <ClInclude Include="Demo\CSDemo.h" />
     <ClInclude Include="Demo\FogDemo.h" />
   </ItemGroup>
@@ -19,7 +18,6 @@
     </ClCompile>
     <ClCompile Include="Demo\AnimEditorDemo.cpp" />
     <ClCompile Include="Practice\DeferredPrac.cpp" />
-    <ClCompile Include="Demo\PBRDemo.cpp" />
     <ClCompile Include="Demo\CSDemo.cpp" />
     <ClCompile Include="Demo\FogDemo.cpp" />
   </ItemGroup>

@@ -8,12 +8,13 @@ SURFACE_DATA UnpackGBuffer(float2 uv)
     Out.LinearDepth = ConvertZToLinearDepth(depth);
     float4 baseColorSpecInt = ColorSpecIntTexture.Sample(PointSampler, uv.xy);
     float4 NormalValue = NormalTexture.Sample(PointSampler, uv.xy);
+    float4 SpecTex = SpecPowTexture.Sample(PointSampler, uv.xy);
     Out.Color = baseColorSpecInt.xyz;
     Out.SpecIntensity = baseColorSpecInt.w;
     Out.Normal = NormalValue.xyz;
     Out.Normal = normalize(Out.Normal * 2.0 - 1.0);
-    Out.SpecPow = SpecPowTexture.Sample(PointSampler, uv.xy).xyz;
-
+    Out.SpecPow = SpecTex.xyz;
+    Out.Emissive = EmissiveTexture.Sample(PointSampler, uv.xy);
     return Out;
 }
 
@@ -25,11 +26,13 @@ SURFACE_DATA UnpackGBuffer_Loc(int2 location)
     float depth = DepthTexture.Load(location3).x;
     Out.LinearDepth = ConvertZToLinearDepth(depth);
     float4 baseColorSpecInt = ColorSpecIntTexture.Load(location3);
+    float4 SpecTex = SpecPowTexture.Load(location3);
     Out.Color = baseColorSpecInt.xyz;
     Out.SpecIntensity = baseColorSpecInt.w;
     Out.Normal = NormalTexture.Load(location3).xyz;
     Out.Normal = normalize(Out.Normal * 2.0 - 1.0);
-    Out.SpecPow = SpecPowTexture.Load(location3).xyz;
+    Out.SpecPow = SpecTex.xyz;
+    Out.Emissive = EmissiveTexture.Load(location3);
 
     return Out;
 }
@@ -41,8 +44,9 @@ void MaterialFromGBuffer(SURFACE_DATA gbd, inout DeferredMaterial mat)
     mat.normal = gbd.Normal;
     mat.diffuseColor.xyz = gbd.Color;
     mat.diffuseColor.w = 1.0; // Fully opaque
-    mat.specPow = 10+250 * gbd.SpecPow;
+    mat.specPow = 1.0f*gbd.SpecPow;
     mat.specIntensity = gbd.SpecIntensity;
+    mat.emissive = gbd.Emissive;
 }
 
 /////////////////////////////////////////////////////////////////////////////

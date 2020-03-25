@@ -5,6 +5,7 @@
 
 CollisionComponent::CollisionComponent()
 {
+	componentName = L"CollisionComp";
 	type = ObjectBaseComponentType::Collision;
 }
 
@@ -20,9 +21,10 @@ void CollisionComponent::Update()
 
 void CollisionComponent::Render()
 {
+	Super::Render();
 }
 
-bool CollisionComponent::Property(const UINT & instance)
+bool CollisionComponent::Property()
 {
 	return false;
 }
@@ -34,8 +36,10 @@ Transform * CollisionComponent::GetTransform(const UINT & instance)
 
 void CollisionComponent::AddInstanceData()
 {
+	Super::AddInstanceData();
 }
 
 void CollisionComponent::DelInstanceData(const UINT & instance)
 {
+	Super::DelInstanceData(instance);
 }

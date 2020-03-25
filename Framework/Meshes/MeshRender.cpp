@@ -32,8 +32,6 @@ void MeshRender::Render()
 {
 	if (material != NULL)
 		material->Render();
-	else if (materialpbr != NULL)
-		materialpbr->Render();
 
 	instanceBuffer->Render();
 	mesh->Render(transforms.size());
@@ -51,37 +49,10 @@ void MeshRender::DelInstance(const UINT & instance)
 	transforms.erase(transforms.begin() + instance);
 }
 
-Material * MeshRender::GetMaterial()
-{
-	if (type == MaterialType::Material)
-		return material;
-	return nullptr;
-}
-
 void MeshRender::SetMaterial(Material * material)
 {
-	if (type != MaterialType::MaterialPBR)
-	{
-		type = MaterialType::Material;
-		this->material = material;
-	}
-
-}
-
-MaterialPBR * MeshRender::GetMaterialPBR()
-{
-	if (type == MaterialType::MaterialPBR)
-		return materialpbr;
-	return nullptr;
-}
-
-void MeshRender::SetMaterialPBR(MaterialPBR * material)
-{
-	if (type != MaterialType::Material)
-	{
-		type = MaterialType::MaterialPBR;
-		this->materialpbr = material;
-	}
+	this->material = material;
+	this->material->SetShader(mesh->GetShader());
 }
 
 void MeshRender::AddTransform()

@@ -20,11 +20,8 @@ public:
 	void DelInstance(const UINT& instance);
 
 public:
-	Material* GetMaterial();
+	inline Material* GetMaterial() { return material; }
 	void SetMaterial(Material* material);
-
-	MaterialPBR* GetMaterialPBR();
-	void SetMaterialPBR(MaterialPBR* material);
 
 	inline Transform* GetTransform(const UINT& index) { return transforms[index]; }
 	void UpdateTransforms();
@@ -33,16 +30,8 @@ private:
 	void AddTransform();
 
 private:
-	enum class MaterialType
-	{
-		None,
-		Material,
-		MaterialPBR
-	}type = MaterialType::None;
-private:
 	Mesh* mesh;
 	Material* material = NULL;
-	MaterialPBR* materialpbr = NULL;
 
 	vector<Transform *> transforms;
 	Matrix worlds[MAX_MESH_INSTANCE];

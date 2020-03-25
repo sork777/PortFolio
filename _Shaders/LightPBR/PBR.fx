@@ -1,13 +1,13 @@
 #include "D:\GitHubPJ\PF\PortFolio\_Shaders/LightPBR/PBRHeader.fx"
 
-void CalcRadiance(MeshOutput input, float3 viewDir, float3 NormalVec, float3 albedo, float roughness, float metallic, float3 lightPos, float3 lightCol, float3 F0, out float3 rad)
+void CalcRadiance(float3 wPosition, float3 viewDir, float3 NormalVec, float3 albedo, float roughness, float metallic, float3 lightPos, float3 lightCol, float3 F0, out float3 rad)
 {
     //static const floatPI = 3.14159265359;
 
 	//calculate light radiance
-    float3 lightDir = normalize(lightPos - input.wPosition);
+    float3 lightDir = normalize(lightPos - wPosition);
     float3 halfwayVec = normalize(viewDir + lightDir);
-    float distance = length(lightPos - input.wPosition);
+    float distance = length(lightPos - wPosition);
     float attenuation = 1.0f / (distance * distance);
     float3 radiance = lightCol * attenuation;
 
@@ -64,7 +64,7 @@ float4 PBRmain(MeshOutput input)
     float3 lightpos = GlobalLight.Postition-GlobalLight.Direction*100;
     float3 lightCol = GlobalLight.Ambient;
     // ºû°úÀÇ ¹Ý»ç?
-    CalcRadiance(input, viewDir, NormalVec, albedo, rough, metallic, lightpos, lightCol, F0, rad);
+    CalcRadiance(input.wPosition, viewDir, NormalVec, albedo, rough, metallic, lightpos, lightCol, F0, rad);
     Lo += rad;
     
     float3 kS = FresnelSchlickRoughness(max(dot(NormalVec, viewDir), 0.0f), F0, rough);

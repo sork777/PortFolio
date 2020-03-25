@@ -72,7 +72,7 @@ float3 CalcAmbient(float3 normal, float3 color)
     float up = normal.y * 0.5 + 0.5;
 
 	// Calculate the ambient value
-    float3 ambient = Material.Ambient + up * (Material.Diffuse - Material.Ambient);
+    float3 ambient = Material.Ambient + up * (GlobalLight.Ambient - Material.Ambient);
 
 	// Apply the ambient value to the color
     return ambient * color;
@@ -164,21 +164,66 @@ float CascadedShadow(float3 position)
 float3 CalcDirectional(float3 position, DeferredMaterial material)
 {
 	// Phong diffuse
-    float NDotL = dot(-GlobalLight.Direction, material.normal);
-    float3 finalColor = GlobalLight.Specular.rgb * NDotL;
-   
+    float3 direction = -GlobalLight.Direction;  /* 나가는 방향 */
+    float NDotL = dot(direction, (material.normal));
+    //float3 finalColor = material.diffuseColor.rgb * NDotL;
+    float3 finalColor = 0;
 	// Blinn specular
     float3 ToEye = ViewPosition() - position;
     ToEye = normalize(ToEye);
-    float3 HalfWay = normalize(ToEye - GlobalLight.Direction);
-    float NDotH = saturate(dot(HalfWay, material.normal));
-    float3 R = normalize(reflect(GlobalLight.Direction, material.normal)); /* 들어오는 방향 */
+    
+    float3 R = normalize(reflect(-direction, material.normal));
+    float3 RV = reflect(-ToEye, material.normal);
+    float U = saturate(dot(direction, float3(0, 1, 0)));
+    U = clamp(U, 0.1f, 1.0f);
     float RdotE = saturate(dot(R, ToEye));
-
-    finalColor += GlobalLight.Specular.rgb * pow(NDotH, material.specPow) * material.specIntensity;
+    float specular = pow(RdotE, material.specIntensity);
+    specular = saturate(specular);
     float shadowAtt = CascadedShadow(position);
+    //PBR
+    {
+        float3 albedo = material.diffuseColor.rgb;
+        albedo = pow(albedo, 2.2f);
+        float3 NormalVec = normalize(material.normal);
+        float rough = material.specPow.r;
+        float metallic = 1.0f - rough;
+        float3 specColor = specular * material.specPow * GlobalLight.Specular.rgb;
+       
+        float3 F0 = float3(0.04f, 0.04f, 0.04f);
+        F0 = lerp(F0, albedo, metallic);
+        float3 rad = float3(0.0f, 0.0f, 0.0f);
+	//reflectance equation
+        float3 Lo = float3(0.0f, 0.0f, 0.0f);
+    
+        float3 lightpos = GlobalLight.Postition - GlobalLight.Direction * 1000;
+        float3 lightCol = GlobalLight.Specular;
+    // 빛과의 반사?
+        CalcRadiance(position, ToEye, NormalVec, albedo, rough, metallic, lightpos, lightCol, F0, rad);
+        Lo += rad;
+         
+        float3 kS = FresnelSchlickRoughness(max(dot(NormalVec, ToEye), 0.0f), F0, rough) + specColor.rgb*metallic;
+        float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
+        //kD *= 1.0 - metallic;
+        float3 irradiance = CalcSkyIrradiance(NormalVec);
+        float3 diffuse = albedo * irradiance;
 
-    return finalColor * material.diffuseColor.rgb * shadowAtt;
+        const float MAX_REF_LOD = 4.0f;
+        float3 prefilteredColor = SkyCubeMap.SampleLevel(BasicSampler, RV, rough * MAX_REF_LOD).rgb;
+        float2 brdf = BRDFLUT.Sample(BasicSampler, float2(max(dot(NormalVec, ToEye), 0.0f), rough)).rg;
+        //float3 specular3 = (kS * brdf.x + brdf.y);
+        float3 specular3 = lerp((kS * brdf.x + brdf.y), prefilteredColor, 1-metallic);
+
+        float3 ambient = (kD * diffuse + specular3); // * ao;
+        float3 color = ambient + Lo;
+        float NdotE = dot(NormalVec, ToEye);
+        float emissive = smoothstep(1.0f - material.emissive.a, 1.0f, 1.0f - saturate(NdotE));
+        float3 emiss = material.emissive.rgb * emissive;
+        finalColor = pow(color, float3(1.0f / 2.2f, 1.0f / 2.2f, 1.0f / 2.2f));
+        finalColor *= U;
+        finalColor *= shadowAtt;
+        finalColor += emiss;
+    }
+    return finalColor;
 }
 
 

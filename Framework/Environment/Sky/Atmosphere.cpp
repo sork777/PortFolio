@@ -124,9 +124,9 @@ void Atmosphere::Render(bool bRTV)
 		sCloudBuffer->SetConstantBuffer(cloudBuffer->Buffer());
 
 
-		//GetTransform()->Scale(1, 5, 5);
+		//GetTransform()->Scale(50, 10, 50);
 		//GetTransform()->Rotation(-Math::PI * 0.5f, 0, 0);
-		GetTransform()->Position(position.x , position.y-0.5f , position.z );
+		GetTransform()->Position(position.x , position.y , position.z );
 
 		Super::Render();
 		cloud->Render();

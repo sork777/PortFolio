@@ -4,13 +4,15 @@
 
 #include "Practice/DeferredPrac.h"
 //#include "Demo/PBRDemo.h"
-#include "Demo/FogDemo.h"
+//#include "Demo/FogDemo.h"
+#include "Demo/TerrainLodDemo.h"
 #include "Demo/AnimEditorDemo.h"
 
 void Main::Initialize()
 {
-	//Push(new TerrainLodDemo());
-	Push(new AnimEditorDemo());
+	AssetManager::Create();
+	Push(new TerrainLodDemo());
+	//Push(new DeferredPrac());
 }
 
 void Main::Ready()
@@ -25,6 +27,7 @@ void Main::Destroy()
 		exe->Destroy();
 		SafeDelete(exe);
 	}
+	AssetManager::Delete();
 }
 
 void Main::Update()

@@ -317,7 +317,7 @@ void InstanceColliderDemo::ImGUIController()
 					boneTransform->Update();
 
 					//kachujin->UpdateInstTransform(instance, selected + 1, boneTrans[selected]->World());
-					kachujin->UpdateBoneTransform(selected + 1,clip, boneTrans[selected]);
+					kachujin->GetModel()->UpdateBoneTransform(selected + 1,clip, boneTrans[selected]);
 				}
 			}
 			/* 재생중일때 정보 표기 */

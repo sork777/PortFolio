@@ -12,7 +12,7 @@ ModelIllusion::ModelIllusion(ModelAnimator* animator, UINT meshIdx, UINT illusio
 
 	if (animator != NULL)
 	{
-		animEditSrv = (animator)->GetEditSrv();
+		animEditSrv = (animator)->GetModel()->GetEditSrv();
 		shader->AsSRV("AnimEditTransformMap")->SetResource(animEditSrv);
 
 		frameBuffer = new ConstantBuffer(&tweenDesc, sizeof(TweenDesc) * MAX_ILLUSION_COUNT);

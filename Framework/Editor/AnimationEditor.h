@@ -43,7 +43,6 @@ private:
 private:
 	void SelectedBoneViewer();
 	void BoneHierarchy();
-	void ChildBones(ModelBone * bone);
 
 	void BoneHierarchy_Popup();
 	void AddSocket();

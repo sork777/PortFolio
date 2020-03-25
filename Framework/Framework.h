@@ -97,7 +97,7 @@ typedef D3DXPLANE Plane;
 #include "Renders/Context.h"
 #include "Renders/Renderer.h"
 
-#include "Components/ObjectBaseComponent.h"	
+#include "Components/ObjectBase/ObjectBaseComponent.h"
 //#include "Components/ObjectBase/AnimationComponent.h"	
 #include "Components/ObjectBase/ModelMeshComponent.h"	
 #include "Components/ObjectBase/FigureMeshComponent.h"	
@@ -138,8 +138,9 @@ typedef D3DXPLANE Plane;
 #include "Model/Loader/Types.h"
 #include "Model/Loader/Converter.h"
 
-#include "Objects/Shadow.h"
-#include "Objects/Light.h"
+#include "LightEffects/Shadow.h"
+#include "LightEffects/Light.h"
+#include "LightEffects/CSM.h"
 
 #include "ScreenSpace/Render2D.h"
 #include "ScreenSpace/GBuffer.h"
@@ -152,6 +153,11 @@ typedef D3DXPLANE Plane;
 #include "Effect/TrailRenderer.h"
 #include "Effect/ModelIllusion.h"
 
+#include "Assets/ContentsAsset.h"
+#include "Assets/ContentsAsset/ModelAsset.h"
+#include "Assets/ContentsAsset/TextureAsset.h"
+
+#include "Assets/AssetManager.h"
 
 #include "Editor/AnimationEditor.h"
 #include "Editor/ParticleEditor.h"

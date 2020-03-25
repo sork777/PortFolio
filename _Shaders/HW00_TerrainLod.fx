@@ -1,7 +1,6 @@
 
 Texture2D BaseMap;
 Texture2D AlphaMap;
-Texture2D HeightMap;
 
 Texture2D LayerMaps[3];
 
@@ -269,10 +268,10 @@ DomainOutput_Lod DS(ConstantHullOutput_Lod input, const OutputPatch<HullOutput_L
 
     //구한 uv를 통해 heightmap에서 해당 위치의 높이를 구한다.
     //노멀,탄젠트를 구할수 있다.
-    float leftY = HeightMap.SampleLevel(LinearSampler, left, 0).a * Lod.TerrainHeightRatio;
-    float rightY = HeightMap.SampleLevel(LinearSampler, right, 0).a * Lod.TerrainHeightRatio;
-    float topY = HeightMap.SampleLevel(LinearSampler, top, 0).a * Lod.TerrainHeightRatio;
-    float bottomY = HeightMap.SampleLevel(LinearSampler, bottom, 0).a * Lod.TerrainHeightRatio;
+    float leftY = AlphaMap.SampleLevel(LinearSampler, left, 0).a * Lod.TerrainHeightRatio;
+    float rightY = AlphaMap.SampleLevel(LinearSampler, right, 0).a * Lod.TerrainHeightRatio;
+    float topY = AlphaMap.SampleLevel(LinearSampler, top, 0).a * Lod.TerrainHeightRatio;
+    float bottomY = AlphaMap.SampleLevel(LinearSampler, bottom, 0).a * Lod.TerrainHeightRatio;
 
     //탄젠트는 x축 기울기와 같다
     output.Tangent = normalize(float3(Lod.WorldCellSpace * 2.0f, rightY - leftY, 0.0f));
@@ -292,7 +291,7 @@ DomainOutput_Lod DS(ConstantHullOutput_Lod input, const OutputPatch<HullOutput_L
     //                      해당 위치에 대한 픽셀을 가져올 수 있음
     //float displacement = DisplaceMentMap.SampleLevel(LinearSampler, output.Uv, 0).r;
 
-    output.wPosition.y += HeightMap.SampleLevel(LinearSampler, output.Uv, 0).a * Lod.TerrainHeightRatio;
+    output.wPosition.y += AlphaMap.SampleLevel(LinearSampler, output.Uv, 0).a * Lod.TerrainHeightRatio;
     //output.wPosition.xyz += displacement * normal;
     
     output.Position = ViewProjection(float4(output.wPosition, 1));

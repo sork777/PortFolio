@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "DeferredPrac.h"
-#include "Objects/CSM.h"
 #include "PostEffects/HDR_Tone.h"
 #include "Environment/Sky/Atmosphere.h"
 #include "Environment/Ocean/FFTOcean.h"

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "CSMPrac.h"
-#include "Objects/CSM.h"
+
 
 void CSMPrac::Initialize()
 {

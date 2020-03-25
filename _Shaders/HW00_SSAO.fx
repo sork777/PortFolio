@@ -24,15 +24,17 @@ cbuffer CB_DownScale
     DownScaleDesc DSconstDesc;
 }
 
-float ConvertZToLinearDepth(float depth)
-{
-    float linearDepth = DSconstDesc.ProjParams.z / (depth + DSconstDesc.ProjParams.w);
-    return linearDepth;
-}
+//float ConvertZToLinearDepthSSAO(float depth)
+//{
+//    float linearDepth = DSconstDesc.ProjParams.z / (depth + DSconstDesc.ProjParams.w);
+//    return linearDepth;
+//}
 
 [numthreads(1024, 1, 1)]
 void DepthDownscale(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
+    PerspectiveValues = DSconstDesc.ProjParams;
+    
     uint3 CurPixel = uint3(dispatchThreadId.x % DSconstDesc.Res.x, dispatchThreadId.x / DSconstDesc.Res.x, 0);
     //// Skip out of bound pixels
     if (CurPixel.y < DSconstDesc.Res.y)

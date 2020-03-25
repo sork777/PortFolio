@@ -168,6 +168,21 @@ void Transform::World(Matrix & matrix)
 	D3DXMatrixInverse(&bufferDesc.InvWorld, NULL, &bufferDesc.World);
 }
 
+void Transform::Local(Transform * localTransform)
+{
+	if (NULL != localTransform)
+		Local(localTransform->World());
+	else
+	{
+		preLocal = local;
+		D3DXMatrixIdentity(&local);
+		Math::MatrixDecompose(local, scale, rotation, position);
+
+		bufferDesc.World = local * pMatrix;
+		D3DXMatrixInverse(&bufferDesc.InvWorld, NULL, &bufferDesc.World);
+	}
+}
+
 void Transform::Local(Matrix & matrix)
 {
 	if (parent != NULL)
@@ -196,8 +211,9 @@ void Transform::Parent(Transform * parent)
 
 void Transform::Parent(Matrix &  matrix)
 {
-	if (parent == NULL)
-		parent = new Transform();
+	//if (parent == NULL)
+	//Matrix로 받는다 == 부모가 고정되어있지 않다.
+	parent = new Transform();
 
 	prePMatrix = pMatrix;
 	pMatrix = matrix;

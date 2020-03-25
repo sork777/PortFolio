@@ -2,6 +2,8 @@
 
 #include "Systems\IExecute.h"
 
+class Actor;
+
 class TerrainLodDemo :public IExecute
 {
 private:
@@ -34,6 +36,12 @@ private:
 
 	Shader* shader;
 	
-
 	Material* terrainMat;
+
+	TextureCube* cubeTex;
+private:
+	void CreateBaseActor();
+private:
+	Actor* actor;
+	ObjectBaseComponent* selecedComp = NULL;
 };

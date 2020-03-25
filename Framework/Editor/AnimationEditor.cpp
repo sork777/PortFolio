@@ -200,59 +200,64 @@ void AnimationEditor::ModelController()
 
 		if (ImGui::CollapsingHeader("Selected_Parts", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			Transform* transform = new Transform();
-			Transform* boneTransform = curBoneNames[selectedBone]->GetBoneTransform();
-			Matrix mat = curAnimator->GetboneWorld(0,selectedBone + 1);
-			boneTransform->Local(mat);
-			//boneTransform->Update();
-			transform->World(mat);
-			Vector3 S, R, T;
-			/* 파츠의 기본 좌표 출력 */
+			if (selectedBone >= 0)
 			{
-				transform->Scale(&S);
-				transform->Rotation(&R);
-				transform->Position(&T);
-				ImGui::Text("Scale    : <%.2f, %.2f, %.2f> ", S.x, S.y, S.z);
-				ImGui::Text("Rotation : <%.2f, %.2f, %.2f> ", R.x, R.y, R.z);
-				ImGui::Text("Position : <%.2f, %.2f, %.2f> ", T.x, T.y, T.z);
-
-				ImGui::Separator();
-			}
-			/* 변형 */
-			if (state != AnimationState::Play)
-			{
-				curBoneTrans[selectedBone]->Local(boneTransform->ParentTransform()->Local());
-				curBoneTrans[selectedBone]->Update();
-
-				if (gizmoType == GizmoType::Bone)
-					Gui::Get()->SetGizmo(boneTransform, curModel->GetTransform(0), true);
-				
-				bChange |= boneTransform->Property();
-				curBoneTrans[selectedBone]->Position(&T);
-				T.y = T.y > 0 ? T.y : 0;
-				curBoneTrans[selectedBone]->Position(T);
-
-				if (bChange)
+				Transform* transform = new Transform();
+				Transform* boneTransform = curBoneNames[selectedBone]->GetBoneTransform();
+				//Matrix mat = curModel->BoneByIndex(selectedBone + 1)->BoneWorld();
+				Matrix mat = curAnimator->GetboneWorld(0, selectedBone + 1);
+				//boneTransform->Local(mat);
+				//boneTransform->Update();
+				transform->World(mat);
+				Vector3 S, R, T;
+				/* 파츠의 기본 좌표 출력 */
 				{
-					UINT clip = curAnimator->GetCurrClip(0);
-					boneTransform->ParentTransform()->Local(curBoneTrans[selectedBone]->Local());
-					boneTransform->Update();
-					curAnimator->UpdateBoneTransform(selectedBone + 1, clip, curBoneTrans[selectedBone]);
+					transform->Scale(&S);
+					transform->Rotation(&R);
+					transform->Position(&T);
+					ImGui::Text("Scale    : <%.2f, %.2f, %.2f> ", S.x, S.y, S.z);
+					ImGui::Text("Rotation : <%.2f, %.2f, %.2f> ", R.x, R.y, R.z);
+					ImGui::Text("Position : <%.2f, %.2f, %.2f> ", T.x, T.y, T.z);
+
+					ImGui::Separator();
+				}
+				/* 변형 */
+				if (state != AnimationState::Play)
+				{
+					curBoneTrans[selectedBone]->Local(boneTransform->ParentTransform()->Local());
+					curBoneTrans[selectedBone]->Update();
+
+					if (gizmoType == GizmoType::Bone)
+						Gui::Get()->SetGizmo(boneTransform, curModel->GetTransform(0), true);
+
+					bChange |= curBoneTrans[selectedBone]->Property();
+					curBoneTrans[selectedBone]->Position(&T);
+					T.y = T.y > 0 ? T.y : 0;
+					curBoneTrans[selectedBone]->Position(T);
+
+					if (bChange)
+					{
+						UINT clip = curAnimator->GetCurrClip(0);
+						boneTransform->ParentTransform()->Local(curBoneTrans[selectedBone]->Local());
+						boneTransform->Update();
+						curAnimator->GetModel()->UpdateBoneTransform(selectedBone + 1, clip, curBoneTrans[selectedBone]);
+					}
+				}
+				/* 재생중일때 정보 표기 */
+				else
+				{
+					ImGui::Text("BoneEditTransform");
+
+					transform = (curBoneTrans[selectedBone]);
+					transform->Scale(&S);
+					transform->Rotation(&R);
+					transform->Position(&T);
+
+					ImGui::Text("Scale    : <%.2f, %.2f, %.2f> ", S.x, S.y, S.z);
+					ImGui::Text("Rotation : <%.2f, %.2f, %.2f> ", R.x, R.y, R.z);
+					ImGui::Text("Position : <%.2f, %.2f, %.2f> ", T.x, T.y, T.z);
 				}
 			}
-			/* 재생중일때 정보 표기 */
-			else
-			{
-				transform = (curBoneTrans[selectedBone]);
-				transform->Scale(&S);
-				transform->Rotation(&R);
-				transform->Position(&T);
-
-				ImGui::Text("Scale    : <%.2f, %.2f, %.2f> ", S.x, S.y, S.z);
-				ImGui::Text("Rotation : <%.2f, %.2f, %.2f> ", R.x, R.y, R.z);
-				ImGui::Text("Position : <%.2f, %.2f, %.2f> ", T.x, T.y, T.z);
-			}
-
 			ImGui::Separator();
 		}
 		ImGui::PopStyleVar();
@@ -270,7 +275,7 @@ void AnimationEditor::ModelController()
 				//curBoneTrans[j]->Parent(iden);
 				curBoneTrans[j]->Local(iden);
 				curBoneTrans[j]->Update();
-				curAnimator->UpdateBoneTransform(j + 1, clip, curBoneTrans[j]);
+				curAnimator->GetModel()->UpdateBoneTransform(j + 1, clip, curBoneTrans[j]);
 			}
 		}
 
@@ -342,6 +347,8 @@ void AnimationEditor::AnimationController()
 
 void AnimationEditor::SelectedBoneViewer()
 {
+	if (selectedBone < 0)
+		return;
 	Matrix W, V, P;
 	D3DXMatrixIdentity(&W);
 	V = Context::Get()->View();
@@ -363,57 +370,16 @@ void AnimationEditor::SelectedBoneViewer()
 
 void AnimationEditor::BoneHierarchy()
 {
-	bool bDocking = true;
-	/* 파츠 선택 */
-	ImGui::Begin("BoneHierarchy", &bDocking);
-	{
-		for (UINT i = 0; i < curBoneNames.size(); i++)
-		{
-			auto root = curBoneNames[i];
-			if (curBoneNames[i]->ParentIndex() < 0)
-				ChildBones(root);
-		}
-	}
-	ImGui::End();
-}
+	int click = -1;
 
-void AnimationEditor::ChildBones(ModelBone * bone)
-{
-	//아이템 시작지점
-	ImVec2 pos = ImGui::GetItemRectMin() - ImGui::GetWindowPos();
-	//윈도우 사이즈
-	ImVec2 wSize = ImGui::GetWindowSize();
-	if (wSize.y < pos.y) return;
-	if (wSize.x < pos.x) return;
+	selectedBone = curModel->BoneHierarchy(&click) - 1;
 
-	auto childs = bone->Childs();
-	ImGuiTreeNodeFlags flags = childs.empty() ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+	if (0 == click)
+		gizmoType = GizmoType::Bone;
+	if (1 == click)
+		ImGui::OpenPopup("Bones_Popup");
 
-	if (bone->Index() - 1 == selectedBone)
-		flags |= ImGuiTreeNodeFlags_Selected;
-	ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 10.0f);
-
-	if (ImGui::TreeNodeEx(String::ToString(bone->Name()).c_str(), flags))
-	{
-		if (ImGui::IsItemClicked())
-		{
-			selectedBone = bone->Index() - 1;
-			gizmoType = GizmoType::Bone;
-		}
-		if (ImGui::IsItemClicked(1))
-		{
-			selectedBone = bone->Index() - 1;			
-			ImGui::OpenPopup("Bones_Popup");
-		}
-		BoneHierarchy_Popup();
-
-		for (auto& child : childs)
-		{
-			ChildBones(child);
-		}
-		ImGui::TreePop();
-	}
-	ImGui::PopStyleVar();
+	BoneHierarchy_Popup();
 }
 
 void AnimationEditor::BoneHierarchy_Popup()
@@ -540,7 +506,6 @@ void AnimationEditor::LoadModel(wstring path)
 		newModel->ReadMaterial(modelFilePath, textureDir);
 		newModel->ReadMesh(modelFilePath, modelDir);
 		newModel->AddInstance();
-		newModel->GetTransform(0)->Scale(0.075f, 0.075f, 0.075f);
 		//모델이 애니메이션인지 아닌지에 따라 애니메이션이나 랜더 선택
 		if (newModel->IsAnimationModel())
 		{
@@ -596,7 +561,6 @@ void AnimationEditor::ModelsViewer()
 		{
 			LoadModel();
 		}
-		//TODO: 팝업을 통해 선택하기
 		ImGui::Text("Animations");
 		
 		for (UINT i = 0; i < prevAnims.size(); i++)

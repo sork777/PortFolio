@@ -11,6 +11,9 @@ public:
 
 	void Pass(UINT pass) { model->Pass(pass); }
 	void Tech(UINT tech) { model->Tech(tech); }
+	
+	void SetShader(Shader* shader);
+
 public:
 	void UpdateTransform(UINT instanceId, UINT boneIndex, Transform& transform);
 	Model* GetModel() { return model; }

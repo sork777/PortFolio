@@ -27,6 +27,7 @@ struct PS_Output
     float4 Normal : SV_Target1;
     float4 Spec : SV_Target2;
     float4 Depth : SV_Target3;
+    float4 Emissive : SV_Target4;
 };
 
 PS_Output PS_Seperate(MeshOutput input)
@@ -36,16 +37,21 @@ PS_Output PS_Seperate(MeshOutput input)
     Texture(Material.Diffuse, DiffuseMap, input.Uv);
     float3 normal = CalNormal(input.Uv, input.Normal, input.Tangent);
     Texture(Material.Specular, SpecularMap, input.Uv);
-   
-    float4 DiffuseColor = DiffuseMap.Sample(LinearSampler, input.Uv);
-    float4 SpecularColor = SpecularMap.Sample(LinearSampler, input.Uv);
-    DiffuseColor *= DiffuseColor;
+    
+    //NormalMapping(input.Uv, input.Normal, input.Tangent, BasicSampler);
+    normal = normalize(normal);
+    
+    float4 DiffuseColor = Material.Diffuse;//    DiffuseMap.Sample(LinearSampler, input.Uv);
+    float4 SpecularColor = Material.Specular; //SpecularMap.Sample(LinearSampler, input.Uv);
+    //DiffuseColor *= DiffuseColor;
+    
     float depth = input.wvpPosition.z / input.wvpPosition.w;
 
     output.Color = float4(DiffuseColor.rgb, SpecularColor.a);
     output.Normal = float4(normal * 0.5f + 0.5f, 0);
     output.Spec = float4(SpecularColor.rgb, 0);
     output.Depth = float4(depth, depth, depth, 1);
+    output.Emissive = Material.Emissive;
 
     return output;
 }
@@ -63,12 +69,13 @@ PS_Output PS_SeperateTerrainLod(DomainOutput_Lod input)
     Texture(Material.Specular, SpecularMap, input.Uv);
     
     diffuse = diffuse + float4(gridColor, 1) + float4(brushColor, 1);
-    float4 SpecularColor = SpecularMap.Sample(LinearSampler, input.Uv);
+    float4 SpecularColor = float4(1, 1, 1, 1);
 
     output.Color = float4(diffuse.rgb, SpecularColor.a);
     output.Normal = float4(normal * 0.5f + 0.5f, 0);
     output.Spec = float4(SpecularColor.rgb, 0);
     output.Depth = float4(depth, depth, depth, 1);
+    output.Emissive = Material.Emissive;
     return output;
 }
 /////////////////////////////////////////////////////////////////////////////
@@ -115,11 +122,11 @@ float4 DirLightPS(VS_OUTPUT input) : SV_TARGET
         ao=AOTexture.Sample(LinearSampler, input.Uv);
 
     //Calculate the ambient color
-    float3 finalColor = CalcAmbient(mat.normal, mat.diffuseColor.rgb)*ao;
+    float3 finalColor = 0;//    CalcAmbient(mat.normal, mat.diffuseColor.rgb);
     
     // Calculate the directional light
     finalColor += CalcDirectional(wPos, mat);
-
+    finalColor *= ao;
     if (gbd.LinearDepth>800)
         finalColor = AtmosphereMap.Sample(LinearSampler, input.Uv);
 

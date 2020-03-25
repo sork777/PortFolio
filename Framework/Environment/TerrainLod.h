@@ -55,6 +55,7 @@ public:
 	void SaveAlphaLayer(wstring* savePath,const wstring& filePath = L"");
 	void SaveTerrainToXml(const wstring& filePath = L"");
 	void LoadTerrainFromXml(const wstring& filePath = L"");
+
 private:
 	UINT layerIndex;
 	Texture* baseTexture;
@@ -80,8 +81,9 @@ private:
 	class Perlin* perlinGen;
 ////////////////////////////////////////////////////////////////////////////////
 // Brush
-private:
+public:
 	Vector3 GetPickedPosition();
+private:
 	float GetPickedHeight();
 	/* 브러시의 raiseDesc 업데이트 */
 	void BrushUpdater(Vector3& position);
