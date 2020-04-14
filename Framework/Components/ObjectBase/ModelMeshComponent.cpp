@@ -9,9 +9,8 @@ ModelMeshComponent::ModelMeshComponent(Model* model)
 {
 	componentName = L"ModelMeshComp";
 	type = ObjectBaseComponentType::ModelMesh;
-	// 버튼용으로 필요는 함.
+	
 	meshRender = new ModelRender(model);
-
 	if (model->IsAnimationModel() == true)
 	{
 		animation = new ModelAnimator(model);
@@ -29,12 +28,14 @@ ModelMeshComponent::~ModelMeshComponent()
 
 void ModelMeshComponent::Update()
 {
-	
 	if (animation != NULL)
 	{
 		animation->Update();
-		for (int i = 0; i < GetInstSize(); i++)
-			PlayAnim(i);
+
+		//TODO: 플레이 선택에 따라 변경해야함.
+		int loop = bEditMode ? 1 : GetInstSize();
+		for (int i = 0; i < bEditMode; i++)
+			animation->PlayAnim(i);
 	}
 	else if (meshRender != NULL)
 	{
@@ -46,20 +47,22 @@ void ModelMeshComponent::Update()
 
 void ModelMeshComponent::Render()
 {
+	int inst = bEditMode ? 1 : -1;
+
 	if (animation != NULL)
 	{
-		animation->Render();
+		animation->Render(inst);
 	}
 	else if (meshRender != NULL)
 	{
-		meshRender->Render();
+		meshRender->Render(inst);
 	}
 	Super::Render();
 }
 
-bool ModelMeshComponent::Property()
+bool ModelMeshComponent::Property(const UINT& instance)
 {
-	if (skeletonMesh->GetInstSize() < 1)
+	if (GetInstSize() <= instance)
 		return false;
 	bool bChange = false;
 	if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
@@ -73,24 +76,20 @@ bool ModelMeshComponent::Property()
 	ImGui::Separator();
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		if (baseTransform->Property())
+		if (GetTransform(instance)->Property())
 		{
-			//TODO: 나중에 에디터의 컴파일로 옮기기
-			for (UINT i = 0; i < GetInstSize(); i++)
-			{
-				skeletonMesh->GetTransform(i)->Local(baseTransform);
-			}
+			chageTrans[instance] = true;
 			bChange = true;
+		}
+		if (ImGui::Button("Reset"))
+		{
+			GetTransform(instance)->Local(baseTransform);
+			chageTrans[instance] = false;
 		}
 	}
 
 	bChange |= Super::Property();
 	return bChange;
-}
-
-Transform * ModelMeshComponent::GetTransform(const UINT & instance)
-{
-	return skeletonMesh->GetTransform(instance);
 }
 
 void ModelMeshComponent::Tech(const UINT & mesh, const UINT & model, const UINT & anim)
@@ -130,7 +129,7 @@ void ModelMeshComponent::AddInstanceData()
 {
 	int index = skeletonMesh->GetInstSize();
 	skeletonMesh->AddInstance();
-	skeletonMesh->GetTransform(index)->Local(baseTransform);
+	skeletonMesh->GetTransform(index)->Local(baseTransform);	
 	Super::AddInstanceData();
 	skeletonMesh->UpdateTransforms();
 }
@@ -141,15 +140,12 @@ void ModelMeshComponent::DelInstanceData(const UINT& instance)
 	Super::DelInstanceData(instance);
 }
 
-
-inline void ModelMeshComponent::PlayAnim(const UINT & instance)
+const UINT & ModelMeshComponent::GetInstSize()
 {
-	if (animation != NULL)
-		animation->PlayAnim(instance);
+	return skeletonMesh->GetInstSize();
 }
 
-inline void ModelMeshComponent::PlayClip(const UINT & instance, const UINT & clip, const float & speed, const float & takeTime)
+Transform * ModelMeshComponent::GetTransform(const UINT & instance)
 {
-	if (animation != NULL)
-		animation->PlayClip(instance, clip, speed, takeTime);
+	return skeletonMesh->GetTransform(instance);
 }

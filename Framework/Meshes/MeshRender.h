@@ -8,7 +8,7 @@ public:
 	~MeshRender();
 
 	void Update();
-	void Render();
+	void Render(const int& drawCount = -1);
 
 	inline void Tech(const UINT& val) { mesh->Tech(val); }
 	inline void Pass(const UINT& val) { mesh->Pass(val); }

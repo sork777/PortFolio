@@ -24,7 +24,7 @@ void CameraComponent::Render()
 	Super::Render();
 }
 
-bool CameraComponent::Property()
+bool CameraComponent::Property(const UINT& instance)
 {
 	return false;
 }

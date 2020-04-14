@@ -22,22 +22,32 @@ public:
 	virtual void Render() override;
 	virtual void PostRender() override;
 
-public:
-	void ShowCompHeirarchy(OUT ObjectBaseComponent** selectedComp);
-	//밖에서 터레인 좌표같은걸 받아서 오기.
-	void SetSpawnPosition(const Vector3& position);
+
+	void Tech(const UINT& mesh, const UINT& model, const UINT& anim);
+	void Pass(const UINT& mesh, const UINT& model, const UINT& anim);
 
 public:
 	Transform* GetTransform(const UINT& instance = 0);
 	void AddInstanceData();
 	void DelInstanceData(const UINT& instance);
 
+public:
+	void SetEditMode(const bool& bEdit) { root->SetEditMode(bEdit); }
+
+///////////////////////////////////////////////////////////////////////////////
+public:
 	inline ModelMeshComponent* GetRootMeshData() { return root; }
+
+public:
+	void ShowCompHeirarchy(OUT ObjectBaseComponent** selectedComp);
+	//밖에서 터레인 좌표같은걸 받아서 오기.
+	void SetSpawnPosition(const Vector3& position);
+
 private:
 	ModelMeshComponent* root;
 
-	bool bSpawningObject = false;
-	int spawnInstance = -1;
-	Vector3 spawnPos = Vector3(-1, -1, -1);
+	bool	bSpawningObject;
+	int		spawnInstance;
+	Vector3 spawnPos;
 };
 

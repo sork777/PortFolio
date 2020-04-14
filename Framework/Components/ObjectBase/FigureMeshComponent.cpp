@@ -25,11 +25,11 @@ void FigureMeshComponent::Update()
 
 void FigureMeshComponent::Render()
 {
-	meshRender->Render();
+	meshRender->Render(bEditMode ? 1 : -1);
 	Super::Render();
 }
 
-bool FigureMeshComponent::Property()
+bool FigureMeshComponent::Property(const UINT& instance)
 {
 	bool bChange = false;
 	if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
@@ -39,15 +39,19 @@ bool FigureMeshComponent::Property()
 	ImGui::Separator();
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		bChange |= baseTransform->Property();
+		if (GetTransform(instance)->Property())
+		{
+			chageTrans[instance] = true;
+			bChange = true;
+		}
+		if (ImGui::Button("Reset"))
+		{
+			GetTransform(instance)->Local(baseTransform);
+			chageTrans[instance] = false;
+		}
 	}
 	bChange |= Super::Property();
 	return bChange;
-}
-
-Transform * FigureMeshComponent::GetTransform(const UINT & instance)
-{
-	return meshRender->GetTransform(instance);
 }
 
 void FigureMeshComponent::Tech(const UINT & mesh, const UINT & model, const UINT & anim)
@@ -79,6 +83,20 @@ void FigureMeshComponent::AddInstanceData()
 
 void FigureMeshComponent::DelInstanceData(const UINT & instance)
 {
+	if (instance >= meshRender->GetInstSize())
+		return;
 	meshRender->DelInstance(instance);
 	Super::DelInstanceData(instance);
+}
+
+const UINT & FigureMeshComponent::GetInstSize()
+{
+	return meshRender->GetInstSize();
+}
+
+Transform * FigureMeshComponent::GetTransform(const UINT & instance)
+{
+	if (instance >= meshRender->GetInstSize())
+		return NULL;
+	return meshRender->GetTransform(instance);
 }

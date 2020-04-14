@@ -23,7 +23,9 @@ enum class ObjectBaseComponentType
 	ModelMesh,
 	FigureMesh,
 	Camera,
-	Collision
+	OBB_Collision,
+	Sphere_Collision,
+	Capsule_Collision,
 };
 
 class ObjectBaseComponent : public IComponent
@@ -35,33 +37,56 @@ public:
 	// IComponent을(를) 통해 상속됨
 	virtual void Update() override;
 	virtual void Render() override;
-	virtual bool Property();
-	virtual Transform* GetTransform(const UINT& instance = 0) abstract;
+	virtual bool Property(const UINT& instance = 0);
 
+	virtual void SetShader(Shader* shader);
 	virtual void Tech(const UINT& mesh, const UINT& model, const UINT& anim);
 	virtual void Pass(const UINT& mesh, const UINT& model, const UINT& anim);
 	
-	virtual void SetShader(Shader* shader);
+///////////////////////////////////////////////////////////////////////////////
+// 인스턴스 관련
+public:
 	virtual void AddInstanceData();
 	virtual void DelInstanceData(const UINT& instance);
+	virtual const UINT& GetInstSize() abstract;
 
+	virtual Transform* GetTransform(const UINT& instance = 0) abstract;
+	
 public:
 	//컴포넌트 인스턴싱의 초기 트랜스폼
 	inline Transform* GetBaseTransform()		{ return baseTransform; }
-	inline virtual const UINT& GetInstSize()	{ return instancingCount; }
 	inline ObjectBaseComponentType& GetType()	{ return type; }
 	inline wstring& ComponentName()				{ return componentName; }
-	//inline vector<ObjectBaseComponent*>& GetChildrenComp() { return children; }
+	inline void SetEditMode(const bool& bEdit)	{ bEditMode = bEdit; }
 
+public:
+	void CompileComponent();
+	void ReadyToUnlinkComp();
+protected:
+	Shader*		shader;
+	Transform*	baseTransform;
+	vector<bool> chageTrans;
+
+	wstring	parentSocketName	= L"None";
+	wstring componentName		= L"";
+
+	int	 parentSocket = -1;
+	bool bEditMode	= false;
+	bool bCompiled	= false;	// 씬에서 적용 :: 
+	bool bActive	= true;		//에딧모드에서만 적용 :: 링크하면 기본적으로 활성화
+///////////////////////////////////////////////////////////////////////////////
+// 컴포넌트 계층구조 관련
 public:
 	//얘를 통해 계층에서 선택한 컴포넌트 내보내고 그 정보를 확인 수정할거임.
 	void ComponentHeirarchy(OUT ObjectBaseComponent** selectedComp);
+
+private:
 	void ComponentPopup();
 	void AddSkeletonMeshComponentPopup();
 	void AddFigureMeshComponentPopup();
 	void AddCollisionComponentPopup();
 
-protected:
+private:
 	// 계층 구조용 컴포넌트 링크.
 	//부모 설정은 child 링크할때 함수 내에서만 쓸거임
 	void LinkParentComponent(ObjectBaseComponent* component);
@@ -72,18 +97,9 @@ public:
 	void UnlinkChildComponent(ObjectBaseComponent* component);
 
 protected:
-	Transform* baseTransform;
-	Shader* shader;
-
-protected:
 	ObjectBaseComponentType type;
 
 	ObjectBaseComponent*			parent;
 	vector< ObjectBaseComponent*>	children;
 	
-	wstring	parentSocketName = L"None";
-	wstring componentName	= L"";
-
-	int	 parentSocket	= -1;
-	UINT instancingCount = 0;
 };

@@ -183,7 +183,9 @@ technique11 T0
 technique11 T_PBR
 {
     P_VP(P0, VS_Mesh, PS_PBRTest)
-    P_VTP(P1, VS_Tess_Mesh, HS, DS, PS_Tess_PBRTest)
+    P_VP(P1, VS_Model, PS_PBRTest)
+    P_VP(P2, VS_Animation, PS_PBRTest)
+    P_VTP(P3, VS_Tess_Mesh, HS, DS, PS_Tess_PBRTest)
 }
 technique11 TWireFrame
 {

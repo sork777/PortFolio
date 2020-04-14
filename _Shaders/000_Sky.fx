@@ -82,9 +82,9 @@ struct VertexOutput_Moon
 cbuffer CB_Cloud
 {
     float CloudTiles;
-    float CloudCover = -0.1f;
-    float CloudSharpness = 0.25f;
-    float CloudSpeed = 0.01f;
+    float CloudCover;
+    float CloudSharpness;
+    float CloudSpeed;
 };
 
 struct VertexOutput_Cloud

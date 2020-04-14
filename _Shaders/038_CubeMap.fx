@@ -5,7 +5,7 @@
 
 float4 PS(MeshOutput input) : SV_Target0
 {
-    return VS_Shadow(input.sPosition, VS_AllLight(input));
+    return VS_Shadow(input, VS_AllLight(input));
 }
 
 float2 RecflectAmount;
@@ -13,7 +13,7 @@ float2 RecflectAmount;
 TextureCube CubeMap;
 float4 PS_Cube(MeshOutput input) : SV_Target0
 {
-    float4 color = VS_Shadow(input.sPosition, VS_AllLight(input));
+    float4 color = VS_Shadow(input, VS_AllLight(input));
     
     float3 eye = normalize(input.wPosition -ViewPosition());
     float3 r = reflect(eye, normalize(input.Normal));

@@ -111,7 +111,7 @@ void AnimationEditor::Render()
 	if (curAnimator != NULL)
 	{
 		SelectedBoneViewer();
-		AttachesViewer();
+		AttachesViewer();		
 		BoneHierarchy();
 		Animate();
 		curAnimator->Render();

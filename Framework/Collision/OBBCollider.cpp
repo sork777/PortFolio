@@ -26,6 +26,9 @@ OBBCollider::~OBBCollider()
 
 void OBBCollider::Update()
 {
+	transform->Update();
+	if (init != NULL)
+		init->Update();
 	if (bUsingCollider == false)
 		return;
 	SetObb();
@@ -38,8 +41,12 @@ void OBBCollider::Render(Color color)
 
 	Vector3 dest[8];
 	Matrix world = transform->World();
+	transform->Render();
 	if (init != NULL)
+	{
+		init->Render();
 		world = init->World()*transform->World();
+	}
 
 	for (UINT i = 0; i < 8; i++)
 		D3DXVec3TransformCoord(&dest[i], &lines[i], &world);

@@ -70,6 +70,7 @@ void Model::SetShader(Shader * shader)
 	for (ModelMesh* mesh : meshes)
 		mesh->SetShader(shader);
 }
+
 #pragma region 메시 출력 관련
 
 void Model::Update()
@@ -79,7 +80,7 @@ void Model::Update()
 	UpdateTransforms();
 }
 
-void Model::Render()
+void Model::Render(const int& drawCount)
 {
 	if (bonebuffer == NULL)
 		CreateBoneBuffer();
@@ -96,8 +97,11 @@ void Model::Render()
 	if (boneSrv != NULL)
 		sBoneTransformsSRV->SetResource(boneSrv);
 
+	int draw = drawCount;
+	if (drawCount <= 0)
+		draw = transforms.size();
 	for (ModelMesh* mesh : meshes)
-		mesh->Render(transforms.size());	
+		mesh->Render(draw);
 }
 
 void Model::Pass(const UINT& pass)
@@ -119,14 +123,10 @@ void Model::UpdateTransforms()
 
 	for (UINT i = 0; i < transforms.size(); i++)
 	{
-		if (bChange)
+		if (worlds[i] != transforms[i]->World())
 		{
-			memcpy(worlds[i], transforms[i]->World(), sizeof(Matrix));
-		}
-		else if (worlds[i] != transforms[i]->World())
-		{
-			memcpy(worlds[i], transforms[i]->World(), sizeof(Matrix));
 			bChange = true;
+			memcpy(worlds[i], transforms[i]->World(), sizeof(Matrix));
 		}
 	}
 	if (bChange)
@@ -456,7 +456,6 @@ void Model::AddSocket(const int& parentBoneIndex, const wstring& socketName)
 	newBone->index = bones.size();
 
 	bones.push_back(newBone);
-	bChangeCS = true;
 }
 
 void Model::CreateBoneBuffer()
@@ -507,8 +506,6 @@ void Model::CreateBoneBuffer()
 		Check(D3D::GetDevice()->CreateShaderResourceView(bonebuffer, &srvDesc, &boneSrv));
 	}
 	
-	//for (ModelMesh* mesh : Meshes())
-	//	mesh->BoneTransformsSRV(boneSrv);
 }
 
 #pragma region 애니메이션 클립 변화 텍스쳐 생성 및 변화 구현 영역
@@ -521,7 +518,6 @@ void Model::CreateAnimEditTexture()
 		for (UINT c = 0; c < MAX_ANIMATION_CLIPS; c++)
 		{
 			D3DXMatrixIdentity(&animEditTrans[c][b]);
-			animEditTrans[c][b]._14 = animEditTrans[c][b]._24 = animEditTrans[c][b]._34 = 1;
 		}
 
 	//CreateTexture
@@ -567,26 +563,13 @@ void Model::UpdateBoneTransform(const UINT& part, const UINT& clipID, Transform*
 {
 	if (editTexture == NULL)
 		return;
-	//클립 변화로 인한 본들의 위치 변화 재계산을 위해 CS를 다시 실행
-	bChangeCS = true;
 
 	ModelBone* bone = BoneByIndex(part);
 
 	Matrix trans = transform->World();
 	bone->GetEditTransform()->Local(trans);
-	Matrix global = bone->GetEditTransform()->World();
-	// 월드 행렬 분해후 필요한 형태로 재조립해서 넘김
-	Matrix S, R, T, result;
-	Vector3 scale, pos;
-	Quaternion Q;
-	D3DXMatrixDecompose(&scale, &Q, &pos, &global);
-	D3DXMatrixScaling(&S, scale.x, scale.y, scale.z);
-	D3DXMatrixRotationQuaternion(&R, &Q);
-	D3DXMatrixTranslation(&T, pos.x, pos.y, pos.z);
-	result = R * T;
-	result._14 = scale.x;
-	result._24 = scale.y;
-	result._34 = scale.z;
+	
+	Matrix result = bone->GetEditTransform()->World();
 	animEditTrans[clipID][part] = result;
 	for (ModelBone* child : bone->Childs())
 	{
@@ -620,18 +603,7 @@ void Model::UpdateChildBones(const UINT& parentID, const UINT& childID, const UI
 	ModelBone* bone = BoneByIndex(childID);
 
 	bone->GetEditTransform()->Update();
-	Matrix global = bone->GetEditTransform()->World();
-	Matrix S, R, T, result;
-	Vector3 scale, pos;
-	Quaternion Q;
-	D3DXMatrixDecompose(&scale, &Q, &pos, &global);
-	D3DXMatrixScaling(&S, scale.x, scale.y, scale.z);
-	D3DXMatrixRotationQuaternion(&R, &Q);
-	D3DXMatrixTranslation(&T, pos.x, pos.y, pos.z);
-	result = R * T;
-	result._14 = scale.x;
-	result._24 = scale.y;
-	result._34 = scale.z;
+	Matrix result = bone->GetEditTransform()->World();	
 	animEditTrans[clipID][childID] = result;
 	for (ModelBone* child : bone->Childs())
 	{
@@ -644,19 +616,7 @@ void Model::AddSocketEditData(const UINT& boneID, const UINT& clipCount)
 	ModelBone* bone = BoneByIndex(boneID);
 	for (UINT x = 0; x < clipCount; x++)
 	{
-		Matrix global = bone->GetEditTransform()->World();
-		// 월드 행렬 분해후 필요한 형태로 재조립해서 넘김
-		Matrix S, R, T, result;
-		Vector3 scale, pos;
-		Quaternion Q;
-		D3DXMatrixDecompose(&scale, &Q, &pos, &global);
-		D3DXMatrixScaling(&S, scale.x, scale.y, scale.z);
-		D3DXMatrixRotationQuaternion(&R, &Q);
-		D3DXMatrixTranslation(&T, pos.x, pos.y, pos.z);
-		result = R * T;
-		result._14 = scale.x;
-		result._24 = scale.y;
-		result._34 = scale.z;
+		Matrix result = bone->GetEditTransform()->World();		
 		animEditTrans[x][boneID] = result;
 
 		D3D11_BOX destRegion;
@@ -686,11 +646,8 @@ void Model::AddSocketEditData(const UINT& boneID, const UINT& clipCount)
 
 const int& Model::BoneHierarchy(int* click)
 {
-	// TODO: 여기에 반환 구문을 삽입합니다.
-
-	static bool bDocking = true;
 	/* 파츠 선택 */
-	ImGui::Begin("BoneHierarchy", &bDocking);
+	ImGui::BeginChild("BoneHierarchy");
 	{
 		for (UINT i = 0; i < bones.size(); i++)
 		{
@@ -699,7 +656,7 @@ const int& Model::BoneHierarchy(int* click)
 				ChildBones(root,click);
 		}
 	}
-	ImGui::End();
+	ImGui::EndChild();
 	return selectedBoneNum;
 }
 

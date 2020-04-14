@@ -60,8 +60,8 @@ PS_Output PS_SeperateTerrainLod(DomainOutput_Lod input)
 {
     PS_Output output;
 
-    float4 alpha = HeightMap.Sample(LinearSampler, input.Uv);
-    float4 diffuse = GetTerrainLodColor(alpha, input.Uv);
+    float4 alpha = AlphaMap.Sample(LinearSampler, input.Uv);
+    float4 diffuse = GetTerrainLodColor(alpha, input.Uv*3.0f);
     float3 gridColor = GetLineColor(input.wPosition);
     float3 brushColor = GetBrushColor(input.wPosition);
     float3 normal = normalize(input.Normal);    
@@ -69,7 +69,7 @@ PS_Output PS_SeperateTerrainLod(DomainOutput_Lod input)
     Texture(Material.Specular, SpecularMap, input.Uv);
     
     diffuse = diffuse + float4(gridColor, 1) + float4(brushColor, 1);
-    float4 SpecularColor = float4(1, 1, 1, 1);
+    float4 SpecularColor = Material.Specular;
 
     output.Color = float4(diffuse.rgb, SpecularColor.a);
     output.Normal = float4(normal * 0.5f + 0.5f, 0);
@@ -117,9 +117,8 @@ float4 DirLightPS(VS_OUTPUT input) : SV_TARGET
 	// Reconstruct the world position
     float3 wPos = CalcWorldPos(input.cpPos, gbd.LinearDepth);
         
-    float ao = 1;
-    if(UseAO>0.5f)
-        ao=AOTexture.Sample(LinearSampler, input.Uv);
+    float ao=AOTexture.Sample(LinearSampler, input.Uv);
+    ao = lerp(ao, 1, UseAO);
 
     //Calculate the ambient color
     float3 finalColor = 0;//    CalcAmbient(mat.normal, mat.diffuseColor.rgb);

@@ -167,79 +167,85 @@ void Cloud::CreateDome()
 	domeIndexCount = (longitude - 1) * (latitude - 1) * 2 * 8;
 
 
-	VertexTexture* vertices = new VertexTexture[domeVertexCount];
+	vector<VertexTexture> v;
 
 	UINT index = 0;
-	for (UINT i = 0; i < longitude; i++)
+
+	float phiStep = Math::PI / domeCount;
+	float thetaStep = 2.0f * Math::PI / domeCount;
+
+	v.push_back(VertexTexture(0, 1, 0, 0, 0));
+	for (UINT i = 1; i < domeCount; i++)
 	{
-		float xz = 100.0f * (i / (longitude - 1.0f)) * Math::PI / 180.0f;
+		//float xz = 100.0f * (i / (longitude - 1.0f)) * Math::PI / 180.0f;
+		float phi = i * phiStep;
 
-		for (UINT j = 0; j < latitude; j++)
+		for (UINT j = 0; j <= domeCount; j++)
 		{
-			float y = Math::PI * j / (latitude - 1);
+			//float y = 2*Math::PI * j / (latitude - 1);
+			float theta = j * thetaStep;
+			D3DXVECTOR3 p = D3DXVECTOR3
+			(
+				(sinf(phi) * cosf(theta)),
+				(cosf(phi)),
+				(sinf(phi) * sinf(theta))
+			);
+			//vertices[index].Uv.x = 0.5f / (float)longitude + i / (float)longitude;
+			//vertices[index].Uv.y = 0.5f / (float)latitude + j / (float)latitude;
+			D3DXVECTOR2 uv = D3DXVECTOR2(theta / (Math::PI * 2), phi / Math::PI);
 
-			vertices[index].Position.x = sinf(xz) * cosf(y);
-			vertices[index].Position.y = cosf(xz);
-			vertices[index].Position.z = sinf(xz) * sinf(y);
+			D3DXVec3Normalize(&p, &p);
 
-			vertices[index].Uv.x = 0.5f / (float)longitude + i / (float)longitude;
-			vertices[index].Uv.y = 0.5f / (float)latitude + j / (float)latitude;
-			
-			index++;
+			v.push_back(VertexTexture(p.x, p.y, p.z, uv.x, uv.y));
 		} // for(j)
 	}  // for(i)
+	v.push_back(VertexTexture(0, -1, 0, 0, 0));
 
-	for (UINT i = 0; i < longitude; i++)
+	domeVertexCount = v.size();
+	VertexTexture* vertices = new VertexTexture[domeVertexCount];
+	copy(v.begin(), v.end(), stdext::checked_array_iterator<VertexTexture*>(vertices, domeVertexCount));
+
+
+	vector<UINT> idx;
+	vector<UINT> indicetess;
+
+	for (UINT i = 1; i <= domeCount; i++)
 	{
-		float xz = 100.0f * (i / (longitude - 1.0f)) * Math::PI / 180.0f;
+		idx.push_back(0);
+		idx.push_back(i);
+		idx.push_back((i + 1));
+	}
 
-		for (UINT j = 0; j < latitude; j++)
-		{
-			float y = (Math::PI * 2.0f) - (Math::PI * j / (latitude - 1));
-
-			vertices[index].Position.x = sinf(xz) * cosf(y);
-			vertices[index].Position.y = cosf(xz);
-			vertices[index].Position.z = sinf(xz) * sinf(y);
-
-			vertices[index].Uv.x = 0.5f / (float)longitude + i / (float)longitude;
-			vertices[index].Uv.y = 0.5f / (float)latitude + j / (float)latitude;
-
-			index++;
-		} // for(j)
-	}  // for(i)
-
-
-	index = 0;
-	UINT* indices = new UINT[domeIndexCount * 3];
-
-	for (UINT i = 0; i < longitude - 1; i++)
+	UINT baseIndex = 1;
+	UINT ringVertexCount = domeCount + 1;
+	for (UINT i = 0; i < domeCount - 2; i++)
 	{
-		for (UINT j = 0; j < latitude - 1; j++)
+		for (UINT j = 0; j < domeCount; j++)
 		{
-			indices[index++] = i * latitude + j;
-			indices[index++] = (i + 1) * latitude + j;
-			indices[index++] = (i + 1) * latitude + (j + 1);
+			idx.push_back(baseIndex + i * ringVertexCount + j);
+			idx.push_back(baseIndex + (i + 1) * ringVertexCount + j);
+			idx.push_back(baseIndex + i * ringVertexCount + j + 1);
 
-			indices[index++] = (i + 1) * latitude + (j + 1);
-			indices[index++] = i * latitude + (j + 1);
-			indices[index++] = i * latitude + j;
+			idx.push_back(baseIndex + (i + 1) * ringVertexCount + j);
+			idx.push_back(baseIndex + (i + 1) * ringVertexCount + j + 1);
+			idx.push_back(baseIndex + i * ringVertexCount + j + 1);
+
 		}
 	}
 
-	UINT offset = latitude * longitude;
-	for (UINT i = 0; i < longitude - 1; i++)
-	{
-		for (UINT j = 0; j < latitude - 1; j++)
-		{
-			indices[index++] = offset + i * latitude + j;
-			indices[index++] = offset + (i + 1) * latitude + (j + 1);
-			indices[index++] = offset + (i + 1) * latitude + j;
+	UINT southPoleIndex = v.size() - 1;
+	baseIndex = southPoleIndex - ringVertexCount;
 
-			indices[index++] = offset + i * latitude + (j + 1);
-			indices[index++] = offset + (i + 1) * latitude + (j + 1);
-			indices[index++] = offset + i * latitude + j;
-		}
+	for (UINT i = 0; i < domeCount; i++)
+	{
+		idx.push_back(southPoleIndex);
+		idx.push_back(baseIndex + i + 1);
+		idx.push_back(baseIndex + i);
 	}
+
+	domeIndexCount = idx.size();
+	UINT* indices = new UINT[domeIndexCount];
+	copy(idx.begin(), idx.end(), stdext::checked_array_iterator<UINT *>(indices, domeIndexCount));
 
 	domeVertexBuffer = new VertexBuffer(vertices, domeVertexCount, sizeof(VertexTexture), 0);
 	domeIndexBuffer = new IndexBuffer(indices, domeIndexCount);
@@ -281,6 +287,7 @@ void Cloud::CreatePlane()
 			//positionY = ((positionX * positionX) + (positionZ * positionZ));
 			float tempX = positionX / domeCount;	//(0.5f+i/Res)
 			float tempY = positionY / domeCount;	//(0.5f+j/Res)
+			
 			//Top-(Top-Bottom)*4*((0.5f+i/Res)^2+(0.5f+j/Res)^2)
 			positionY = skyTop-(constant * ((positionX * positionX) + (positionZ * positionZ)));
 			
@@ -293,10 +300,12 @@ void Cloud::CreatePlane()
 
 			// 하늘 평면 배열에 좌표를 추가합니다.
 			vertices[index].Position.x = positionX;
-			vertices[index].Position.y = positionY;
+			vertices[index].Position.y = positionY * multi;
 			vertices[index].Position.z = positionZ;
+			D3DXVec3Normalize(&vertices[index].Position, &vertices[index].Position);
 			vertices[index].Uv.x = tu;
 			vertices[index].Uv.y = tv;
+			//D3DXVec2Normalize(&vertices[index].Uv, &vertices[index].Uv);
 		}
 	}
 

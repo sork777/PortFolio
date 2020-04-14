@@ -22,8 +22,7 @@ public:
 
 	virtual void Update() override;
 	virtual void Render() override;
-	virtual bool Property() override;
-	virtual Transform* GetTransform(const UINT& instance = 0) override;
+	virtual bool Property(const UINT& instance = 0) override;
 
 	virtual void Tech(const UINT& mesh, const UINT& model, const UINT& anim) override;
 	virtual void Pass(const UINT& mesh, const UINT& model, const UINT& anim) override;
@@ -32,17 +31,15 @@ public:
 
 	virtual void AddInstanceData() override;
 	virtual void DelInstanceData(const UINT& instance) override;
+	virtual const UINT& GetInstSize() override;
+
+	virtual Transform* GetTransform(const UINT& instance = 0) override;
 
 public:
-	//inline virtual const UINT& GetInstSize() override { return skeletonMesh->GetInstSize(); }
+	inline Model* GetMesh()				 { return skeletonMesh; }
 	inline ModelAnimator* GetAnimation() { return animation; }
-	inline ModelRender* GetRender() { return meshRender; }
-	inline Model* GetMesh() { return skeletonMesh; }
+	inline ModelRender* GetRender()		 { return meshRender; }
 	
-	inline void PlayAnim(const UINT& instance = 0);
-	inline void PlayClip(const UINT& instance, const UINT& clip, const float& speed = 1.0f, const float& takeTime = 1.0f);
-
-
 private:
 	Model* skeletonMesh;
 	ModelRender* meshRender;

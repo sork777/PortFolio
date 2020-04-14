@@ -176,6 +176,17 @@ BlendState AlphaBlend
     RenderTargetWriteMask[0] = 0x0F;
 };
 
+BlendState AlphaBlend2
+{
+    BlendEnable[0] = true;
+    DestBlend[0] = One;
+    SrcBlend[0] = SRC_ALPHA;
+    BlendOp[0] = Add;
+
+    SrcBlendAlpha[0] = SRC_ALPHA;
+    DestBlendAlpha[0] = INV_SRC_ALPHA;
+    RenderTargetWriteMask[0] = 0x0F;
+};
 BlendState AdditiveAlphaBlend
 {
     BlendEnable[0] = true;

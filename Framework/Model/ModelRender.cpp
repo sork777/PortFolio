@@ -18,14 +18,14 @@ void ModelRender::Update()
 	model->Update();
 }
 
-void ModelRender::Render()
+void ModelRender::Render(const int& drawCount)
 {
 	if (texture == NULL)
 		CreateTexture();
 
 	if (srv != NULL)
 		sTransformsSRV->SetResource(srv);
-	model->Render();
+	model->Render(drawCount);
 }
 
 void ModelRender::SetShader(Shader * shader)

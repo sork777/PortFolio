@@ -18,7 +18,7 @@ public:
 	void RegistAsset(ContentsAsset* asset);
 	//ÄÄÆ÷³ÍÆ® ¼Ò¸ê½Ã ÇØÁ¦
 	void UnRegistAsset(ContentsAsset* asset);
-	inline vector<ContentsAsset*>& GetAllAssets() { return registedAsset; }
+	vector<ContentsAsset*>& GetAllAssets() { return registedAsset; }
 	//inline ContentsAsset* GetSelectedAsset()	{ return registedAsset[selectedAsset]; }
 	
 	const bool& ShowAssets();

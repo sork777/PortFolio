@@ -52,7 +52,8 @@ void ObjectBaseComponent::Update()
 		if (NULL!= animator && parentSocket >= 0)
 		{
 			// 인스턴스만큼 위치 업뎃.
-			UINT instCount = modelMesh->GetInstSize();
+			// 에딧중이면 첫번째 인스턴스만.
+			UINT instCount = bEditMode? 1: modelMesh->GetInstSize();
 			for (UINT i = 0; i < instCount; i++)
 			{
 				Matrix world = modelMesh->GetTransform(i)->World();
@@ -63,18 +64,31 @@ void ObjectBaseComponent::Update()
 			}
 		}
 	}
+
 	//루트만 업데이트 호출하면 자식 자동 호출하게
 	for (ObjectBaseComponent* child : children)
+	{
+		// 에딧모드 아닌데 컴파일도 안되어있으면 배제
+		if (false == child->bEditMode && false == child->bCompiled) continue;
+		// 에딧모드인데 활성화 안되어있으면 배제
+		if (true  == child->bEditMode && false == child->bActive) continue;
+		
 		child->Update();
+	}
 }
 
 void ObjectBaseComponent::Render()
 {
 	for (ObjectBaseComponent* child : children)
+	{
+		if (false == child->bEditMode && false == child->bCompiled) continue;
+		if (true  == child->bEditMode && false == child->bActive) continue;
+
 		child->Render();
+	}
 }
 
-bool ObjectBaseComponent::Property()
+bool ObjectBaseComponent::Property(const UINT& instance)
 {
 	bool bChange = false;
 
@@ -109,6 +123,13 @@ bool ObjectBaseComponent::Property()
 	return bChange;
 }
 
+#pragma region Shader 관련
+
+void ObjectBaseComponent::SetShader(Shader * shader)
+{
+	this->shader = shader;
+}
+
 void ObjectBaseComponent::Tech(const UINT & mesh, const UINT & model, const UINT & anim)
 {
 	for (ObjectBaseComponent* child : children)
@@ -121,31 +142,73 @@ void ObjectBaseComponent::Pass(const UINT & mesh, const UINT & model, const UINT
 		child->Pass(mesh, model, anim);
 }
 
-void ObjectBaseComponent::SetShader(Shader * shader)
-{
-	this->shader = shader;
-	//for (ObjectBaseComponent* child : children)
-	//	child->SetShader(shader);
-}
+#pragma endregion
 
 void ObjectBaseComponent::AddInstanceData()
 {
-	instancingCount++;
+	int index = chageTrans.size();
+	chageTrans.emplace_back(false);
+	if (NULL != parent)
+		GetTransform(index)->Parent(parent->GetTransform(index));
 	for (ObjectBaseComponent* child : children)
 		child->AddInstanceData();
 }
 
 void ObjectBaseComponent::DelInstanceData(const UINT & instance)
 {
-	if(instancingCount>0)
-		instancingCount--;
-
+	if (instance >= chageTrans.size())
+		return;
+	chageTrans.erase(chageTrans.begin() + instance);
 	for (ObjectBaseComponent* child : children)
 		child->DelInstanceData(instance);
 }
 
+void ObjectBaseComponent::CompileComponent()
+{
+	//루트가 이동하면 안됨.
+	if (NULL != parent)
+	{
+		UINT instCount = GetInstSize();
+		for (UINT i = 0; i < instCount; i++)
+		{
+			//인스턴스마다 변경된 기본값으로 다시 이동
+			//개별 변동인 인스턴스는 냅둠
+			if(chageTrans[i] == false)
+				GetTransform(i)->Local(baseTransform);
+		}
+	}
+	// 컴파일 표시를 하여 업데이트 및 랜더되게 함.
+	bCompiled = true;
+	for (ObjectBaseComponent* child : children)
+	{
+		// 자식컴포넌트가 비활성화 상태면 언링크
+		// 아니면 컴파일
+		if (false == child->bActive)
+			UnlinkChildComponent(child);
+		else
+			child->CompileComponent();
+	}
+}
+
+void ObjectBaseComponent::ReadyToUnlinkComp()
+{
+	// 컴포넌트 비활성화
+	// 목록에서 제거 및 업데이트/랜더 배제	
+	// 에디터에서나 표현할것.
+	bActive = false;
+	for (ObjectBaseComponent* child : children)
+		child->bActive = false;
+}
+
+#pragma region Component 계층/팝업
+
 void ObjectBaseComponent::ComponentHeirarchy(OUT ObjectBaseComponent** selectedComp)
 {
+	// 비활성화된 컴포넌트 배제
+	if(false == bActive) return;
+
+
+
 	//아이템 시작지점
 	ImVec2 pos = ImGui::GetItemRectMin() - ImGui::GetWindowPos();
 	//윈도우 사이즈
@@ -198,6 +261,7 @@ void ObjectBaseComponent::ComponentPopup()
 		}
 		if (ImGui::BeginMenu("CollisionComponent"))
 		{
+			AddCollisionComponentPopup();
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("CameraComponent"))
@@ -226,9 +290,16 @@ void ObjectBaseComponent::AddFigureMeshComponentPopup()
 
 void ObjectBaseComponent::AddCollisionComponentPopup()
 {
-	//TODO : CollisionType 선택하기.
+	//TODO : 나중에 CollisionType 선택하기.
+	if (ImGui::Button("OBB_Collision"))
+	{
+		OBB_CollisionComponent* addComp = new OBB_CollisionComponent();
+	
+		LinkChildComponent(addComp);	
+	}
 }
 
+#pragma endregion
 
 #pragma region 부모자식 링크/언링크
 void ObjectBaseComponent::LinkParentComponent(ObjectBaseComponent * component)
@@ -237,6 +308,7 @@ void ObjectBaseComponent::LinkParentComponent(ObjectBaseComponent * component)
 
 	//컴포넌트의 인스턴싱 갯수 맞추는건 여기서 할거임.
 	UINT parentInst = component->GetInstSize();
+	UINT instancingCount = GetInstSize();
 	UINT maxLoop = parentInst > instancingCount ? parentInst : instancingCount;
 	for (UINT i = 0; i < maxLoop; i++)
 	{
@@ -261,6 +333,7 @@ void ObjectBaseComponent::UnlinkParentComponent()
 {
 	parent = NULL;
 
+	UINT instancingCount = GetInstSize();
 	// 이미 Link할때 갯수 맞췄으니 인스턴싱 데이터 맞춰서 삭제만 해주면 될것.
 	for (UINT i = 0; i < instancingCount; i++)
 	{

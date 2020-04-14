@@ -110,19 +110,61 @@ matrix QuattoMat(float4 quat)
     return result;
 }
 
-void DivideMat(out matrix S, out float4 Q, out matrix T, matrix mat)
+//void DivideMat(out matrix S, out float4 Q, out matrix T, matrix mat)
+//{
+//    S = T = 0;
+//    S._11 = mat._14;
+//    S._22 = mat._24;
+//    S._33 = mat._34;
+//    S._44 = mat._44;
+    
+//    matrix R = mat;
+//    R._14 = R._24 = R._34 = R._41 = R._42 = R._43 = 0;
+//    //회전행렬의 쿼터니온 변화
+//    Q = MattoQuat(R);
+        
+//    T._11 = T._22 = T._33 = 1;
+//    T._41 = mat._41;
+//    T._42 = mat._42;
+//    T._43 = mat._43;
+//    T._44 = mat._44;
+//}
+
+void MatrixDecompose(out matrix S, out float4 Q, out matrix T, matrix mat)
 {
     S = T = 0;
-    S._11 = mat._14;
-    S._22 = mat._24;
-    S._33 = mat._34;
-    S._44 = mat._44;
     
     matrix R = mat;
-    R._14 = R._24 = R._34 = R._41 = R._42 = R._41 = 0;
-    //회전행렬의 쿼터니온 변화
+    R._14 = R._24 = R._34 = R._41 = R._42 = R._43 = 0;
+    
+    float3 x = R._11_12_13;
+    float3 y = R._21_22_23;
+    float3 z = R._31_32_33;
+    
+    S._11 = length(x);
+    S._22 = length(y);
+    S._33 = length(z);
+    S._44 = mat._44;
+    
+    // 어차피 Slerp때 노멀라이즈 되고, 왠지 이거 하면 값 망함
+    //x = normalize(x);
+    //y = normalize(y);
+    //z = normalize(z);
+    
+    //R._11 = x.x;
+    //R._12 = x.y;
+    //R._13 = x.z;
+    
+    //R._21 = y.x;
+    //R._22 = y.y;
+    //R._23 = y.z;
+    
+    //R._31 = z.x;
+    //R._32 = z.y;
+    //R._33 = z.z;
     Q = MattoQuat(R);
-        
+    
+    
     T._11 = T._22 = T._33 = 1;
     T._41 = mat._41;
     T._42 = mat._42;

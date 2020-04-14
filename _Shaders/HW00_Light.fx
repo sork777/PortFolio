@@ -161,6 +161,7 @@ float CascadedShadow(float3 position)
 /////////////////////////////////////////////////////////////////////////////
 // Light Calculation
 /////////////////////////////////////////////////////////////////////////////
+uint UseCSM;
 float3 CalcDirectional(float3 position, DeferredMaterial material)
 {
 	// Phong diffuse
@@ -180,6 +181,7 @@ float3 CalcDirectional(float3 position, DeferredMaterial material)
     float specular = pow(RdotE, material.specIntensity);
     specular = saturate(specular);
     float shadowAtt = CascadedShadow(position);
+    shadowAtt = lerp(1, shadowAtt, UseCSM);
     //PBR
     {
         float3 albedo = material.diffuseColor.rgb;

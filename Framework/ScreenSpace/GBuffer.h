@@ -20,6 +20,8 @@ public:
 	
 	void RenderGBuffers();
 private:
+	PerFrame* perframe;
+private:
 	Shader* shader;
 	UINT pass = 0;
 	UINT tech = 0;

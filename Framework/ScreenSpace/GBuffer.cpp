@@ -5,6 +5,8 @@
 GBuffer::GBuffer(Shader* shader)
 	:shader(shader)
 {
+	perframe = new PerFrame(shader);
+
 	float width = D3D::Width();
 	float height = D3D::Height();
 
@@ -52,6 +54,7 @@ GBuffer::~GBuffer()
 
 void GBuffer::Update()
 {
+	perframe->Update();
 	Vector3 camPos;
 	Context::Get()->GetCamera()->Position(&camPos);
 
@@ -66,6 +69,8 @@ void GBuffer::Update()
 
 void GBuffer::Render()
 {
+	perframe->Render();
+
 	D3D::GetDC()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	shader->Draw(tech, pass, 4);
 }

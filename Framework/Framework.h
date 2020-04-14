@@ -102,7 +102,7 @@ typedef D3DXPLANE Plane;
 #include "Components/ObjectBase/ModelMeshComponent.h"	
 #include "Components/ObjectBase/FigureMeshComponent.h"	
 #include "Components/ObjectBase/CameraComponent.h"	
-#include "Components/ObjectBase/CollisionComponent.h"	
+#include "Components/ObjectBase/OBB_CollisionComponent.h"	
 
 #include "Components/CommonComponent.h"	
 #include "Components/Common/Material.h"	

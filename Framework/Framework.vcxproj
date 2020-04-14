@@ -27,9 +27,10 @@
     <ClCompile Include="Collision\SphereCollider.cpp" />
     <ClCompile Include="Components\ObjectBase\ObjectBaseComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\CameraComponent.cpp" />
-    <ClCompile Include="Components\ObjectBase\CollisionComponent.cpp" />
+    <ClCompile Include="Components\ObjectBase\OBB_CollisionComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\ModelMeshComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\FigureMeshComponent.cpp" />
+    <ClCompile Include="Editor\ActorEditor.cpp" />
     <ClCompile Include="Objects\Actor\Actor.cpp" />
     <ClCompile Include="Components\Common\MaterialPBR.cpp" />
     <ClCompile Include="Editor\AnimationEditor.cpp" />
@@ -136,11 +137,12 @@
     <ClInclude Include="Collision\OBBCollider.h" />
     <ClInclude Include="Collision\SphereCollider.h" />
     <ClInclude Include="Components\ObjectBase\CameraComponent.h" />
-    <ClInclude Include="Components\ObjectBase\CollisionComponent.h" />
+    <ClInclude Include="Components\ObjectBase\OBB_CollisionComponent.h" />
     <ClInclude Include="Components\ObjectBase\ObjectBaseComponent.h" />
     <ClInclude Include="Components\IComponent.h" />
     <ClInclude Include="Components\ObjectBase\ModelMeshComponent.h" />
     <ClInclude Include="Components\ObjectBase\FigureMeshComponent.h" />
+    <ClInclude Include="Editor\ActorEditor.h" />
     <ClInclude Include="Objects\Actor\Actor.h" />
     <ClInclude Include="Components\Common\MaterialPBR.h" />
     <ClInclude Include="Components\CommonComponent.h" />

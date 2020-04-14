@@ -7,7 +7,7 @@ public:
 	~ModelRender();
 
 	void Update();
-	void Render();
+	void Render(const int& drawCount =-1);
 
 	void Pass(UINT pass) { model->Pass(pass); }
 	void Tech(UINT tech) { model->Tech(tech); }

@@ -39,7 +39,11 @@ public:
 	~ModelAnimator();
 
 	void Update();
-	void Render();
+	//TODO: 나중에 모델 분리 하면 수정?
+	void Render(const int& drawCount = -1);
+
+	void Pass(const UINT& pass) { model->Pass(pass); }
+	void Tech(const UINT& tech) { model->Tech(tech); }
 
 	void SetShader(Shader* shader);
 
@@ -68,10 +72,10 @@ public:
 	inline const TweenDesc& GetCurrTween(const UINT& instance)	{ return tweenDesc[instance]; }
 
 public:
-	inline const UINT& ClipCount()			{ return clips.size(); }
-	inline vector<ModelClip *>& Clips()		{ return clips; }
-	inline ModelClip* ClipByIndex(const UINT& index)	{ return clips[index]; }
+	inline const UINT& ClipCount()	{ return clips.size(); }
+	vector<ModelClip *>& Clips()	{ return clips; }
 	ModelClip* ClipByName(const wstring& name);
+	inline ModelClip* ClipByIndex(const UINT& index)	{ return clips[index]; }
 
 private:
 	void UpdateTextureArray();
@@ -115,6 +119,10 @@ private:
 	ID3D11Texture2D* clipTextureArray = NULL;
 	ID3D11ShaderResourceView* clipSrv;
 	ID3DX11EffectShaderResourceVariable* sTransformsSRV;
+
+
+///////////////////////////////////////////////////////////////////////////////
+// CS 영역
 private:
 	struct CS_OutputDesc
 	{
@@ -126,6 +134,7 @@ private:
 	StructuredBuffer* computeBuffer = NULL;
 
 	CS_OutputDesc* csOutput = NULL;
+	CS_OutputDesc* csResult = NULL;
 	
 	ID3DX11EffectConstantBuffer* sComputeFrameBuffer;
 

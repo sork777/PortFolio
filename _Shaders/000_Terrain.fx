@@ -328,6 +328,7 @@ struct DomainOutput_Lod
     float4 Position : SV_Position0;
     float3 wPosition : Position1;
     float3 Normal : Normal0;
+    float3 Tangent : Tangent0;
     float2 Uv : Uv0;
     float2 TiledUv : Uv1; //offset을 통해 몇장 반복하는지를 정하는 uv?
      

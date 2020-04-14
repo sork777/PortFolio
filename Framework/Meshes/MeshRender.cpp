@@ -28,13 +28,18 @@ void MeshRender::Update()
 	mesh->Update();	
 }
 
-void MeshRender::Render()
+void MeshRender::Render(const int& drawCount)
 {
 	if (material != NULL)
 		material->Render();
 
 	instanceBuffer->Render();
-	mesh->Render(transforms.size());
+
+	int draw = drawCount;
+	if (drawCount <= 0)
+		draw = transforms.size();
+
+	mesh->Render(draw);
 }
 
 void MeshRender::AddInstance()

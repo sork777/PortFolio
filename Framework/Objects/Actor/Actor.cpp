@@ -5,15 +5,20 @@
 Actor::Actor(ModelMeshComponent* actorRoot)
 	:root(actorRoot)
 {
+	Initailize();
 }
 
 
 Actor::~Actor()
 {
+	Destroy();
 }
 
 void Actor::Initailize()
 {
+	bSpawningObject = false;
+	spawnInstance = -1;
+	spawnPos = Vector3(-1, -1, -1);
 }
 
 void Actor::Destroy()
@@ -48,6 +53,16 @@ void Actor::Render()
 
 void Actor::PostRender()
 {
+}
+
+void Actor::Tech(const UINT & mesh, const UINT & model, const UINT & anim)
+{
+	root->Tech(mesh, model, anim);
+}
+
+void Actor::Pass(const UINT & mesh, const UINT & model, const UINT & anim)
+{
+	root->Pass(mesh, model, anim);
 }
 
 void Actor::ShowCompHeirarchy(OUT ObjectBaseComponent** selectedComp)

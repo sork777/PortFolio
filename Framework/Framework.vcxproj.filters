@@ -255,7 +255,6 @@
     <ClCompile Include="Components\ObjectBase\ModelMeshComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\FigureMeshComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\CameraComponent.cpp" />
-    <ClCompile Include="Components\ObjectBase\CollisionComponent.cpp" />
     <ClCompile Include="Collision\Collider.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
@@ -280,6 +279,8 @@
     <ClCompile Include="Assets\ContentsAsset\ModelAsset.cpp" />
     <ClCompile Include="Assets\AssetManager.cpp" />
     <ClCompile Include="Assets\ContentsAsset\TextureAsset.cpp" />
+    <ClCompile Include="Editor\ActorEditor.cpp" />
+    <ClCompile Include="Components\ObjectBase\OBB_CollisionComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -602,7 +603,6 @@
     </ClInclude>
     <ClInclude Include="Components\ObjectBase\ModelMeshComponent.h" />
     <ClInclude Include="Components\ObjectBase\FigureMeshComponent.h" />
-    <ClInclude Include="Components\ObjectBase\CollisionComponent.h" />
     <ClInclude Include="Components\ObjectBase\CameraComponent.h" />
     <ClInclude Include="Collision\Collider.h">
       <Filter>Objects</Filter>
@@ -629,5 +629,7 @@
     <ClInclude Include="Assets\ContentsAsset\ModelAsset.h" />
     <ClInclude Include="Assets\AssetManager.h" />
     <ClInclude Include="Assets\ContentsAsset\TextureAsset.h" />
+    <ClInclude Include="Editor\ActorEditor.h" />
+    <ClInclude Include="Components\ObjectBase\OBB_CollisionComponent.h" />
   </ItemGroup>
 </Project>

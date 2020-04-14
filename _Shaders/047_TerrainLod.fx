@@ -96,11 +96,11 @@ DomainOutput_Lod DS(ConstantHullOutput_Lod input, const OutputPatch<HullOutput_L
     float bottomY = AlphaMap.SampleLevel(LinearSampler, bottom, 0).a * Lod.TerrainHeightRatio;
 
     //탄젠트는 x축 기울기와 같다
-    float3 tangent = normalize(float3(Lod.WorldCellSpace * 2.0f, rightY - leftY, 0.0f));
+    output.Tangent = normalize(float3(Lod.WorldCellSpace * 2.0f, rightY - leftY, 0.0f));
     //uv가 뒤집혀 있음에 주의
     float3 biTangent = normalize(float3(0.0f, bottomY - topY, Lod.WorldCellSpace * -2.0f));
     //높이차에 의한 노멀
-    output.Normal = cross(tangent, biTangent);
+    output.Normal = cross(output.Tangent, biTangent);
     
     const float MipInterval = 20.0f;
     float mipLevel = clamp((distance(output.wPosition, ViewPosition().xyz) - MipInterval) / MipInterval, 0.0f, 6.0f);
@@ -166,9 +166,10 @@ struct PS_Output
 PS_Output PS_Seperate(DomainOutput_Lod input)
 {
     PS_Output output;
+    
 
     float4 alpha = AlphaMap.Sample(LinearSampler, input.Uv);
-    float4 diffuse = GetTerrainColor(alpha, input.Uv);
+    float4 diffuse = GetTerrainColor(alpha, input.Uv*3.0f);
     float3 gridColor = GetLineColor(input.wPosition);
     float3 brushColor = GetBrushColor(input.wPosition);
     float3 normal = normalize(input.Normal);

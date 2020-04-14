@@ -254,7 +254,8 @@ float4 PS_CloudDome(VertexOutput_Dome input) : SV_Target0
     float4 color = saturate(density);
     float3 sunDir = (-normalize(GlobalLight.Direction));
     float3 up = float3(0, 1, 0);
-    float dayfactor = saturate(saturate(dot(sunDir, up)) + 0.01f);
+    float dayfactor = dot(sunDir, up);
+    dayfactor = clamp(dayfactor, 0.3f, 1.0f);
     color.rgb *= dayfactor;
     
     return color;
@@ -273,7 +274,7 @@ technique11 T0
     P_DSS_VP(P1, DSS, VS_Dome, PS_Dome)
     P_DSS_BS_VP(P2, DSS, AlphaBlend, VS_Cloud, PS_Cloud)
     P_BS_VP(P3, AlphaBlend, VS_Moon, PS_Moon)
-    P_DSS_BS_VP(P4, DSS, AdditiveAlphaBlend, VS_CloudDome, PS_CloudDome)
-    P_RS_DSS_BS_VP(P5,WireFrameRS, DSS, AdditiveAlphaBlend, VS_CloudDome, PS_CloudDome)
+    P_DSS_BS_VP(P4, DSS, AlphaBlend2, VS_CloudDome, PS_CloudDome)
+    P_RS_DSS_BS_VP(P5, WireFrameRS, DSS, AlphaBlend2, VS_CloudDome, PS_CloudDome)
     //P_RS_DSS_BS_VP(P4, WireFrameRS,DSS, AdditiveAlphaBlend, VS_CloudDome, PS_CloudDome)
 }

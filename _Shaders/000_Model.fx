@@ -323,8 +323,10 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
         
         //클립간 보간
         {
-            DivideMat(cS, cQ, cT, currAnim);
-            DivideMat(nS, nQ, nT, nextAnim);
+            //DivideMat(cS, cQ, cT, currAnim);
+            //MatrixDecompose(cS, cQ, cT, currAnim);
+            MatrixDecompose(cS, cQ, cT, currAnim);
+            MatrixDecompose(nS, nQ, nT, nextAnim);
             cS = lerp(cS, nS, Tweenframes[input.InstID].TweenTime);
             cQ = normalize(lerp(cQ, nQ, Tweenframes[input.InstID].TweenTime));
             cR = QuattoMat(cQ);
@@ -334,8 +336,8 @@ void SetAnimationWorld(inout matrix world, VertexModel input)
             currAnim = mul(currAnim, cT);
         
             
-            DivideMat(cS, cQ, cT, cedit);
-            DivideMat(nS, nQ, nT, nedit);
+            MatrixDecompose(cS, cQ, cT, cedit);
+            MatrixDecompose(nS, nQ, nT, nedit);
             cS = lerp(cS, nS, Tweenframes[input.InstID].TweenTime);
             cQ = normalize(lerp(cQ, nQ, Tweenframes[input.InstID].TweenTime));
             cR = QuattoMat(cQ);

@@ -11,7 +11,7 @@ ModelAnimator::ModelAnimator(Model * model)
 	sFrameBuffer = shader->AsConstantBuffer("CB_AnimationFrame");
 	sTransformsSRV = shader->AsSRV("TransformsMap");
 
-	computeShader = new Shader(L"030_Collider.fx");
+	computeShader = new Shader(L"PF_AttachBone.fx");
 	
 	sUav = computeShader->AsUAV("Output");
 	sComputeFrameBuffer = computeShader->AsConstantBuffer("CB_AnimationFrame");
@@ -45,7 +45,7 @@ void ModelAnimator::Update()
 	model->Update();	
 }
 
-void ModelAnimator::Render()
+void ModelAnimator::Render(const int& drawCount)
 {
 	if (computeBuffer == NULL)
 	{
@@ -56,23 +56,11 @@ void ModelAnimator::Render()
 		sTransformsSRV->SetResource(clipSrv);
 
 
-	model->Render();
+	model->Render(drawCount);
 	frameBuffer->Apply();
 
 	sFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
-	bool bChangeCS = model->IsDataChanged();
-	if (computeBuffer != NULL || bChangeCS == true)
-	{
-		sComputeFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
-		
-		computeShader->AsSRV("TransformsMap")->SetResource(clipSrv);
-		computeShader->AsSRV("AnimEditTransformMap")->SetResource(model->GetEditSrv());
-		sUav->SetUnorderedAccessView(computeBuffer->UAV());
-
-		computeShader->Dispatch(0, 0, model->GetInstSize(), 1, 1);
-		computeBuffer->Copy(csOutput, sizeof(CS_OutputDesc) * MAX_MODEL_TRANSFORMS*MAX_MODEL_INSTANCE);
-		model->SetChangeStateOff();
-	}
+	
 }
 
 void ModelAnimator::SetShader(Shader * shader)
@@ -99,11 +87,21 @@ Matrix ModelAnimator::GetboneWorld(const UINT& instance, const UINT& boneIndex)
 
 		return temp;
 	}
+	if (computeBuffer != NULL)
+	{
+		sComputeFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
 
-	UINT index = instance * MAX_MODEL_TRANSFORMS + boneIndex;
-	//Matrix result = csOutput[index].Result;
+		// 본인덱스를 통해 모델의 트랜스폼 맵에서 필요한 부분만 빼옴.
+		computeShader->AsScalar("BoneIndex")->SetInt(boneIndex);
+		computeShader->AsSRV("TransformsMap")->SetResource(clipSrv);
+		computeShader->AsSRV("AnimEditTransformMap")->SetResource(model->GetEditSrv());
+		sUav->SetUnorderedAccessView(computeBuffer->UAV());
 
-	return csOutput[index].Result;
+		computeShader->Dispatch(0, 0, 1, 1, 1);
+		computeBuffer->Copy(csOutput, sizeof(CS_OutputDesc) * MAX_MODEL_INSTANCE);
+	}
+
+	return csOutput[instance].Result;
 }
 
 #pragma region 데이터 추가
@@ -233,32 +231,7 @@ void ModelAnimator::AddClip(const wstring& file, const wstring& directoryPath)
 	int addClipIndex = ClipCount() - 1;
 	CreateClipTransform(addClipIndex);
 
-	ModelClip* clip = ClipByIndex(addClipIndex);
-	
-	///* 변환 해줄 텍스쳐 데이터의 박스 영역 */
-	//D3D11_BOX destRegion;
-	///* 행 하나의 크기 */
-	//destRegion.left = 0;
-	//destRegion.right = 4 * MAX_MODEL_TRANSFORMS;
-	//destRegion.front = addClipIndex;
-	//destRegion.back = addClipIndex + 1;
-
-	//for(UINT y = 0; y < clip->FrameCount(); y++)
-	//{
-	//	/* 변경할 frame의 위치  */
-	//	destRegion.top = y;
-	//	destRegion.bottom = y + 1;
-	//	/* 업데이트 */
-	//	D3D::GetDC()->UpdateSubresource
-	//	(
-	//		clipTexture,
-	//		0,
-	//		&destRegion,
-	//		clipTransforms[addClipIndex].Transform[y],
-	//		sizeof(Matrix)*MAX_MODEL_TRANSFORMS,
-	//		0
-	//	);
-	//}
+	ModelClip* clip = ClipByIndex(addClipIndex);	
 }
 
 void ModelAnimator::AddSocket(const int& parentBoneIndex, const wstring& bonename)
@@ -416,7 +389,6 @@ ModelClip * ModelAnimator::ClipByName(const wstring& name)
 /* 
 	1. 이 함수가 만드는 텍스쳐는 오로지 애니메이션의 트랜스 폼만 갖게 할거임
 	2. 클립이 추가 될때마다 재생성 할거임
-	... 쓸데없이 뺑 돌아왔다...
 */
 void ModelAnimator::UpdateTextureArray()
 {
@@ -524,28 +496,13 @@ void ModelAnimator::CreateClipTransform(const UINT& index)
 				animation = S * R * T;
 
 				bones[b] = animation * parent;
-				//clipTransforms[index].Transform[f][b] = invGlobal*bones[b];
 			}
 			else
 			{
 				bones[b] = parent;
-				//clipTransforms[index].Transform[f][b] = bone->BoneWorld()*bones[b];
-			}
-			Matrix S,R,T,result;
-			Vector3 scale, pos;
-			Quaternion Q;
-			D3DXMatrixDecompose(&scale, &Q, &pos, &bones[b]);
-			D3DXMatrixScaling(&S, scale.x, scale.y, scale.z);
-			D3DXMatrixRotationQuaternion(&R, &Q);
-			D3DXMatrixTranslation(&T, pos.x, pos.y, pos.z);
-			result = R * T;
-			result._14 = scale.x;
-			result._24 = scale.y;
-			result._34 = scale.z;
+			}		
 
-			clipTransforms[index].Transform[f][b] = result;
-
-			//clipTransforms[index].Transform[f][b] = bones[b];
+			clipTransforms[index].Transform[f][b] = bones[b];
 		}//for(b)
 	}//for(f)
 }
@@ -558,7 +515,7 @@ void ModelAnimator::CreateNoClipTransform(const UINT& index)
 
 void ModelAnimator::CreateComputeDesc()
 {
-	UINT outSize = MAX_MODEL_TRANSFORMS*MAX_MODEL_INSTANCE;
+	UINT outSize = MAX_MODEL_INSTANCE;
 	
 	computeBuffer = new StructuredBuffer
 	(
@@ -566,6 +523,7 @@ void ModelAnimator::CreateComputeDesc()
 		sizeof(CS_OutputDesc), outSize,
 		true
 	);
+	csResult = new CS_OutputDesc[outSize];
 
 	if (csOutput == NULL)
 	{

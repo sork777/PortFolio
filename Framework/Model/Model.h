@@ -19,7 +19,7 @@ public:
 	void SetShader(Shader* shader);
 
 	void Update();
-	void Render();
+	void Render(const int& drawCount = -1);
 	
 	void Pass(const UINT& pass);
 	void Tech(const UINT& tech);
@@ -121,12 +121,6 @@ private:
 	ID3DX11EffectShaderResourceVariable* sAnimEditSRV;
 
 	Matrix animEditTrans[MAX_ANIMATION_CLIPS][MAX_MODEL_TRANSFORMS];
-
-public:
-	inline const bool& IsDataChanged() { return bChangeCS; }
-	inline void SetChangeStateOff() { bChangeCS=false; }
-private:
-	bool bChangeCS = true;
 
 #pragma endregion
 public:

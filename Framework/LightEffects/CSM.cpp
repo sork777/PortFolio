@@ -132,6 +132,7 @@ void CSM::Set()
 	shadowbuffer->Apply();
 	sShadowBuffer->SetConstantBuffer(shadowbuffer->Buffer());
 	shader->AsSRV("CSMTexture")->SetResource(srv);
+	shader->AsScalar("UseCSM")->SetInt(1);
 }
 
 void CSM::UpdateVolume()
