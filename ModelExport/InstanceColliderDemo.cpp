@@ -372,7 +372,7 @@ void InstanceColliderDemo::ImGUIController()
 		{
 			kachujin->PlayAnim();
 			if (brepeat != true)
-				if (selectedFrame >= kachujin->GetFrameCount(instance) - 1)
+				if (selectedFrame >= (int)kachujin->GetFrameCount(instance) - 1)
 				{
 					bPlay = false;
 					selectedFrame = 0;

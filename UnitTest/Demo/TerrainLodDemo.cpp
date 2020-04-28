@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "TerrainLodDemo.h"
-#include "Objects/Actor/Actor.h"
 #include "Environment/Sky/Atmosphere.h"
 #include "Environment/TerrainLod.h"
 
@@ -42,7 +41,6 @@ void TerrainLodDemo::Initialize()
 	}
 	//디퍼드를 위한 터레인용 마테리얼
 	terrainMat = new Material(terrainShader);
-	//terrainMat->Specular(1, 1, 1, 1);
 	
 	ssao = new SSAO();
 		
@@ -69,7 +67,13 @@ void TerrainLodDemo::Update()
 	/*Vector3 pos = Vector3(0, 30, 0);
 	cubeTex->Position(pos);
 */
-	if (NULL != actor)
+	bool bEdit = false;
+	if (NULL != editor)
+	{
+		bEdit = editor->IsEditMode();
+		editor->Update();
+	}
+	if (false == bEdit && NULL != actor)
 	{
 		static bool bSpwan = false;
 		actor->Update();
@@ -88,16 +92,23 @@ void TerrainLodDemo::Update()
 			bSpwan = true;
 		}
 
+		if (ImGui::Button("TestActorEditor"))
+		{
+			editor = new ActorEditor(actor);
+		}
 		ImGui::Separator();
-		actor->ShowCompHeirarchy(&selecedComp);
+		/*actor->ShowCompHeirarchy(&selecedComp);
 		if (selecedComp != NULL)
-			selecedComp->Property();		
+			selecedComp->Property();		*/
 	}
 
 }
 
 void TerrainLodDemo::PreRender()
 {
+	if (NULL != editor)
+		editor->PreRender();
+
 	/*for (ContentsAsset* asset : AssetManager::Get()->GetAllAssets())
 	{
 		asset->CreateButtonImage();
@@ -141,7 +152,8 @@ void TerrainLodDemo::Render()
 	//gBuffer->RenderGBuffers();
 	//ssao->RenderSSAO();
 	//AssetManager::Get()->ShowAssets();
-
+	if (NULL != editor)
+		editor->Render();
 	if (NULL != actor)
 	{
 		ObjectBaseComponent* root = actor->GetRootMeshData();
@@ -174,9 +186,6 @@ void TerrainLodDemo::SetGBuffer()
 
 void TerrainLodDemo::CreateBaseActor()
 {
-	Texture* testTex =new Texture(L"MaterialPBR/ibl_brdf_lut.png");
-	TextureAsset* textasset = new TextureAsset(testTex);
-
 	Model* model = new Model(shader);
 	model->ReadMaterial(L"Kachujin/Mesh", L"../../_Textures/Model/");
 	model->ReadMesh(L"Kachujin/Mesh", L"../../_Models/");
@@ -198,7 +207,8 @@ void TerrainLodDemo::CreateBaseActor()
 		animator->ReadClip(L"Kachujin/Jump", L"../../_Models/");
 	}
 
-	actor = new Actor(modelMesh);
+	actor = new Actor();
+	actor->SetRootComponent(modelMesh);
 	actor->GetRootMeshData()->SetShader(shader);
 
 	model = new Model(shader);
@@ -214,6 +224,6 @@ void TerrainLodDemo::CreateBaseActor()
 
 	//modelMesh->AttachSocket(L"RightHand");
 	actor->GetRootMeshData()->LinkChildComponent(modelMesh);
-
+	
 	selecedComp = actor->GetRootMeshData();
 }

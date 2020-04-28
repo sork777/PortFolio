@@ -72,7 +72,7 @@ public:
 	inline const TweenDesc& GetCurrTween(const UINT& instance)	{ return tweenDesc[instance]; }
 
 public:
-	inline const UINT& ClipCount()	{ return clips.size(); }
+	const UINT& ClipCount()			{ return clips.size(); }
 	vector<ModelClip *>& Clips()	{ return clips; }
 	ModelClip* ClipByName(const wstring& name);
 	inline ModelClip* ClipByIndex(const UINT& index)	{ return clips[index]; }

@@ -2,38 +2,69 @@
 #include "../000_Model.fx"
 #include "../000_Light.fx"
 
-struct CollisionOBB
+struct OBB_Input
 {
-    float3 OBBPosition;
-
-    float3 OBBAxisX;
-    float3 OBBAxisY;
-    float3 OBBAxisZ;
-
-    float3 OBBHalfSize;
+    matrix data;
+};
+struct Sphere_Input
+{
+    float3 Pos;
+    float Radius;
+};
+struct Cap_Input
+{
+    float3 Start;
+    float Radius;
+    float3 Dir;
+    float Height;
 };
 
-struct CollisionCapsule
+StructuredBuffer<OBB_Input> OBB_Datas;
+//StructuredBuffer<Sphere_Input> Sphere_Datas;
+//StructuredBuffer<Cap_Input> Cap_Datas;
+
+struct Col_Output
 {
-    float3 CapStart;
-    float CapRadius;
-    float3 CapDir;
-    float CapHeight;
+    int bCollsion;
+    float3 MaxRound;
+    float3 MinRound;
+    float dist;
 };
 
-struct CollisionSphere
-{
-    float3 SpherePos;
-    float SphereRadius;
-};
+///////////////////////////////////////////////////////////////////////////////
+// 앞쪽이 기준 오브젝트 뒤쪽이 충돌한 오브젝트
+// 충돌 : OBB -1 Sph - 2 Cap - 4 합산
 
-bool Check_OBBToOBB(CollisionOBB obb1, CollisionOBB obb2)
+bool Collision_OBBToOBB(CollisionOBB box1, CollisionOBB box2)
 {
-    bool bCollision = false;
-    
-    return bCollision;
+    float position = box2.Position - box1.Position;
+
+	/* 각 박스의 면 법선벡터로 얻은 축 */
+	if (SperatingPlane(position, box1.AxisX, box1, box2) == true) return false;
+	if (SperatingPlane(position, box1.AxisY, box1, box2) == true) return false;
+	if (SperatingPlane(position, box1.AxisZ, box1, box2) == true) return false;
+
+	if (SperatingPlane(position, box2.AxisX, box1, box2) == true) return false;
+	if (SperatingPlane(position, box2.AxisY, box1, box2) == true) return false;
+	if (SperatingPlane(position, box2.AxisZ, box1, box2) == true) return false;
+
+	/* box1과 box2의 Edge 하나씩을 Cross시켜 얻은 축 */
+	if (SperatingPlane(position, cross(box1.AxisX, box2.AxisX), box1, box2) == true) return false;
+	if (SperatingPlane(position, cross(box1.AxisX, box2.AxisY), box1, box2) == true) return false;
+	if (SperatingPlane(position, cross(box1.AxisX, box2.AxisZ), box1, box2) == true) return false;
+
+	if (SperatingPlane(position, cross(box1.AxisY, box2.AxisX), box1, box2) == true) return false;
+	if (SperatingPlane(position, cross(box1.AxisY, box2.AxisY), box1, box2) == true) return false;
+	if (SperatingPlane(position, cross(box1.AxisY, box2.AxisZ), box1, box2) == true) return false;
+								 
+	if (SperatingPlane(position, cross(box1.AxisZ, box2.AxisX), box1, box2) == true) return false;
+	if (SperatingPlane(position, cross(box1.AxisZ, box2.AxisY), box1, box2) == true) return false;
+	if (SperatingPlane(position, cross(box1.AxisZ, box2.AxisZ), box1, box2) == true) return false;
+
+    return true;
 }
-bool Check_OBBToSphere(CollisionOBB obb, CollisionSphere sphere)
+
+bool Collision_OBBToSphere(CollisionOBB obb, CollisionSphere sphere)
 { 
     bool bCollision = false;
     /*
@@ -43,14 +74,14 @@ bool Check_OBBToSphere(CollisionOBB obb, CollisionSphere sphere)
     */
     float3 axis[3];
     float size[3];
-    axis[0] = obb.OBBAxisX;
-    axis[1] = obb.OBBAxisY;
-    axis[2] = obb.OBBAxisZ;
-    size[0] = obb.OBBHalfSize.x;
-    size[1] = obb.OBBHalfSize.y;
-    size[2] = obb.OBBHalfSize.z;
+    axis[0] = obb.AxisX;
+    axis[1] = obb.AxisY;
+    axis[2] = obb.AxisZ;
+    size[0] = obb.HalfSize.x;
+    size[1] = obb.HalfSize.y;
+    size[2] = obb.HalfSize.z;
     float3 q;
-    ClosestPtPointOBB(sphere.SpherePos, obb.OBBPosition, axis, size, q);
+    ClosestPtPointOBB(sphere.SpherePos, obb.Position, axis, size, q);
     
     float3 d = length(q - sphere.SpherePos);
     
@@ -61,7 +92,7 @@ bool Check_OBBToSphere(CollisionOBB obb, CollisionSphere sphere)
     return bCollision;
 }
 
-bool Check_OBBToCapsule(CollisionOBB obb, CollisionCapsule cap)
+bool Collision_OBBToCapsule(CollisionOBB obb, CollisionCapsule cap)
 {
     bool bCollision = false;
     
@@ -70,15 +101,15 @@ bool Check_OBBToCapsule(CollisionOBB obb, CollisionCapsule cap)
     
     float3 axis[3];
     float size[3];
-    axis[0] = obb.OBBAxisX;
-    axis[1] = obb.OBBAxisY;
-    axis[2] = obb.OBBAxisZ;
-    size[0] = obb.OBBHalfSize.x;
-    size[1] = obb.OBBHalfSize.y;
-    size[2] = obb.OBBHalfSize.z;
+    axis[0] = obb.AxisX;
+    axis[1] = obb.AxisY;
+    axis[2] = obb.AxisZ;
+    size[0] = obb.HalfSize.x;
+    size[1] = obb.HalfSize.y;
+    size[2] = obb.HalfSize.z;
     float3 qS,qE;
-    ClosestPtPointOBB(capS, obb.OBBPosition, axis, size, qS);
-    ClosestPtPointOBB(capE, obb.OBBPosition, axis, size, qE);
+    ClosestPtPointOBB(capS, obb.Position, axis, size, qS);
+    ClosestPtPointOBB(capE, obb.Position, axis, size, qE);
     float3 dS = length(qS - capS);
     float3 dE = length(qE - capE);
     
@@ -92,7 +123,8 @@ bool Check_OBBToCapsule(CollisionOBB obb, CollisionCapsule cap)
     return bCollision;
 }
 
-bool Check_SphereToSphere(CollisionSphere sphere1, CollisionSphere sphere2)
+
+bool Collision_SphereToSphere(CollisionSphere sphere1, CollisionSphere sphere2)
 {
     bool bCollision = false;
     /*
@@ -109,7 +141,7 @@ bool Check_SphereToSphere(CollisionSphere sphere1, CollisionSphere sphere2)
     return bCollision;
 }
 
-bool Check_SphereToCapsule(CollisionCapsule cap, CollisionSphere sphere)
+bool Collision_SphereToCapsule(CollisionCapsule cap, CollisionSphere sphere)
 {
     bool bCollision = false;
      
@@ -133,7 +165,8 @@ bool Check_SphereToCapsule(CollisionCapsule cap, CollisionSphere sphere)
     return bCollision;
 }
 
-bool Check_CapsuleToCapsule(CollisionCapsule cap1, CollisionCapsule cap2)
+
+bool Collision_CapsuleToCapsule(CollisionCapsule cap1, CollisionCapsule cap2)
 {
     bool bCollision = false;
     
@@ -161,6 +194,8 @@ bool Check_CapsuleToCapsule(CollisionCapsule cap1, CollisionCapsule cap2)
     
     return bCollision;
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 technique11 T0
 {

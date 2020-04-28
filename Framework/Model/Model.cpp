@@ -647,7 +647,7 @@ void Model::AddSocketEditData(const UINT& boneID, const UINT& clipCount)
 const int& Model::BoneHierarchy(int* click)
 {
 	/* ÆÄÃ÷ ¼±ÅÃ */
-	ImGui::BeginChild("BoneHierarchy");
+	//ImGui::BeginChild("BoneHierarchy");
 	{
 		for (UINT i = 0; i < bones.size(); i++)
 		{
@@ -656,7 +656,7 @@ const int& Model::BoneHierarchy(int* click)
 				ChildBones(root,click);
 		}
 	}
-	ImGui::EndChild();
+	//ImGui::EndChild();
 	return selectedBoneNum;
 }
 

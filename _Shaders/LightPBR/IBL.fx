@@ -58,6 +58,13 @@ float3 ImportanceSampleGGX(float2 Xi, float Roughness, float3 normalVec)
 	// Tangent to world space
     return normalize((TangentX * halfwayVec.x) + (TangentY * halfwayVec.y) + (normalVec * halfwayVec.z));
 }
+Texture2D PreintegratedFG;
+
+float3 RadianceIBLIntegration(float NdotV, float roughness, float3 specular)
+{
+    float2 preintegratedFG = PreintegratedFG.Sample(LinearSampler, float2(roughness, NdotV)).rg;
+    return specular * preintegratedFG.r + preintegratedFG.g;
+}
 
 float2 IBLmain(MeshOutput input) : SV_TARGET
 {

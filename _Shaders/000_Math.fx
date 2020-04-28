@@ -4,6 +4,10 @@
 #define PI 3.1415926535897932384626433832795
 #define INV_PI 1.0 / PI
 #define EPSILON 0.00000001
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // 행렬 분해, 쿼터니온과 행렬 변환
 float4 MattoQuat(matrix input)
@@ -110,25 +114,7 @@ matrix QuattoMat(float4 quat)
     return result;
 }
 
-//void DivideMat(out matrix S, out float4 Q, out matrix T, matrix mat)
-//{
-//    S = T = 0;
-//    S._11 = mat._14;
-//    S._22 = mat._24;
-//    S._33 = mat._34;
-//    S._44 = mat._44;
-    
-//    matrix R = mat;
-//    R._14 = R._24 = R._34 = R._41 = R._42 = R._43 = 0;
-//    //회전행렬의 쿼터니온 변화
-//    Q = MattoQuat(R);
-        
-//    T._11 = T._22 = T._33 = 1;
-//    T._41 = mat._41;
-//    T._42 = mat._42;
-//    T._43 = mat._43;
-//    T._44 = mat._44;
-//}
+///////////////////////////////////////////////////////////////////////////////
 
 void MatrixDecompose(out matrix S, out float4 Q, out matrix T, matrix mat)
 {
@@ -146,22 +132,6 @@ void MatrixDecompose(out matrix S, out float4 Q, out matrix T, matrix mat)
     S._33 = length(z);
     S._44 = mat._44;
     
-    // 어차피 Slerp때 노멀라이즈 되고, 왠지 이거 하면 값 망함
-    //x = normalize(x);
-    //y = normalize(y);
-    //z = normalize(z);
-    
-    //R._11 = x.x;
-    //R._12 = x.y;
-    //R._13 = x.z;
-    
-    //R._21 = y.x;
-    //R._22 = y.y;
-    //R._23 = y.z;
-    
-    //R._31 = z.x;
-    //R._32 = z.y;
-    //R._33 = z.z;
     Q = MattoQuat(R);
     
     
@@ -171,8 +141,6 @@ void MatrixDecompose(out matrix S, out float4 Q, out matrix T, matrix mat)
     T._43 = mat._43;
     T._44 = mat._44;
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 float CatMulRom_CalT(float ti, float3 Pi, float3 Pj)
 {
@@ -340,3 +308,71 @@ void ClosestPtSegmentSegment(float3 segAS, float3 segAE, float3 segBS, float3 se
     c1 = segAS + s * segA_Dir;
     c2 = segBS + t * segB_Dir;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Collision
+struct CollisionOBB
+{
+    float3 Position;
+
+    float3 AxisX;
+    float3 AxisY;
+    float3 AxisZ;
+
+    float3 HalfSize;
+};
+
+struct CollisionCapsule
+{
+    float3 CapStart;
+    float CapRadius;
+    float3 CapDir;
+    float CapHeight;
+};
+
+struct CollisionSphere
+{
+    float3 SpherePos;
+    float SphereRadius;
+};
+
+CollisionOBB MatrixtoOBB(matrix world)
+{
+    CollisionOBB output;
+    
+    float3 x = world._11_12_13;
+    float3 y = world._21_22_23;
+    float3 z = world._31_32_33;
+    
+    output.AxisX = x;
+    output.AxisY = y;
+    output.AxisZ = z;
+    
+    output.HalfSize.x = length(x);
+    output.HalfSize.y = length(y);
+    output.HalfSize.z = length(z);
+    
+    output.Position.x = world._41;
+    output.Position.y = world._42;
+    output.Position.z = world._43;
+    
+    return output;
+}
+
+
+int SperatingPlane(float3 position, float3 direction, CollisionOBB box1, CollisionOBB box2)
+{
+    float val = abs(dot(position, direction));
+
+    float val2 = 0.0f;
+    val2 += abs(dot((box1.AxisX * box1.HalfSize.x), direction));
+    val2 += abs(dot((box1.AxisY * box1.HalfSize.y), direction));
+    val2 += abs(dot((box1.AxisZ * box1.HalfSize.z), direction));
+    val2 += abs(dot((box2.AxisX * box2.HalfSize.x), direction));
+    val2 += abs(dot((box2.AxisY * box2.HalfSize.y), direction));
+    val2 += abs(dot((box2.AxisZ * box2.HalfSize.z), direction));
+
+    return (val > val2) ? 1 : 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////

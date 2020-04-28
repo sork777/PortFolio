@@ -313,7 +313,7 @@ struct VertexOutput_Lod
 struct ConstantHullOutput_Lod
 {
     float Edge[4] : SV_TessFactor;
-    float inside[2] : SV_InsideTessFactor;
+    float Inside[2] : SV_InsideTessFactor;
 };
 
 

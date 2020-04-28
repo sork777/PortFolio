@@ -145,6 +145,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PF", "PF", "{5758A2B6-CBB6-4305-B10E-079158DEC43B}"
 	ProjectSection(SolutionItems) = preProject
 		_Shaders\PF_AttachBone.fx = _Shaders\PF_AttachBone.fx
+		_Shaders\PF_ObjectPicker.fx = _Shaders\PF_ObjectPicker.fx
 	EndProjectSection
 EndProject
 Global

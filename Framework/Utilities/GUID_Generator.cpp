@@ -11,6 +11,22 @@ const UINT GUID_Generator::Generate()
 	return static_cast<UINT>(hasher(GenerateToString()));
 }
 
+const Color GUID_Generator::GenerateColor()
+{
+	std::hash<std::string> hasher;
+
+	UINT number = static_cast<UINT>(hasher(GenerateToString()));
+	Color returnColor = Color(0, 0, 0, 0);
+	returnColor.a = number % 255;
+	number /= 255;
+	returnColor.b = number % 255;
+	number /= 255;
+	returnColor.g = number % 255;
+	number /= 255;
+	returnColor.r = number % 255;
+	return returnColor;
+}
+
 const string GUID_Generator::GenerateToString()
 {
 	GUID guid;

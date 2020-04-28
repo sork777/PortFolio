@@ -3,16 +3,14 @@
 #include "../BaseObject.h"
 
 /*
-	일단 얘 관련은 여기에 때려박고 나중에 수정하자..
-
-	액터 배치까지 하고 나면 애니메이션 에디터를 컴포넌트 연계로 수정할것.
-
+	얘를 상속받아 Actor 오브젝트를 따로 만들어서 쓸것.
+	애니메이션 설정들을 전부 직접 작성.
 */
 class Actor :public BaseObject
 {
 public:
-	Actor(ModelMeshComponent* actorRoot);
-	~Actor();
+	Actor();
+	virtual ~Actor();
 
 	// BaseObject을(를) 통해 상속됨
 	virtual void Initailize() override;
@@ -22,20 +20,21 @@ public:
 	virtual void Render() override;
 	virtual void PostRender() override;
 
-
 	void Tech(const UINT& mesh, const UINT& model, const UINT& anim);
 	void Pass(const UINT& mesh, const UINT& model, const UINT& anim);
-
+	
 public:
 	Transform* GetTransform(const UINT& instance = 0);
 	void AddInstanceData();
 	void DelInstanceData(const UINT& instance);
 
 public:
+	void ActorCompile() { root->CompileComponent(); }
 	void SetEditMode(const bool& bEdit) { root->SetEditMode(bEdit); }
 
 ///////////////////////////////////////////////////////////////////////////////
 public:
+	inline void SetRootComponent(ModelMeshComponent* actorRoot) { root = actorRoot; }
 	inline ModelMeshComponent* GetRootMeshData() { return root; }
 
 public:

@@ -21,17 +21,23 @@ void OBB_CollisionComponent::Update()
 	int loop = bEditMode ? 1 : colliders.size();
 	for (int i=0;i< loop;i++)
 	{
-		colliders[0]->Update();
+		colliders[i]->Update();
 	}
 	Super::Update();
 }
 
 void OBB_CollisionComponent::Render()
 {
-	int loop = bEditMode ? 1 : colliders.size();
-	for (int i = 0; i < loop; i++)
+	if (true == bEditMode)
 	{
-		colliders[0]->Render(lineColor);
+		colliders[0]->PreRender(lineColor);
+	}
+	else
+	{
+		for (int i = 0; i < colliders.size(); i++)
+		{
+			colliders[i]->Render(lineColor);
+		}
 	}
 	Super::Render();
 }

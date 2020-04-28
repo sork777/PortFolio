@@ -53,17 +53,19 @@ public:
 	virtual Transform* GetTransform(const UINT& instance = 0) abstract;
 	
 public:
-	//컴포넌트 인스턴싱의 초기 트랜스폼
-	inline Transform* GetBaseTransform()		{ return baseTransform; }
+	inline const int& GetSocket()			{ return parentSocket; }
+	inline wstring& ComponentName()			{ return componentName; }
+	inline Transform* GetBaseTransform()	{ return baseTransform; }
 	inline ObjectBaseComponentType& GetType()	{ return type; }
-	inline wstring& ComponentName()				{ return componentName; }
-	inline void SetEditMode(const bool& bEdit)	{ bEditMode = bEdit; }
 
 public:
+	void SetEditMode(const bool& bEdit);
 	void CompileComponent();
 	void ReadyToUnlinkComp();
+
 protected:
 	Shader*		shader;
+	//컴포넌트 인스턴싱의 초기 트랜스폼
 	Transform*	baseTransform;
 	vector<bool> chageTrans;
 
@@ -73,7 +75,7 @@ protected:
 	int	 parentSocket = -1;
 	bool bEditMode	= false;
 	bool bCompiled	= false;	// 씬에서 적용 :: 
-	bool bActive	= true;		//에딧모드에서만 적용 :: 링크하면 기본적으로 활성화
+	bool bActive	= true;		// 에딧모드에서만 적용 :: 링크하면 기본적으로 활성화
 ///////////////////////////////////////////////////////////////////////////////
 // 컴포넌트 계층구조 관련
 public:

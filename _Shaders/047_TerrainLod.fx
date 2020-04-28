@@ -25,11 +25,25 @@ ConstantHullOutput_Lod HS_Constant(InputPatch<VertexOutput_Lod, 4> input)
     float3 boxExtents = (vMin - vMax) * 0.5f;
 
     ConstantHullOutput_Lod output;
-    if (UseLOD<1)
+    [flatten]
+    if (ContainFrustumCube(boxCenter, boxExtents))
     {
-        output.Edge[0] = output.Edge[1] = 
-        output.Edge[2] = output.Edge[3] = 
-        output.inside[0] = output.inside[1] = Lod.MaxTessellation;
+        output.Edge[0] = 0;
+        output.Edge[1] = 0;
+        output.Edge[2] = 0;
+        output.Edge[3] = 0;
+
+        output.Inside[0] = 0;
+        output.Inside[1] = 0;
+
+        return output;
+    }
+    [flatten]
+    if (UseLOD < 1)
+    {
+        output.Edge[0] = output.Edge[1] =
+        output.Edge[2] = output.Edge[3] =
+        output.Inside[0] = output.Inside[1] = Lod.MaxTessellation;
         return output;
 
     }
@@ -47,8 +61,8 @@ ConstantHullOutput_Lod HS_Constant(InputPatch<VertexOutput_Lod, 4> input)
 
     float3 c = (input[0].Position + input[1].Position + input[2].Position + input[3].Position).xyz;
     c *= 0.25f;
-    output.inside[0] = TessFactor(c);
-    output.inside[1] = TessFactor(c);
+    output.Inside[0] = TessFactor(c);
+    output.Inside[1] = TessFactor(c);
 
     return output;
 }

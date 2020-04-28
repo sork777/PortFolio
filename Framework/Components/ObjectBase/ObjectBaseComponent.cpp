@@ -163,6 +163,13 @@ void ObjectBaseComponent::DelInstanceData(const UINT & instance)
 		child->DelInstanceData(instance);
 }
 
+void ObjectBaseComponent::SetEditMode(const bool & bEdit)
+{
+	bEditMode = bEdit;
+	for (ObjectBaseComponent* child : children)
+		child->SetEditMode(bEdit);
+}
+
 void ObjectBaseComponent::CompileComponent()
 {
 	//루트가 이동하면 안됨.

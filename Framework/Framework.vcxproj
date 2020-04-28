@@ -31,6 +31,7 @@
     <ClCompile Include="Components\ObjectBase\ModelMeshComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\FigureMeshComponent.cpp" />
     <ClCompile Include="Editor\ActorEditor.cpp" />
+    <ClCompile Include="Objects\ObjectPicker.cpp" />
     <ClCompile Include="Objects\Actor\Actor.cpp" />
     <ClCompile Include="Components\Common\MaterialPBR.cpp" />
     <ClCompile Include="Editor\AnimationEditor.cpp" />
@@ -69,6 +70,7 @@
     <ClCompile Include="ParticleSystem\ParticleEmitter.cpp" />
     <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
     <ClCompile Include="Effect\TrailRenderer.cpp" />
+    <ClCompile Include="Objects\Actor\Player.cpp" />
     <ClCompile Include="PostEffects\Fog.cpp" />
     <ClCompile Include="Utilities\GUID_Generator.cpp" />
     <ClCompile Include="Utilities\ImGuizmo.cpp" />
@@ -143,6 +145,7 @@
     <ClInclude Include="Components\ObjectBase\ModelMeshComponent.h" />
     <ClInclude Include="Components\ObjectBase\FigureMeshComponent.h" />
     <ClInclude Include="Editor\ActorEditor.h" />
+    <ClInclude Include="Objects\ObjectPicker.h" />
     <ClInclude Include="Objects\Actor\Actor.h" />
     <ClInclude Include="Components\Common\MaterialPBR.h" />
     <ClInclude Include="Components\CommonComponent.h" />
@@ -191,6 +194,7 @@
     <ClInclude Include="ParticleSystem\ParticleEmitter.h" />
     <ClInclude Include="ParticleSystem\ParticleSystem.h" />
     <ClInclude Include="Effect\TrailRenderer.h" />
+    <ClInclude Include="Objects\Actor\Player.h" />
     <ClInclude Include="PostEffects\Fog.h" />
     <ClInclude Include="Utilities\GUID_Generator.h" />
     <ClInclude Include="Utilities\ImGuizmo.h" />

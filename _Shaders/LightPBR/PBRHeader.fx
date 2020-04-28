@@ -91,12 +91,28 @@ float3 FresnelSchlick(float cosTheta, float3 F0)   // cosTheta is n.v and F0 is 
 {
     return (F0 + (1.0f - F0) * pow(1.0 - cosTheta, 5.0f));
 }
-
+float FresnelSchlick(float f0, float fd90, float view)
+{
+    return f0 + (fd90 - f0) * pow(max(1.0f - view, 0.1f), 5.0f);
+}
 float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)   // cosTheta is n.v and F0 is the base reflectivity
 {
     return F0 + (max(float3(1.0f - roughness, 1.0f - roughness, 1.0f - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0f);
 }
 
+float Disney(float NdotL, float LdotH, float NdotV, float roughness)
+{
+   
+    float energyBias = lerp(0.0f, 0.5f, roughness);
+    float energyFactor = lerp(1.0f, 1.0f / 1.51f, roughness);
+    float fd90 = energyBias + 2.0f * (LdotH * LdotH) * roughness;
+    float f0 = 1.0f;
+
+    float lightScatter = FresnelSchlick(f0, fd90, NdotL);
+    float viewScatter = FresnelSchlick(f0, fd90, NdotV);
+
+    return lightScatter * viewScatter * energyFactor;
+}
 
 float4 CalcSkyIrradiance(float3 normal)
 {

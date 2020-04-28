@@ -34,7 +34,7 @@ void ModelMeshComponent::Update()
 
 		//TODO: 플레이 선택에 따라 변경해야함.
 		int loop = bEditMode ? 1 : GetInstSize();
-		for (int i = 0; i < bEditMode; i++)
+		for (int i = 0; i < loop; i++)
 			animation->PlayAnim(i);
 	}
 	else if (meshRender != NULL)

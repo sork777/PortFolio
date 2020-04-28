@@ -281,6 +281,8 @@
     <ClCompile Include="Assets\ContentsAsset\TextureAsset.cpp" />
     <ClCompile Include="Editor\ActorEditor.cpp" />
     <ClCompile Include="Components\ObjectBase\OBB_CollisionComponent.cpp" />
+    <ClCompile Include="Objects\Actor\Player.cpp" />
+    <ClCompile Include="Objects\ObjectPicker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -631,5 +633,7 @@
     <ClInclude Include="Assets\ContentsAsset\TextureAsset.h" />
     <ClInclude Include="Editor\ActorEditor.h" />
     <ClInclude Include="Components\ObjectBase\OBB_CollisionComponent.h" />
+    <ClInclude Include="Objects\Actor\Player.h" />
+    <ClInclude Include="Objects\ObjectPicker.h" />
   </ItemGroup>
 </Project>

@@ -29,7 +29,7 @@ public:
 	void AddInstance();
 	void DelInstance(const UINT& instance);
 
-	inline const UINT& GetInstSize()						{ return transforms.size(); }
+	const UINT& GetInstSize()						{ return transforms.size(); }
 	inline Transform* GetTransform(const UINT& instance)	{ return transforms[instance]; }
 protected:
 	void AddTransform();
@@ -47,18 +47,18 @@ public:
 	inline const wstring& MeshDir()			{ return meshDirPath; }
 
 public:
-	inline const UINT& MaterialCount()					{ return materials.size(); }
+	const UINT& MaterialCount()					{ return materials.size(); }
 	inline vector<Material *>& Materials()				{ return materials; }
 	inline Material* MaterialByIndex(const UINT& index)	{ return materials[index]; }
 	Material* MaterialByName(const wstring& name);
 
-	inline const UINT& BoneCount()						{ return bones.size(); }
+	const UINT& BoneCount()								{ return bones.size(); }
 	inline vector<ModelBone *>& Bones()					{ return bones; }
 	inline ModelBone* BoneByIndex(const UINT& index)	{ return bones[index]; }
 	ModelBone* BoneByName(const wstring& name);
 	const int& BoneIndexByName(const wstring& name);
 
-	inline const UINT& MeshCount()						{ return meshes.size(); }
+	const UINT& MeshCount()						{ return meshes.size(); }
 	inline vector<ModelMesh *>& Meshes()				{ return meshes; }
 	inline ModelMesh* MeshByIndex(const UINT& index)	{ return meshes[index]; }
 	ModelMesh* MeshByName(const wstring& name);

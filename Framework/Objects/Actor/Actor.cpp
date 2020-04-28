@@ -2,8 +2,8 @@
 
 
 
-Actor::Actor(ModelMeshComponent* actorRoot)
-	:root(actorRoot)
+Actor::Actor()	
+	:root(NULL)
 {
 	Initailize();
 }
@@ -28,6 +28,8 @@ void Actor::Destroy()
 
 void Actor::Update()
 {
+	if (NULL == root) return;
+
 	root->Update();
 
 	//밖으로 빼도 될것같은데...?
@@ -48,6 +50,7 @@ void Actor::PreRender()
 
 void Actor::Render()
 {
+	if (NULL == root) return;
 	root->Render();
 }
 
@@ -57,23 +60,21 @@ void Actor::PostRender()
 
 void Actor::Tech(const UINT & mesh, const UINT & model, const UINT & anim)
 {
+	if (NULL == root) return;
 	root->Tech(mesh, model, anim);
 }
 
 void Actor::Pass(const UINT & mesh, const UINT & model, const UINT & anim)
 {
+	if (NULL == root) return;
 	root->Pass(mesh, model, anim);
 }
 
 void Actor::ShowCompHeirarchy(OUT ObjectBaseComponent** selectedComp)
 {
-	bool bDocking = true;
+	if (NULL == root) return;
 	/* 파츠 선택 */
-	ImGui::Begin("ComponentHierarchy", &bDocking);
-	{
-		root->ComponentHeirarchy(selectedComp);
-	}
-	ImGui::End();
+	root->ComponentHeirarchy(selectedComp);
 }
 
 void Actor::SetSpawnPosition(const Vector3 & position)
@@ -84,11 +85,12 @@ void Actor::SetSpawnPosition(const Vector3 & position)
 
 Transform * Actor::GetTransform(const UINT & instance)
 {
-	return root->GetTransform(instance);
+	return root ? root->GetTransform(instance) : NULL;
 }
 
 void Actor::AddInstanceData()
 {
+	if (NULL == root) return;
 	//스폰 관련은 나중에 밖으로 빼도 될것 같다.
 	spawnInstance = root->GetInstSize();
 	root->AddInstanceData();
@@ -98,5 +100,6 @@ void Actor::AddInstanceData()
 
 void Actor::DelInstanceData(const UINT & instance)
 {
+	if (NULL == root) return;
 	root->DelInstanceData(instance);
 }

@@ -3,50 +3,39 @@
 
 
 
-QuadTreeNode::QuadTreeNode()
-	:collider(NULL)
+QuadTreeNode::QuadTreeNode(QuadTree* tree)
+	:tree(tree)
 {
+	collider = tree->collider;
+	colInst = collider->GetSize();
 }
 
 QuadTreeNode::~QuadTreeNode()
 {
-	SafeDelete(collider);
 
 	for(QuadTreeNode* child:children)
 		SafeDelete(child);
 	children.shrink_to_fit();
 }
 
-void QuadTreeNode::Render(Color color)
-{
-	if (children.size() < 1)
-	{
-		collider->Render(color);
-	}
-	else
-	{
-		for (QuadTreeNode* child : children)
-			child->Render(color);
-	}
-}
-
-void QuadTreeNode::SetCollider(OBBCollider * collider)
-{
-	this->collider = collider;
-}
 void QuadTreeNode::AddChild(QuadTreeNode* child)
 {
 	children.emplace_back(child);
+}
+
+const bool & QuadTreeNode::IsIntersect(Collider * other)
+{
+	// TODO: 여기에 반환 구문을 삽입합니다.
+	return collider->IsIntersect(other, colInst);
 }
 
 QuadTreeNode* QuadTreeNode::GetPickedNode(Vector3& rayPos, Vector3 & rayDir, float& minDist)
 {
 	QuadTreeNode* resultNode = NULL;
 
-	collider->Update();
 	float dist;
 	//충돌 통과 시 실행
-	if (collider->IsIntersectRay(rayPos, rayDir, dist))
+	if (collider->IsIntersectRay(rayPos, rayDir, dist,colInst))
 	{
 		//충돌 했는데 자식 없으면 최종 노드로 내보냄
 		if (children.size() < 1)
@@ -71,8 +60,8 @@ QuadTreeNode* QuadTreeNode::GetPickedNode(Vector3& rayPos, Vector3 & rayDir, flo
 QuadTreeNode * QuadTreeNode::GetPickedNode(Vector3 & position)
 {
 	QuadTreeNode* resultNode = NULL;
-	Vector3 colmax = collider->GetMaxRound();
-	Vector3 colmin = collider->GetMinRound();
+	Vector3 colmax = collider->GetMaxRound(colInst);
+	Vector3 colmin = collider->GetMinRound(colInst);
 	//충돌 통과 시 실행
 	
 	if (colmax.x>position.x && colmin.x < position.x &&
@@ -98,17 +87,25 @@ QuadTreeNode * QuadTreeNode::GetPickedNode(Vector3 & position)
 QuadTree::QuadTree(QuadTreeNode* Root)
 	:RootNode(Root)
 {
+	collider = new OBBCollider();
 }
 
 
 QuadTree::~QuadTree()
 {
 	SafeDelete(RootNode);
+	SafeDelete(collider);
 }
 
-void QuadTree::Render(Color color)
+void QuadTree::Update()
 {
-	RootNode->Render(color);
+	collider->Update();
+}
+
+void QuadTree::Render()
+{
+	//RootNode->Render();
+	collider->Render();
 }
 
 QuadTreeNode* QuadTree::GetPickedNode(Vector3& rayPos, Vector3& rayDir)

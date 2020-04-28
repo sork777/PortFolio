@@ -42,6 +42,7 @@ private:
 private:
 	void CreateBaseActor();
 private:
+	ActorEditor* editor = NULL;
 	Actor* actor;
 	ObjectBaseComponent* selecedComp = NULL;
 };

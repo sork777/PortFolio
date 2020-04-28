@@ -7,7 +7,7 @@
 	애니메이션 플레이 확인
 	본의 수정 같은 애니메이션 에딧 관련은 따로둠
 */
-
+class Actor;
 
 
 class ActorEditor :public IEditor
@@ -25,7 +25,8 @@ public:
 	virtual void Render() override;
 	virtual void PostRender() override;
 
-	inline void IsEditing(const bool& bEdit = false) { this->bEdit = bEdit; }
+	void EditModeOn() { bEdit = true; }
+	const bool& IsEditMode() { return bEdit; }
 private:
 	void ImguiWindow_Begin();
 	void ImguiWindow_End();
@@ -33,12 +34,15 @@ private:
 private:
 	void imguiWinChild_CompHeirarchy(const ImVec2& size = ImVec2(0, 0));
 	void imguiWinChild_CompProperty(const ImVec2& size = ImVec2(0, 0));
-	void ImguiWinChild_BoneHeirarchy(const ImVec2& size = ImVec2(0, 0));
-	void ImguiWinChild_AnimCon();
+	void ImguiWinChild_AnimCon(const ImVec2& size = ImVec2(0, 0));
 
 private:
+	//void CompileButton();
+	void PlayButton();
 	bool ViewAnims();
 	void Animate();	
+
+	void RenderGizmo(Transform* sTransform);
 
 private:
 	enum class AnimationState : UINT
@@ -59,30 +63,31 @@ private:
 	GizmoType gizmoType = GizmoType::None;
 private:
 	int selectedFrame	= 0;
-	
+	//int selectedBone = 0;
 	int selectedClip = 0;
+
 	float takeTime	= 1.0f;
 	bool bPlay		= false;
 	bool bAnimate	= false;
 	bool bEdit		= false;
 
 private:
-	Shader*				shader;	
+	Shader*	shader;	
 	
+	ModelAnimator*	curAnimator = NULL;
+	Model* curModel	= NULL;
+	Actor* actor	= NULL;
+
+	ObjectBaseComponent* selecedComp = NULL;
 	vector<ModelClip*>	clips;
-	vector<Transform*>	boneTrans;
-	
-	ModelAnimator*		curAnimator;
-	Actor* actor		= NULL;
-
 	Vector3 originActorPosition;
-
 private:
 	// 환경
 	class Sky*	sky;
 	Material*	floor;
 	MeshRender* grid;
 
+	class Orbit* orbitCam;
 	RenderTarget* renderTarget;
 	DepthStencil* depthStencil;
 	ID3D11ShaderResourceView* editSrv;

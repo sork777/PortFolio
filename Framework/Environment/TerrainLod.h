@@ -29,7 +29,6 @@ public:
 	
 	void Update();
 	void Render();
-	void ColliderRender();
 	void TerrainController();
 
 	Texture* AlphaTexture() { return alphaTexture; }
@@ -111,7 +110,7 @@ private:
 	struct LineColorDesc
 	{
 		Color Color = D3DXCOLOR(0, 1, 0, 1);	//¿Ã∏ß¿Ã ∞„√ƒº≠ πŸ≤„¡‹
-		UINT Visible = 1;
+		UINT Visible = 0;
 		float Thickness = 0.1f;
 		float Size = 1.0f;
 

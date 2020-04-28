@@ -193,7 +193,6 @@ void Gui::SetGizmo(Transform * sTransform, class Transform* parentTransform, boo
 	this->parentTransform = parentTransform;
 	//리버스가 true면 sTransform의 Parent쪽이 변경을 원하는 쪽
 	this->bReverse = bReverse;
-	//this->bUseparent = bUseparent;
 }
 
 void Gui::RenderGizmo()

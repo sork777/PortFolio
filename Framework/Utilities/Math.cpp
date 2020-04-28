@@ -22,6 +22,15 @@ float Math::ToDegree(float radian)
 	return radian * 180.0f / PI;
 }
 
+Vector3 Math::Cross(Vector3 & vec1, Vector3 & vec2)
+{
+	float x = vec1.y*vec2.z - vec1.z*vec2.y;
+	float y = vec1.z*vec2.x - vec1.x*vec2.z;
+	float z = vec1.x*vec2.y - vec1.y*vec2.x;
+
+	return Vector3(x, y, z);
+}
+
 float Math::Random(float r1, float r2)
 {
 	float random = ((float)rand()) / (float)RAND_MAX;
@@ -31,9 +40,9 @@ float Math::Random(float r1, float r2)
 	return r1 + val;
 }
 
-D3DXVECTOR2 Math::RandomVec2(float r1, float r2)
+Vector2 Math::RandomVec2(float r1, float r2)
 {
-	D3DXVECTOR2 result;
+	Vector2 result;
 	result.x = Random(r1, r2);
 	result.y = Random(r1, r2);
 
@@ -80,7 +89,7 @@ float Math::Clamp(float value, float min, float max)
 	return value;
 }
 
-void Math::LerpMatrix(OUT D3DXMATRIX & out, const D3DXMATRIX & m1, const D3DXMATRIX & m2, float amount)
+void Math::LerpMatrix(OUT Matrix & out, const Matrix & m1, const Matrix & m2, float amount)
 {
 	out._11 = m1._11 + (m2._11 - m1._11) * amount;
 	out._12 = m1._12 + (m2._12 - m1._12) * amount;
@@ -102,7 +111,7 @@ void Math::LerpMatrix(OUT D3DXMATRIX & out, const D3DXMATRIX & m1, const D3DXMAT
 	out._43 = m1._43 + (m2._43 - m1._43) * amount;
 	out._44 = m1._44 + (m2._44 - m1._44) * amount;
 }
-void Math::LerpMatrixSRT(OUT D3DXMATRIX & out, const D3DXMATRIX & m1, const D3DXMATRIX & m2, float amount)
+void Math::LerpMatrixSRT(OUT Matrix & out, const Matrix & m1, const Matrix & m2, float amount)
 {
 	Transform c, n, r;
 	Matrix cm=m1, nm=m2;
@@ -239,125 +248,125 @@ float Math::fABS(const float& val)
 {
 	return val >= 0.0f ? val : -val;
 }
-
-Vector3 Math::ClosestPtPointSegment(const Vector3& pt, const Vector3& segA, const Vector3& segB)
-{
-	float t;
-	Vector3 d;
-	Vector3 segDir = segB - segA;
-	t = D3DXVec3Dot(&(pt - segA), &segDir);
-
-	if (t <= 0.0f)      //dot이 음수라 segA 앞쪽으로 수선의 발이 내림
-	{
-		t = 0.0f;
-		d = segA;    //가장 가까운 지점은 segA
-	}
-	else
-	{
-		float denom = D3DXVec3Dot(&segDir, &segDir);    //선분의 길이 제곱.
-		
-		if (t >= denom)  //선분 길이를 벗어남 segB 뒤로 수선의 발
-		{
-			t = 1.0f;
-			d = segB;
-		}
-		else          //선분 내에 안착
-		{
-			t /= denom;
-			d = segA + t * segDir;
-		}
-	}
-	return d;
-}
-
-void Math::ClosestPtPointOBB(const Vector3 & pt, const Vector3 & obbCenter, const Vector3 obbAxis[3], const float obbSize[3], OUT Vector3 & q)
-{
-	Vector3 d = pt - obbCenter;
-	q = obbCenter;
-	for (int i = 0; i < 3; i++)
-	{
-		/*
-			점과 박스의 센터를 연결한 선분을
-			각 축에 투영시켜 해당 축으로 얼만큼 크기가 커져야 하는지 계산.
-		*/
-		float dist = D3DXVec3Dot(&d, &obbAxis[i]);
-
-		if (dist > obbSize[i])
-			dist = obbSize[i];
-		if (dist < -obbSize[i])
-			dist = -obbSize[i];
-		q += dist * obbAxis[i];
-	}
-}
-
-void Math::ClosestPtSegmentSegment(const Vector3 & segAS, const Vector3 & segAE, const Vector3 & segBS, const Vector3 & segBE, OUT Vector3 & c1, OUT Vector3 & c2)
-{
-	/*
-	   segA(s) = segAS + s * segA_Dir
-	   segB(t) = segBS + t * segB_Dir
-	   0 <= s,t <= 1
-   */
-	float s, t;
-	Vector3 segA_Dir = segAE - segAS;
-	Vector3 segB_Dir = segBE - segBS;
-	Vector3 r = segAS - segBS;
-
-	float segA_SqLen = D3DXVec3Dot(&segA_Dir, &segA_Dir);
-	float segB_SqLen = D3DXVec3Dot(&segB_Dir, &segB_Dir);
-	float f = D3DXVec3Dot(&segB_Dir, &r);
-
-	if (segA_SqLen <= Math::EPSILON && segB_SqLen <= Math::EPSILON)
-	{
-		s = t = 0.0f;
-		c1 = segAS;
-		c2 = segBS;
-		return;
-	}
-
-	if (segA_SqLen <= Math::EPSILON)
-	{
-		s = 0.0f;
-		t = f / segB_SqLen; // s = 0 => t = (b*s + f) / segB_SqLen = f / segB_SqLen
-		t = Math::Clamp(t, 0.0f, 1.0f);
-	}
-	else
-	{
-		float c = D3DXVec3Dot(&segA_Dir, &r);
-		if (segB_SqLen <= Math::EPSILON)
-		{
-			t = 0.0f;
-			s = Math::Clamp(-c / segA_SqLen, 0.0f, 1.0f);
-		}
-		else
-		{
-			float b = D3DXVec3Dot(&segA_Dir, &segB_Dir);
-			float denom = segA_SqLen * segB_SqLen - b * b; // 무조건 양수로 나옴
-
-			if (denom != 0.0f)
-			{
-				s = Math::Clamp((b*f - c * segB_SqLen) / denom, 0.0f, 1.0f);
-			}
-			else
-			{
-				s = 0.0f;
-			}
-
-			t = (b*s + f) / segB_SqLen;
-
-			if (t < 0.0f)
-			{
-				t = 0.0f;
-				s = Math::Clamp(-c / segA_SqLen, 0.0f, 1.0f);
-			}
-			else if (t > 1.0f)
-			{
-				t = 1.0f;
-				s = Math::Clamp((b - c) / segA_SqLen, 0.0f, 1.0f);
-			}
-		}
-	}
-
-	c1 = segAS + segA_Dir * s;
-	c2 = segBS + segB_Dir * t;
-
-}
+//
+//Vector3 Math::ClosestPtPointSegment(const Vector3& pt, const Vector3& segA, const Vector3& segB)
+//{
+//	float t;
+//	Vector3 d;
+//	Vector3 segDir = segB - segA;
+//	t = D3DXVec3Dot(&(pt - segA), &segDir);
+//
+//	if (t <= 0.0f)      //dot이 음수라 segA 앞쪽으로 수선의 발이 내림
+//	{
+//		t = 0.0f;
+//		d = segA;    //가장 가까운 지점은 segA
+//	}
+//	else
+//	{
+//		float denom = D3DXVec3Dot(&segDir, &segDir);    //선분의 길이 제곱.
+//		
+//		if (t >= denom)  //선분 길이를 벗어남 segB 뒤로 수선의 발
+//		{
+//			t = 1.0f;
+//			d = segB;
+//		}
+//		else          //선분 내에 안착
+//		{
+//			t /= denom;
+//			d = segA + t * segDir;
+//		}
+//	}
+//	return d;
+//}
+//
+//void Math::ClosestPtPointOBB(const Vector3 & pt, const Vector3 & obbCenter, const Vector3 obbAxis[3], const float obbSize[3], OUT Vector3 & q)
+//{
+//	Vector3 d = pt - obbCenter;
+//	q = obbCenter;
+//	for (int i = 0; i < 3; i++)
+//	{
+//		/*
+//			점과 박스의 센터를 연결한 선분을
+//			각 축에 투영시켜 해당 축으로 얼만큼 크기가 커져야 하는지 계산.
+//		*/
+//		float dist = D3DXVec3Dot(&d, &obbAxis[i]);
+//
+//		if (dist > obbSize[i])
+//			dist = obbSize[i];
+//		if (dist < -obbSize[i])
+//			dist = -obbSize[i];
+//		q += dist * obbAxis[i];
+//	}
+//}
+//
+//void Math::ClosestPtSegmentSegment(const Vector3 & segAS, const Vector3 & segAE, const Vector3 & segBS, const Vector3 & segBE, OUT Vector3 & c1, OUT Vector3 & c2)
+//{
+//	/*
+//	   segA(s) = segAS + s * segA_Dir
+//	   segB(t) = segBS + t * segB_Dir
+//	   0 <= s,t <= 1
+//   */
+//	float s, t;
+//	Vector3 segA_Dir = segAE - segAS;
+//	Vector3 segB_Dir = segBE - segBS;
+//	Vector3 r = segAS - segBS;
+//
+//	float segA_SqLen = D3DXVec3Dot(&segA_Dir, &segA_Dir);
+//	float segB_SqLen = D3DXVec3Dot(&segB_Dir, &segB_Dir);
+//	float f = D3DXVec3Dot(&segB_Dir, &r);
+//
+//	if (segA_SqLen <= Math::EPSILON && segB_SqLen <= Math::EPSILON)
+//	{
+//		s = t = 0.0f;
+//		c1 = segAS;
+//		c2 = segBS;
+//		return;
+//	}
+//
+//	if (segA_SqLen <= Math::EPSILON)
+//	{
+//		s = 0.0f;
+//		t = f / segB_SqLen; // s = 0 => t = (b*s + f) / segB_SqLen = f / segB_SqLen
+//		t = Math::Clamp(t, 0.0f, 1.0f);
+//	}
+//	else
+//	{
+//		float c = D3DXVec3Dot(&segA_Dir, &r);
+//		if (segB_SqLen <= Math::EPSILON)
+//		{
+//			t = 0.0f;
+//			s = Math::Clamp(-c / segA_SqLen, 0.0f, 1.0f);
+//		}
+//		else
+//		{
+//			float b = D3DXVec3Dot(&segA_Dir, &segB_Dir);
+//			float denom = segA_SqLen * segB_SqLen - b * b; // 무조건 양수로 나옴
+//
+//			if (denom != 0.0f)
+//			{
+//				s = Math::Clamp((b*f - c * segB_SqLen) / denom, 0.0f, 1.0f);
+//			}
+//			else
+//			{
+//				s = 0.0f;
+//			}
+//
+//			t = (b*s + f) / segB_SqLen;
+//
+//			if (t < 0.0f)
+//			{
+//				t = 0.0f;
+//				s = Math::Clamp(-c / segA_SqLen, 0.0f, 1.0f);
+//			}
+//			else if (t > 1.0f)
+//			{
+//				t = 1.0f;
+//				s = Math::Clamp((b - c) / segA_SqLen, 0.0f, 1.0f);
+//			}
+//		}
+//	}
+//
+//	c1 = segAS + segA_Dir * s;
+//	c2 = segBS + segB_Dir * t;
+//
+//}
