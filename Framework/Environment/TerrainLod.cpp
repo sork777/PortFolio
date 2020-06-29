@@ -52,7 +52,7 @@ TerrainLod::TerrainLod(InitializeInfo& info)
 	bufferDesc.TexelCellSpaceU = 1.0f / ((float)width);
 	bufferDesc.TexelCellSpaceV = 1.0f / ((float)height);
 	bufferDesc.HeightRatio = info.HeightRatio;
-	
+	bufferDesc.TexScale = info.CellSpacing*2.0f;
 	lineColorDesc.Size = info.CellSpacing*2.0f;
 
 	patchVertexRows = (width / info.CellsPerPatch) + 1;
@@ -70,17 +70,18 @@ TerrainLod::TerrainLod(InitializeInfo& info)
 	//else
 
 	QuadTreeNode* root = CreateQuadTreeData(NULL,Vector2(0, 0), Vector2(width, height));
+	//quadTree->SetRootNode(root);
 	quadTree = new QuadTree(root);
-	
+
 	vertexBuffer = new VertexBuffer(vertices, vertexCount, sizeof(VertexTerrain));
 	indexBuffer = new IndexBuffer(indices, indexCount);
 
 
 	TestCol = new OBBCollider();
-	TestCol->AddInstance(new Transform());
+	//TestCol->AddInstance(new Transform());
 	TestCol->GetTransform()->Scale(1, 3, 1);
 	AreaCol = new OBBCollider();
-	AreaCol->AddInstance(new Transform());
+	//AreaCol->AddInstance(new Transform());
 }
 
 
@@ -309,6 +310,7 @@ void TerrainLod::AlphaTexture(wstring file, bool bUseAlpha)
 	SafeDelete(quadTree);
 	QuadTreeNode* root = CreateQuadTreeData(NULL, Vector2(0, 0), Vector2(width, height));
 	quadTree = new QuadTree(root);
+	//quadTree->SetRootNode(root);
 }
 
 void TerrainLod::LayerTextures(wstring layer, UINT layerIndex)
@@ -484,13 +486,16 @@ Vector3 TerrainLod::GetPickedPosition()
 	//n에서 f로 쏜 방향
 	direction = f - n;
 	start = n;
-	static QuadTreeNode* selectedQNode = NULL;
-	selectedQNode=quadTree->GetPickedNode(start,direction);
+	QuadTreeNode* selectedQNode = NULL;
+	float minDst;
+	selectedQNode=quadTree->GetPickedNode(start,direction, minDst);
 	//선택노드 없으면 리턴
 	if (selectedQNode == NULL)
 		return Vector3(-1, -1, -1);
+	D3DXVec3Normalize(&direction, &direction);
 
-	return quadTree->GetCollider()->GetSelectPos();
+	// 선택좌표는 최단거리를 통해 계산
+	return start + direction * minDst;
 }
 
 float TerrainLod::GetPickedHeight()
@@ -614,7 +619,6 @@ void TerrainLod::HeightNoise()
 	UpdateAlphaMap(1, 2);
 }
 
-
 void TerrainLod::HeightSmoothing()
 {
 	UpdateAlphaMap(0, 2);
@@ -691,15 +695,17 @@ void TerrainLod::UpdateAlphaMap(UINT pass, UINT tech)
 	SafeRelease(texture);
 }
 
+//void TerrainLod::CheckQuadCollider(QuadTreeNode* node, vector< QuadTreeNode*>& updateNode)
 void TerrainLod::CheckQuadCollider(QuadTreeNode* node, Collider* collider, vector< QuadTreeNode*>& updateNode)
 {
-	if (node->IsIntersect(collider))
+	node->GetCollider()->Update();
+	if (node->GetCollider()->IsIntersect(collider))
 	{
 		if (node->HasChilds())
 		{
 			for (QuadTreeNode* child : node->GetChildren())
 			{
-				CheckQuadCollider(child, collider, updateNode);
+				CheckQuadCollider(child,collider, updateNode);
 			}
 		}
 		else
@@ -730,18 +736,24 @@ void TerrainLod::UpdateQuadHeight()
 	AreaCol->Update();
 
 	vector< QuadTreeNode*> temp4updateNode;
-	quadTree->Update();
-	CheckQuadCollider(quadTree->GetRootNode(), AreaCol, temp4updateNode);
+	CheckQuadCollider(quadTree->RootNode, AreaCol, temp4updateNode);
+	/*quadTree->Update();
+	OBBCollider* col = quadTree->GetCollider();*/
+	
+	//OBB끼리 충돌을 T0,P1로 해놨음
+	// 충돌 계산 직후에 값을 사용할것
+	//col->ComputeCollider(0, 0, AreaCol);
+	//CheckQuadCollider(quadTree->GetRootNode(), temp4updateNode);
 
 	float cellF = 1.0f / info.CellSpacing;
-	OBBCollider* col = quadTree->GetCollider();
 	for (QuadTreeNode* node : temp4updateNode)
 	{
-		UINT inst = node->GetColInst();
+		OBBCollider* col = node->GetCollider(); 
+		//UINT inst = node->GetColInst();
 		Vector2 TopLeft, BottomRight;
 
-		Vector3 MinR = col->GetMinRound(inst);
-		Vector3 MaxR = col->GetMaxRound(inst);
+		Vector3 MinR = col->GetMinRound();
+		Vector3 MaxR = col->GetMaxRound();
 
 		//생성 역순으로 되찾기
 		TopLeft = Vector2(MinR.x+w, -MaxR.z+h)*cellF;
@@ -753,13 +765,13 @@ void TerrainLod::UpdateQuadHeight()
 		minMaxY.y += 0.05f;
 		minMaxY *= bufferDesc.HeightRatio;
 		Vector3 pos, scale;
-		col->GetTransform(inst)->Position(&pos);
-		col->GetTransform(inst)->Scale(&scale);
+		col->GetTransform()->Position(&pos);
+		col->GetTransform()->Scale(&scale);
 		scale.y = minMaxY.y - minMaxY.x;
 		pos.y = (minMaxY.x + minMaxY.y)*0.5f;
 
-		col->GetTransform(inst)->Position(pos);
-		col->GetTransform(inst)->Scale(scale);		
+		col->GetTransform()->Position(pos);
+		col->GetTransform()->Scale(scale);		
 	}
 }
 
@@ -809,7 +821,7 @@ QuadTreeNode* TerrainLod::CreateQuadTreeData(QuadTreeNode* parent,Vector2& TopLe
 	maxX += tolerance;
 	minZ += tolerance;
 	maxZ -= tolerance;
-	QuadTreeNode* quadNode = new QuadTreeNode(quadTree);
+	QuadTreeNode* quadNode = new QuadTreeNode();
 	if (parent != NULL)
 		quadNode->SetParent(parent);
 	minMaxY.x = min(minMaxY.x, 0);
@@ -821,18 +833,19 @@ QuadTreeNode* TerrainLod::CreateQuadTreeData(QuadTreeNode* parent,Vector2& TopLe
 	Transform* transform = new Transform();
 	transform->Position(position);
 	transform->Scale(scale);
-	//쿼드트리에서 콜라이더 받기
-	OBBCollider* collider = quadTree->GetCollider();
-	//인스턴스번호
-	UINT colinst = quadNode->GetColInst();
-	//인스턴스추가
-	collider->AddInstance(transform);
+	OBBCollider* collider = new OBBCollider(transform);
+
+	quadNode->SetCollider(collider);
+	////인스턴스번호
+	//UINT colinst = quadNode->GetColInst();
+	////인스턴스추가
+	//quadTree->GetCollider()->AddInstance(transform);
 
 
 	float narrow = (BottomRight.x - TopLeft.x)*0.5f;
 	float depth  = (BottomRight.y - TopLeft.y) *0.5f;
 
-	float TileSize = bufferDesc.TexScale*2;
+	float TileSize = bufferDesc.TexScale;
 	if (narrow >= TileSize && depth >= TileSize) {
 		quadNode->AddChild(	CreateQuadTreeData(quadNode,TopLeft, Vector2(TopLeft.x + narrow, TopLeft.y + depth))		);
 		quadNode->AddChild(	CreateQuadTreeData(quadNode,Vector2(TopLeft.x + narrow, TopLeft.y), Vector2(BottomRight.x, TopLeft.y + depth))		);

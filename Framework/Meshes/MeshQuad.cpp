@@ -3,7 +3,14 @@
 
 MeshQuad::MeshQuad()
 {
+	type = MeshType::Quad;
 
+}
+
+MeshQuad::MeshQuad(const MeshQuad & mesh)
+	:Mesh(mesh)
+{
+	type = MeshType::Quad;
 }
 
 MeshQuad::~MeshQuad()
@@ -35,6 +42,6 @@ void MeshQuad::Create()
 	indices = new UINT[indexCount]{ 0, 1, 2, 2, 1, 3 };
 
 
-	tessICount = 4;
-	this->TessIndices = new UINT[tessICount]{ 0, 1, 3, 2 };
+	/*tessICount = 4;
+	this->TessIndices = new UINT[tessICount]{ 0, 1, 3, 2 };*/
 }

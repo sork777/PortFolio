@@ -7,38 +7,37 @@ OBB_CollisionComponent::OBB_CollisionComponent()
 {
 	componentName = L"OBB_CollisionComp";
 	type = ObjectBaseComponentType::OBB_Collision;
+	//colliders = new OBBCollider();
+}
+OBB_CollisionComponent::OBB_CollisionComponent(const OBB_CollisionComponent & obbComp)
+	:ObjectBaseComponent(obbComp)
+{
+	componentName = L"OBB_CollisionComp";
+	type = ObjectBaseComponentType::OBB_Collision;
+	//colliders = new OBBCollider();
+	Super::ClonningChildren(obbComp.children);
 }
 
 
 OBB_CollisionComponent::~OBB_CollisionComponent()
 {
-	colliders.clear();
-	colliders.shrink_to_fit();
+	for(OBBCollider* col : colliders)
+		SafeDelete(col);
 }
 
 void OBB_CollisionComponent::Update()
 {
-	int loop = bEditMode ? 1 : colliders.size();
-	for (int i=0;i< loop;i++)
-	{
-		colliders[i]->Update();
-	}
+	
+	for (OBBCollider* col : colliders)
+		col->Update();
 	Super::Update();
 }
 
 void OBB_CollisionComponent::Render()
 {
-	if (true == bEditMode)
-	{
-		colliders[0]->PreRender(lineColor);
-	}
-	else
-	{
-		for (int i = 0; i < colliders.size(); i++)
-		{
-			colliders[i]->Render(lineColor);
-		}
-	}
+	for (OBBCollider* col : colliders)
+		col->Render(lineColor);
+
 	Super::Render();
 }
 
@@ -75,6 +74,7 @@ void OBB_CollisionComponent::AddInstanceData()
 {
 	Transform* trans = new Transform();
 	trans->Local(baseTransform);
+
 	colliders.emplace_back(new OBBCollider(trans));
 	Super::AddInstanceData();
 }
@@ -85,7 +85,14 @@ void OBB_CollisionComponent::DelInstanceData(const UINT & instance)
 		return;
 	colliders.erase(colliders.begin() + instance);
 
+	//colliders->DelInstance(instance);
+
 	Super::DelInstanceData(instance);
+}
+
+const UINT & OBB_CollisionComponent::GetInstSize()
+{
+	return colliders.size();
 }
 
 Transform * OBB_CollisionComponent::GetTransform(const UINT & instance)

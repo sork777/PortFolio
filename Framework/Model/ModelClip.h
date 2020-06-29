@@ -22,18 +22,25 @@ public:
 
 private:
 	ModelClip();
+	ModelClip(const ModelClip& clip);
 	~ModelClip();
 
 public:
 	float Duration() { return duration; }
 	float FrameRate() { return frameRate; }
 	UINT FrameCount() { return frameCount; }
-	wstring Name() { return name; }
+	const wstring& Name() { return name; }
+	const wstring& FileName() { return fileName; }
+	//const wstring& FilePath() { return filePath; }
+	//const wstring& DirPath() { return dirPath; }
 	
 	ModelKeyframe* Keyframe(wstring name);
 
 private:
 	wstring name;
+	wstring fileName;
+	//wstring filePath;
+	//wstring dirPath;
 
 	float duration;
 	float frameRate;

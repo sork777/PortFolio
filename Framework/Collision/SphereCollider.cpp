@@ -2,9 +2,14 @@
 #include "SphereCollider.h"
 
 SphereCollider::SphereCollider()
+	:Collider()
 {
 }
 
+SphereCollider::SphereCollider(Shader * shader, Shader * cs)
+	:Collider(shader, cs)
+{
+}
 SphereCollider::~SphereCollider()
 {
 }
@@ -13,16 +18,10 @@ void SphereCollider::Update()
 {
 }
 
-void SphereCollider::Render(Color color)
+void SphereCollider::Render(const int& draw)
 {
 }
 
-bool SphereCollider::IsIntersect(Collider * other)
+void SphereCollider::CreateComputeBuffer()
 {
-	return false;
-}
-
-bool SphereCollider::IsIntersectRay(Vector3 & position, Vector3 & direction, float & dist)
-{
-	return false;
 }

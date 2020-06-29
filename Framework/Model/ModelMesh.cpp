@@ -31,15 +31,7 @@ ModelMesh::~ModelMesh()
 	SafeDelete(vertexBuffer);
 	SafeDelete(indexBuffer);
 
-	SafeDelete(boneBuffer);
-	//SafeDelete(material);
-
-	//SafeRelease(transformsSRV);
-	//SafeRelease(sTransformsSRV);
-	//SafeRelease(boneTransformsSRV);
-	//SafeRelease(sBoneTransformsSRV);
-	//SafeRelease(animEditSRV);
-	//SafeRelease(sAnimEditSRV);
+	SafeDelete(boneBuffer);	
 }
 
 void ModelMesh::Binding(Model * model)

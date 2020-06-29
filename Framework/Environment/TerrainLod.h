@@ -214,6 +214,7 @@ private:
 	Vector2 GetMinMaxY(Vector2& TopLeft, Vector2& BottomRight);
 
 	void UpdateQuadHeight();
+	//void CheckQuadCollider(QuadTreeNode* node, vector< QuadTreeNode*>& updateNode);
 	void CheckQuadCollider(QuadTreeNode* node, Collider* collider, vector< QuadTreeNode*>& updateNode);
 private:
 	QuadTree* quadTree;

@@ -13,13 +13,15 @@ public:
 	typedef VertexTextureNormalTangentBlend ModelVertex;
 
 	Model(Shader* shader);
-	Model(Model* model);
+	Model(const Model& model);
 	~Model();
+
+	void ModelMeshChanger(const Model& model);
 
 	void SetShader(Shader* shader);
 
 	void Update();
-	void Render(const int& drawCount = -1);
+	void Render();
 	
 	void Pass(const UINT& pass);
 	void Tech(const UINT& tech);

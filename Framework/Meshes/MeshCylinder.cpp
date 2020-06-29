@@ -4,7 +4,18 @@
 MeshCylinder::MeshCylinder(float radius, float height, UINT sliceCount, UINT stackCount)
 	: topRadius(radius), bottomRadius(radius), height(height), sliceCount(sliceCount), stackCount(stackCount)
 {
+	type = MeshType::Cylinder;
+}
 
+MeshCylinder::MeshCylinder(const MeshCylinder & mesh)
+	: Mesh(mesh)
+{
+	topRadius= mesh.topRadius;
+	bottomRadius = mesh.bottomRadius;
+	height = mesh.height;
+	sliceCount= mesh.sliceCount;
+	stackCount= mesh.stackCount;
+	type = MeshType::Cylinder;
 }
 
 MeshCylinder::~MeshCylinder()
@@ -53,7 +64,6 @@ void MeshCylinder::Create()
 
 
 	vector<UINT> indices;
-	vector<UINT> indicetess;
 	UINT ringVertexCount = sliceCount + 1;
 	for (UINT y = 0; y < stackCount; y++)
 	{
@@ -67,35 +77,11 @@ void MeshCylinder::Create()
 			indices.push_back((y + 1) * ringVertexCount + x + 1);
 			indices.push_back(y * ringVertexCount + x + 1);
 
-			indicetess.push_back(y * ringVertexCount + x);
-			indicetess.push_back((y + 1) * ringVertexCount + x);
-			indicetess.push_back(y * ringVertexCount + x + 1);
-			indicetess.push_back((y + 1) * ringVertexCount + x + 1);
-
 		}
 	}
-	int topStart = vertices.size();
-	BuildTopCap(vertices, indices, indicetess);
-	int bottomStart = vertices.size();
-	BuildBottomCap(vertices, indices, indicetess);
-
-	int startindex = topStart - sliceCount;
-	for (UINT k = 0; k <= sliceCount; k++)
-	{
-		int y = stackCount;
-		int x = k;
-		indicetess.push_back(y * ringVertexCount + x);
-		indicetess.push_back((y + 1) * ringVertexCount + x);
-		indicetess.push_back(y * ringVertexCount + x + 1);
-		indicetess.push_back((y + 1) * ringVertexCount + x + 1);
-
-		indicetess.push_back((y + 2) * ringVertexCount + x);
-		indicetess.push_back(x);
-		indicetess.push_back((y + 2) * ringVertexCount + x + 1);
-		indicetess.push_back(x + 1);
-	}
-
-
+	BuildTopCap(vertices, indices);
+	BuildBottomCap(vertices, indices);
+	
 	this->vertices = new MeshVertex[vertices.size()];
 	vertexCount = vertices.size();
 	copy(vertices.begin(), vertices.end(), stdext::checked_array_iterator<MeshVertex *>(this->vertices, vertexCount));
@@ -104,16 +90,10 @@ void MeshCylinder::Create()
 	indexCount = indices.size();
 	copy(indices.begin(), indices.end(), stdext::checked_array_iterator<UINT *>(this->indices, indexCount));
 
-	this->TessIndices = new UINT[indicetess.size()];
-	tessICount = indicetess.size();
-	copy
-	(
-		indicetess.begin(), indicetess.end(),
-		stdext::checked_array_iterator<UINT *>(this->TessIndices, tessICount)
-	);
+	
 }
 
-void MeshCylinder::BuildTopCap(vector<MeshVertex>& vertices, vector<UINT>& indices, vector<UINT>& tessindices)
+void MeshCylinder::BuildTopCap(vector<MeshVertex>& vertices, vector<UINT>& indices)
 {
 	float y = 0.5f * height;
 	float theta = 2.0f * Math::PI / (float)sliceCount;
@@ -139,15 +119,10 @@ void MeshCylinder::BuildTopCap(vector<MeshVertex>& vertices, vector<UINT>& indic
 		indices.push_back(centerIndex);
 		indices.push_back(baseIndex + i + 1);
 		indices.push_back(baseIndex + i);
-
-		tessindices.push_back(centerIndex);
-		tessindices.push_back(baseIndex + i + 2);
-		tessindices.push_back(baseIndex + i);
-		tessindices.push_back(baseIndex + i + 1);
 	}
 }
 
-void MeshCylinder::BuildBottomCap(vector<MeshVertex>& vertices, vector<UINT>& indices, vector<UINT>& tessindices)
+void MeshCylinder::BuildBottomCap(vector<MeshVertex>& vertices, vector<UINT>& indices)
 {
 	float y = -0.5f * height;
 	float theta = 2.0f * Math::PI / (float)sliceCount;
@@ -173,10 +148,5 @@ void MeshCylinder::BuildBottomCap(vector<MeshVertex>& vertices, vector<UINT>& in
 		indices.push_back(centerIndex);
 		indices.push_back(baseIndex + i);
 		indices.push_back(baseIndex + i + 1);
-
-		tessindices.push_back(centerIndex);
-		tessindices.push_back(baseIndex + i);
-		tessindices.push_back(baseIndex + i + 2);
-		tessindices.push_back(baseIndex + i + 1);
 	}
 }

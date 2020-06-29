@@ -245,9 +245,9 @@ float4 PS_CloudDome(VertexOutput_Dome input) : SV_Target0
     float4 c1 = CloudMap.Sample(LinearSampler,input.Uv * 1 + Time * CloudSpeed);
     float4 c2 = CloudMap.Sample(LinearSampler,input.Uv * 2 + Time * CloudSpeed);
     float4 c3 = CloudMap.Sample(LinearSampler,input.Uv * 4 + Time * CloudSpeed);
-    //float4 c4 = CloudMap.Sample(LinearSampler,input.Uv * 8 *2+ Time * CloudSpeed);
+    float4 c4 = CloudMap.Sample(LinearSampler,input.Uv * 8 + Time * CloudSpeed);
    
-    float4 cFinal = c1 + (c2 / 2) + (c3 / 4);//    +(c4 / 8);
+    float4 cFinal = c1 + (c2 / 2) + (c3 / 4) +(c4 / 8);
        
     float4 cf = CloudCover - cFinal;
     float4 density = pow(CloudSharpness, cf)-1.0f;
@@ -255,7 +255,7 @@ float4 PS_CloudDome(VertexOutput_Dome input) : SV_Target0
     float3 sunDir = (-normalize(GlobalLight.Direction));
     float3 up = float3(0, 1, 0);
     float dayfactor = dot(sunDir, up);
-    dayfactor = clamp(dayfactor, 0.3f, 1.0f);
+    dayfactor = clamp(dayfactor, 0.2f, 1.0f);
     color.rgb *= dayfactor;
     
     return color;

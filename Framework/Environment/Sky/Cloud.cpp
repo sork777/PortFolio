@@ -117,7 +117,6 @@ Cloud::Cloud(Shader * shader)
 	SafeDeleteArray(pixels);
 	*/
 
-	//CreateDome();
 	CreatePlane();
 }
 
@@ -158,102 +157,6 @@ void Cloud::PostRender()
 	render2D->Render();
 }
 
-void Cloud::CreateDome()
-{
-	UINT latitude = domeCount / 2; // 위도
-	UINT longitude = domeCount; // 경도
-
-	domeVertexCount = longitude * latitude * 2;
-	domeIndexCount = (longitude - 1) * (latitude - 1) * 2 * 8;
-
-
-	vector<VertexTexture> v;
-
-	UINT index = 0;
-
-	float phiStep = Math::PI / domeCount;
-	float thetaStep = 2.0f * Math::PI / domeCount;
-
-	v.push_back(VertexTexture(0, 1, 0, 0, 0));
-	for (UINT i = 1; i < domeCount; i++)
-	{
-		//float xz = 100.0f * (i / (longitude - 1.0f)) * Math::PI / 180.0f;
-		float phi = i * phiStep;
-
-		for (UINT j = 0; j <= domeCount; j++)
-		{
-			//float y = 2*Math::PI * j / (latitude - 1);
-			float theta = j * thetaStep;
-			D3DXVECTOR3 p = D3DXVECTOR3
-			(
-				(sinf(phi) * cosf(theta)),
-				(cosf(phi)),
-				(sinf(phi) * sinf(theta))
-			);
-			//vertices[index].Uv.x = 0.5f / (float)longitude + i / (float)longitude;
-			//vertices[index].Uv.y = 0.5f / (float)latitude + j / (float)latitude;
-			D3DXVECTOR2 uv = D3DXVECTOR2(theta / (Math::PI * 2), phi / Math::PI);
-
-			D3DXVec3Normalize(&p, &p);
-
-			v.push_back(VertexTexture(p.x, p.y, p.z, uv.x, uv.y));
-		} // for(j)
-	}  // for(i)
-	v.push_back(VertexTexture(0, -1, 0, 0, 0));
-
-	domeVertexCount = v.size();
-	VertexTexture* vertices = new VertexTexture[domeVertexCount];
-	copy(v.begin(), v.end(), stdext::checked_array_iterator<VertexTexture*>(vertices, domeVertexCount));
-
-
-	vector<UINT> idx;
-	vector<UINT> indicetess;
-
-	for (UINT i = 1; i <= domeCount; i++)
-	{
-		idx.push_back(0);
-		idx.push_back(i);
-		idx.push_back((i + 1));
-	}
-
-	UINT baseIndex = 1;
-	UINT ringVertexCount = domeCount + 1;
-	for (UINT i = 0; i < domeCount - 2; i++)
-	{
-		for (UINT j = 0; j < domeCount; j++)
-		{
-			idx.push_back(baseIndex + i * ringVertexCount + j);
-			idx.push_back(baseIndex + (i + 1) * ringVertexCount + j);
-			idx.push_back(baseIndex + i * ringVertexCount + j + 1);
-
-			idx.push_back(baseIndex + (i + 1) * ringVertexCount + j);
-			idx.push_back(baseIndex + (i + 1) * ringVertexCount + j + 1);
-			idx.push_back(baseIndex + i * ringVertexCount + j + 1);
-
-		}
-	}
-
-	UINT southPoleIndex = v.size() - 1;
-	baseIndex = southPoleIndex - ringVertexCount;
-
-	for (UINT i = 0; i < domeCount; i++)
-	{
-		idx.push_back(southPoleIndex);
-		idx.push_back(baseIndex + i + 1);
-		idx.push_back(baseIndex + i);
-	}
-
-	domeIndexCount = idx.size();
-	UINT* indices = new UINT[domeIndexCount];
-	copy(idx.begin(), idx.end(), stdext::checked_array_iterator<UINT *>(indices, domeIndexCount));
-
-	domeVertexBuffer = new VertexBuffer(vertices, domeVertexCount, sizeof(VertexTexture), 0);
-	domeIndexBuffer = new IndexBuffer(indices, domeIndexCount);
-
-	SafeDeleteArray(vertices);
-	SafeDeleteArray(indices);
-}
-
 void Cloud::CreatePlane()
 {
 	
@@ -291,6 +194,9 @@ void Cloud::CreatePlane()
 			//Top-(Top-Bottom)*4*((0.5f+i/Res)^2+(0.5f+j/Res)^2)
 			positionY = skyTop-(constant * ((positionX * positionX) + (positionZ * positionZ)));
 			
+			if (positionY < skyBottom)
+				positionY = skyBottom;
+
 			// 텍스처 좌표를 계산합니다.
 			tu = (float)i * textureDelta;
 			tv = (float)j * textureDelta;
@@ -308,7 +214,6 @@ void Cloud::CreatePlane()
 			//D3DXVec2Normalize(&vertices[index].Uv, &vertices[index].Uv);
 		}
 	}
-
 	index = 0;
 	UINT* indices = new UINT[domeIndexCount];
 	

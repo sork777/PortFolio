@@ -5,6 +5,7 @@ class MeshQuad : public Mesh
 {
 public:
 	MeshQuad();
+	MeshQuad(const MeshQuad& mesh);
 	~MeshQuad();
 
 private:

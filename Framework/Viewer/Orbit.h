@@ -8,7 +8,7 @@ public:
 	
 
 	//궤도를 돌 포지션
-	void SetObjPos(const Vector3& objPos) { this->objPos = objPos; }
+	void SetObjPos(const Vector3& objPos = Vector3(0,0,0)) { this->objPos = objPos; }
 
 	void Update() override;
 	void Speed(float rot);
@@ -17,8 +17,8 @@ public:
 	void ViewCameraArea();
 	void Property();
 
+	void CameraMove(Vector3& val);
 private:
-	void CameraMove();
 	void OrbitUp();
 	void View() override;
 

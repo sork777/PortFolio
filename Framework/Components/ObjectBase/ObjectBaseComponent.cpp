@@ -5,6 +5,29 @@ ObjectBaseComponent::ObjectBaseComponent()
 	:shader(NULL), parent(NULL)
 {
 	baseTransform = new Transform();
+	compID = GUID_Generator::Generate();
+
+	std::cout << "현재 컴포넌트 주소 : " << this << endl;
+}
+
+ObjectBaseComponent::ObjectBaseComponent(const ObjectBaseComponent& OBComp)
+	:shader(NULL), parent(NULL)
+{
+	bEditMode = true;
+	shader = OBComp.shader;
+	compID = OBComp.compID;
+	parentSocketName = OBComp.parentSocketName;
+	componentName = OBComp.componentName;
+	parentSocket = OBComp.parentSocket;
+
+	baseTransform = new Transform();
+	baseTransform->Local(OBComp.baseTransform->Local());
+	//베이스는 부모에 트랜스폼을 얹지 않는다.
+	baseTransform->Parent(OBComp.baseTransform->Parent());
+
+	std::cout << "원본 컴포넌트 주소 : " << &OBComp << endl;
+	std::cout << "현재 컴포넌트 주소 : " << this << endl;
+
 }
 
 ObjectBaseComponent::~ObjectBaseComponent()
@@ -19,7 +42,7 @@ ObjectBaseComponent::~ObjectBaseComponent()
 			//순차적으로 링크 끊고 해제하기
 			child->UnlinkParentComponent();
 			SafeDelete(child);
-		}
+		}		
 	}
 	else
 	{
@@ -29,7 +52,78 @@ ObjectBaseComponent::~ObjectBaseComponent()
 	}
 	children.clear();
 	children.shrink_to_fit();
-	SafeDelete(shader);
+	//쉐이더는 밖에서 오는거라 삭제는 패스
+//	SafeDelete(shader);
+}
+
+
+/*
+	1. 에딧용 액터에서 컴포넌트를 받아서 복사할거임
+	2. 루트를 제외한 하위계층 컴포넌트는 전부 삭제할거임
+	
+	2-2. 인스턴싱 요소가 루트컴포넌트에 의해 위치가 알아서 되려면 뭐가 필요할까?
+	
+	3. 받아온 에디터 컴포넌트를 통해 
+	새로운 하위계층 컴포넌트로 전부 복사 생성할거임
+	4. 사실상 같은 컴포넌트였어도 그냥 새로 쓸거임
+	5. 결론적으로 루트 컴포넌트에서만 [1회] 방문할 메소드
+*/
+void ObjectBaseComponent::CompileComponent(const ObjectBaseComponent & OBComp)
+{
+	// 기존 하위 컴포넌트 삭제 과정
+	{
+		//기존 컴포넌트 자식들은 의미없으니 삭제.
+		for (ObjectBaseComponent* child : children)
+		{
+			child->UnlinkParentComponent();
+			SafeDelete(child);
+		}
+		children.clear();
+		children.shrink_to_fit();
+	}
+		
+	// 루트에서만 한번 들러서 데이터를 복사할거임
+	// 자식계층은 복사생성자로 순회할거임.
+	{
+		parentSocketName = OBComp.parentSocketName;
+		componentName = OBComp.componentName;
+		parentSocket = OBComp.parentSocket;
+
+		baseTransform = new Transform();
+		baseTransform->Local(OBComp.baseTransform->Local());
+		baseTransform->Parent(OBComp.baseTransform->Parent());
+	}
+}
+
+void ObjectBaseComponent::ClonningChildren(const vector<ObjectBaseComponent*>& oChildren)
+{
+	for (ObjectBaseComponent* child : oChildren)
+	{
+		ObjectBaseComponentType type = child->GetType();
+		//ObjectBaseComponent* component = NULL;
+		switch (type)
+		{
+		case ObjectBaseComponentType::ModelMesh:
+			//component = new ModelMeshComponent(*dynamic_cast<ModelMeshComponent*>(child));
+			LinkChildComponent( new ModelMeshComponent(*dynamic_cast<ModelMeshComponent*>(child)));
+			break;
+		case ObjectBaseComponentType::FigureMesh:
+			LinkChildComponent( new FigureMeshComponent(*dynamic_cast<FigureMeshComponent*>(child)));
+			break;
+		case ObjectBaseComponentType::Camera:
+			break;
+		case ObjectBaseComponentType::OBB_Collision:
+			LinkChildComponent( new OBB_CollisionComponent(*dynamic_cast<OBB_CollisionComponent*>(child)));
+			break;
+		case ObjectBaseComponentType::Sphere_Collision:
+			break;
+		case ObjectBaseComponentType::Capsule_Collision:
+			break;
+		default:
+			break;
+		}
+		//LinkChildComponent(component);
+	}
 }
 
 void ObjectBaseComponent::Update()
@@ -43,17 +137,23 @@ void ObjectBaseComponent::Update()
 
 	else if (parent->GetType() == ObjectBaseComponentType::ModelMesh)
 	{
+
 		//부모를 다이나믹 형변환해서 컴포넌트 추출
 		ModelMeshComponent* modelMesh = dynamic_cast<ModelMeshComponent*>(parent);
 		// 모델과 애니메이터 추출
 		ModelAnimator* animator = modelMesh->GetAnimation();
-		//같은 오브젝트면 소켓도 같음
 		
+		// 소켓 이름만 받았을시, 설정으로 하면 알아서 챙겨짐.
+		if (parentSocket < 0 && parentSocketName.compare(L"None") !=0)
+		{
+			Model* model = modelMesh->GetMesh();
+			parentSocket = model->BoneByName(parentSocketName)->Index();
+		}
 		if (NULL!= animator && parentSocket >= 0)
 		{
 			// 인스턴스만큼 위치 업뎃.
 			// 에딧중이면 첫번째 인스턴스만.
-			UINT instCount = bEditMode? 1: modelMesh->GetInstSize();
+			UINT instCount = modelMesh->GetInstSize();
 			for (UINT i = 0; i < instCount; i++)
 			{
 				Matrix world = modelMesh->GetTransform(i)->World();
@@ -68,11 +168,6 @@ void ObjectBaseComponent::Update()
 	//루트만 업데이트 호출하면 자식 자동 호출하게
 	for (ObjectBaseComponent* child : children)
 	{
-		// 에딧모드 아닌데 컴파일도 안되어있으면 배제
-		if (false == child->bEditMode && false == child->bCompiled) continue;
-		// 에딧모드인데 활성화 안되어있으면 배제
-		if (true  == child->bEditMode && false == child->bActive) continue;
-		
 		child->Update();
 	}
 }
@@ -81,9 +176,6 @@ void ObjectBaseComponent::Render()
 {
 	for (ObjectBaseComponent* child : children)
 	{
-		if (false == child->bEditMode && false == child->bCompiled) continue;
-		if (true  == child->bEditMode && false == child->bActive) continue;
-
 		child->Render();
 	}
 }
@@ -102,7 +194,6 @@ bool ObjectBaseComponent::Property(const UINT& instance)
 	{
 		ModelMeshComponent* modelMesh = dynamic_cast<ModelMeshComponent*>(parent);
 		Model* model = modelMesh->GetMesh();
-
 		
 		int click = -1;
 		int presocket = parentSocket;
@@ -150,6 +241,7 @@ void ObjectBaseComponent::AddInstanceData()
 	chageTrans.emplace_back(false);
 	if (NULL != parent)
 		GetTransform(index)->Parent(parent->GetTransform(index));
+
 	for (ObjectBaseComponent* child : children)
 		child->AddInstanceData();
 }
@@ -163,58 +255,13 @@ void ObjectBaseComponent::DelInstanceData(const UINT & instance)
 		child->DelInstanceData(instance);
 }
 
-void ObjectBaseComponent::SetEditMode(const bool & bEdit)
-{
-	bEditMode = bEdit;
-	for (ObjectBaseComponent* child : children)
-		child->SetEditMode(bEdit);
-}
-
-void ObjectBaseComponent::CompileComponent()
-{
-	//루트가 이동하면 안됨.
-	if (NULL != parent)
-	{
-		UINT instCount = GetInstSize();
-		for (UINT i = 0; i < instCount; i++)
-		{
-			//인스턴스마다 변경된 기본값으로 다시 이동
-			//개별 변동인 인스턴스는 냅둠
-			if(chageTrans[i] == false)
-				GetTransform(i)->Local(baseTransform);
-		}
-	}
-	// 컴파일 표시를 하여 업데이트 및 랜더되게 함.
-	bCompiled = true;
-	for (ObjectBaseComponent* child : children)
-	{
-		// 자식컴포넌트가 비활성화 상태면 언링크
-		// 아니면 컴파일
-		if (false == child->bActive)
-			UnlinkChildComponent(child);
-		else
-			child->CompileComponent();
-	}
-}
-
-void ObjectBaseComponent::ReadyToUnlinkComp()
-{
-	// 컴포넌트 비활성화
-	// 목록에서 제거 및 업데이트/랜더 배제	
-	// 에디터에서나 표현할것.
-	bActive = false;
-	for (ObjectBaseComponent* child : children)
-		child->bActive = false;
-}
 
 #pragma region Component 계층/팝업
 
 void ObjectBaseComponent::ComponentHeirarchy(OUT ObjectBaseComponent** selectedComp)
 {
-	// 비활성화된 컴포넌트 배제
-	if(false == bActive) return;
-
-
+	// 에딧모드 여부에 따라 계층 선택
+	vector< ObjectBaseComponent*> heirarchyChildren = children;
 
 	//아이템 시작지점
 	ImVec2 pos = ImGui::GetItemRectMin() - ImGui::GetWindowPos();
@@ -223,7 +270,7 @@ void ObjectBaseComponent::ComponentHeirarchy(OUT ObjectBaseComponent** selectedC
 	if (wSize.y < pos.y) return;
 	if (wSize.x < pos.x) return;
 
-	ImGuiTreeNodeFlags flags = children.empty() ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+	ImGuiTreeNodeFlags flags = heirarchyChildren.empty() ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
 	if (this == *selectedComp)
 		flags |= ImGuiTreeNodeFlags_Selected;
@@ -241,7 +288,7 @@ void ObjectBaseComponent::ComponentHeirarchy(OUT ObjectBaseComponent** selectedC
 			ImGui::OpenPopup("AddComponentPopup");
 		}
 		ComponentPopup();
-		for (auto& child : children)
+		for (auto& child : heirarchyChildren)
 		{
 			child->ComponentHeirarchy(selectedComp);
 		}
@@ -281,7 +328,6 @@ void ObjectBaseComponent::ComponentPopup()
 
 void ObjectBaseComponent::AddSkeletonMeshComponentPopup()
 {
-	//TODO : 에셋 매니져에 등록된 SkeletonMesh에서 컴포넌트 생성해서 받기
 	ModelAsset* asset =dynamic_cast<ModelAsset*>( AssetManager::Get()->ViewAssets(ContentsAssetType::Model));
 
 	if (NULL != asset)
@@ -302,7 +348,7 @@ void ObjectBaseComponent::AddCollisionComponentPopup()
 	{
 		OBB_CollisionComponent* addComp = new OBB_CollisionComponent();
 	
-		LinkChildComponent(addComp);	
+		LinkChildComponent(addComp);
 	}
 }
 
@@ -351,6 +397,8 @@ void ObjectBaseComponent::UnlinkParentComponent()
 void ObjectBaseComponent::LinkChildComponent(ObjectBaseComponent * component)
 {
 	children.emplace_back(component);
+	// 벡터 정렬
+	sort(children.begin(), children.end());
 	//자식의 쉐이더도 자신의 쉐이더와 통일
 	component->SetShader(shader);
 	component->LinkParentComponent(this);

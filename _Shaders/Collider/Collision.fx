@@ -2,42 +2,13 @@
 #include "../000_Model.fx"
 #include "../000_Light.fx"
 
-struct OBB_Input
-{
-    matrix data;
-};
-struct Sphere_Input
-{
-    float3 Pos;
-    float Radius;
-};
-struct Cap_Input
-{
-    float3 Start;
-    float Radius;
-    float3 Dir;
-    float Height;
-};
-
-StructuredBuffer<OBB_Input> OBB_Datas;
-//StructuredBuffer<Sphere_Input> Sphere_Datas;
-//StructuredBuffer<Cap_Input> Cap_Datas;
-
-struct Col_Output
-{
-    int bCollsion;
-    float3 MaxRound;
-    float3 MinRound;
-    float dist;
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 // 앞쪽이 기준 오브젝트 뒤쪽이 충돌한 오브젝트
-// 충돌 : OBB -1 Sph - 2 Cap - 4 합산
 
 bool Collision_OBBToOBB(CollisionOBB box1, CollisionOBB box2)
 {
-    float position = box2.Position - box1.Position;
+    float3 position = box2.Position - box1.Position;
 
 	/* 각 박스의 면 법선벡터로 얻은 축 */
 	if (SperatingPlane(position, box1.AxisX, box1, box2) == true) return false;
@@ -83,7 +54,7 @@ bool Collision_OBBToSphere(CollisionOBB obb, CollisionSphere sphere)
     float3 q;
     ClosestPtPointOBB(sphere.SpherePos, obb.Position, axis, size, q);
     
-    float3 d = length(q - sphere.SpherePos);
+    float d = length(q - sphere.SpherePos);
     
     [flatten]
     if(d < sphere.SphereRadius)
@@ -95,7 +66,12 @@ bool Collision_OBBToSphere(CollisionOBB obb, CollisionSphere sphere)
 bool Collision_OBBToCapsule(CollisionOBB obb, CollisionCapsule cap)
 {
     bool bCollision = false;
-    
+    /*
+        1. 캡슐 양끝점을 잇는 선분
+        2. OBB 중심에서 1.에 내린 수선의 발
+        3. 1.2.의 교차점
+        4. 3을 가지고 ClosestPtPointOBB 계산
+    */
     float3 capS = cap.CapStart;
     float3 capE = (cap.CapStart + cap.CapDir * cap.CapHeight);
     
@@ -107,20 +83,31 @@ bool Collision_OBBToCapsule(CollisionOBB obb, CollisionCapsule cap)
     size[0] = obb.HalfSize.x;
     size[1] = obb.HalfSize.y;
     size[2] = obb.HalfSize.z;
-    float3 qS,qE;
-    ClosestPtPointOBB(capS, obb.Position, axis, size, qS);
-    ClosestPtPointOBB(capE, obb.Position, axis, size, qE);
-    float3 dS = length(qS - capS);
-    float3 dE = length(qE - capE);
+        
+    //OBB 중심에 가장 가까운 캡슐 선분 위의 점
+    float3 dP = ClosestPtPointSegment(obb.Position, capS, capE);
+    // dP와 가장 가까운 OBB 위의 점
+    float3 qP;
+    ClosestPtPointOBB(dP, obb.Position, axis, size, qP);
+    float d = length(qP - dP);
     
-    
-    [branch]
-    if (dS < cap.CapRadius)      //캡슐 시작부분이 박스랑 충돌
-        bCollision |= true;
-    else if (dE < cap.CapRadius) //캡슐 끝부분이 박스랑 충돌
-        bCollision |= true;
+    if (d < cap.CapRadius)
+        bCollision = true;
     
     return bCollision;
+    
+    //float3 qS,qE;
+    //ClosestPtPointOBB(capS, obb.Position, axis, size, qS);
+    //ClosestPtPointOBB(capE, obb.Position, axis, size, qE);
+    //float3 dS = length(qS - capS);
+    //float3 dE = length(qE - capE);
+    
+    
+    //[branch]
+    //if (dS < cap.CapRadius)      //캡슐 시작부분이 박스랑 충돌
+    //    bCollision |= true;
+    //else if (dE < cap.CapRadius) //캡슐 끝부분이 박스랑 충돌
+    //    bCollision |= true;    
 }
 
 
@@ -160,7 +147,7 @@ bool Collision_SphereToCapsule(CollisionCapsule cap, CollisionSphere sphere)
     
     [branch]
     if (length(d) <= MaxD)
-        bCollision |= true;
+        bCollision = true;
     
     return bCollision;
 }
@@ -194,9 +181,101 @@ bool Collision_CapsuleToCapsule(CollisionCapsule cap1, CollisionCapsule cap2)
     
     return bCollision;
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 
-technique11 T0
+struct Col_Input
 {
+    matrix data;
+};
+
+StructuredBuffer<Col_Input> Col_InputsA;
+StructuredBuffer<Col_Input> Col_InputsB;
+
+struct Col_Output
+{
+    int bCollsion;
+};
+RWStructuredBuffer<Col_Output> Col_Outputs;
+
+
+[numthreads(1024, 1, 1)]
+void CS_OBBtoOBB(uint GroupIndex : SV_GroupIndex, uint3 GroupID : SV_GroupID)
+{
+    uint colA_ID = GroupIndex + 1024* GroupID.x;
+    uint colB_ID = GroupID.y;
+    
+    CollisionOBB colA, colB;
+    colA = MatrixtoOBB(Col_InputsA[colA_ID].data);
+    colB = MatrixtoOBB(Col_InputsA[colB_ID].data);
+        
+    bool bCollide = Collision_OBBToOBB(colA, colB);
+
+    int result = bCollide ? 1 : 0;
+    Col_Outputs[colA_ID].bCollsion = result;
+}
+///////////////////////////////////////////////////////////////////////////////
+
+struct MouseRay
+{
+    float3 RayPos;
+    float padding;
+    float3 RayDir;
+};
+cbuffer CB_Ray
+{
+    MouseRay M_Ray;
+};
+
+struct OBB_Output
+{
+    int bIntersect;
+    float3 MaxRound;
+    float3 MinRound;
+    float dist;
+};
+RWStructuredBuffer<OBB_Output> OBB_Outputs;
+
+[numthreads(1024, 1, 1)]
+void CS_RaytoOBB(uint GroupIndex : SV_GroupIndex, uint3 GroupID : SV_GroupID)
+{
+    uint col_ID = GroupIndex + 1024 * GroupID.x;
+    
+    CollisionOBB obb;
+    obb = MatrixtoOBB(Col_InputsA[col_ID].data);
+    
+    OBB_Outputs[col_ID].MaxRound = obb.Position +
+		obb.AxisX * obb.HalfSize.x +
+		obb.AxisY * obb.HalfSize.y +
+		obb.AxisZ * obb.HalfSize.z;
+    OBB_Outputs[col_ID].MinRound = obb.Position -
+		obb.AxisX * obb.HalfSize.x -
+		obb.AxisY * obb.HalfSize.y -
+		obb.AxisZ * obb.HalfSize.z;
+    
+    float dist = FLT_MAX;
+    bool bCollide = RayInterSection(M_Ray.RayPos, M_Ray.RayDir, OBB_Outputs[col_ID].MinRound, OBB_Outputs[col_ID].MaxRound, dist);
+
+    //충돌 했으면 계산된 값, 아니면 FLT_MAX가 될거임
+    OBB_Outputs[col_ID].dist = dist;
+    OBB_Outputs[col_ID].bIntersect = bCollide ? 1 : 0;
+
+}
+technique11 T_OBB
+{
+    pass P0
+    {
+        SetVertexShader(NULL);
+        SetPixelShader(NULL);
+        SetComputeShader(CompileShader(cs_5_0, CS_OBBtoOBB()));
+    }
+}
+
+technique11 T_Ray
+{
+    pass P0
+    {
+        SetVertexShader(NULL);
+        SetPixelShader(NULL);
+        SetComputeShader(CompileShader(cs_5_0, CS_RaytoOBB()));
+    }
 }

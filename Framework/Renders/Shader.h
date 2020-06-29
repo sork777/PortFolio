@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+//class ShaderManager;
 class Shader
 {
 public:
@@ -108,6 +109,26 @@ private:
 	};
 	vector<Technique> techniques;
 };
+
+//
+//class ShaderManager
+//{
+//public:
+//	static ShaderManager* Get();
+//	static void Create();
+//	static void Delete();
+//
+//private:
+//	static ShaderManager* instance;
+//public:
+//	ShaderManager();
+//	~ShaderManager();
+//
+//	Shader* 
+//private:
+//	static unordered_map<wstring, Shader*> registShaders;
+//};
+
 //
 //class Shaders
 //{

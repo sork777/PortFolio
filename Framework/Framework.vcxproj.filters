@@ -258,8 +258,6 @@
     <ClCompile Include="Collision\Collider.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="Collision\CapsuleCollider.cpp" />
-    <ClCompile Include="Collision\SphereCollider.cpp" />
     <ClCompile Include="Collision\OBBCollider.cpp" />
     <ClCompile Include="Components\ObjectBase\ObjectBaseComponent.cpp" />
     <ClCompile Include="LightEffects\CSM.cpp">
@@ -609,8 +607,6 @@
     <ClInclude Include="Collision\Collider.h">
       <Filter>Objects</Filter>
     </ClInclude>
-    <ClInclude Include="Collision\CapsuleCollider.h" />
-    <ClInclude Include="Collision\SphereCollider.h" />
     <ClInclude Include="Collision\OBBCollider.h" />
     <ClInclude Include="Components\ObjectBase\ObjectBaseComponent.h" />
     <ClInclude Include="LightEffects\CSM.h">
@@ -635,5 +631,6 @@
     <ClInclude Include="Components\ObjectBase\OBB_CollisionComponent.h" />
     <ClInclude Include="Objects\Actor\Player.h" />
     <ClInclude Include="Objects\ObjectPicker.h" />
+    <ClInclude Include="Model\AnimData.h" />
   </ItemGroup>
 </Project>

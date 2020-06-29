@@ -16,7 +16,20 @@ Orbit::~Orbit()
 
 void Orbit::Update()
 {
-	CameraMove();
+	Vector3 position;
+
+	Position(&position);
+
+	//각도 회전에 따른 위치 이동
+	position = objPos + D3DXVECTOR3
+	(
+		(rad * sinf(phi) * cosf(theta)),
+		(rad * cosf(phi)),
+		(rad * sinf(phi) * sinf(theta))
+	);
+	OrbitUp();
+
+	Position(position);
 }
 
 void Orbit::Speed(float rSpeed)
@@ -32,57 +45,31 @@ void Orbit::SetRad(const float & rad, const float & minRad, const float & maxRad
 }
 
 
-void Orbit::CameraMove()
+//밖에서 받은 마우스좌표를 통해 각도/반지름 수정
+void Orbit::CameraMove(Vector3& val)
 {
-
-	Vector3 position;
-
-	Position(&position);
-
-	//마우스 정보 ,z값이 휠 이동
-	Vector3 val = Mouse::Get()->GetMoveValue();
-
 	//카메라와 오브젝트간의 거리(반지름)
-
-
 	//반지름이 최소 반지름에서 최대 반지름 사이면 휠로 이동
-	rad += val.z *Time::Delta();
 	//반지름 제한
-	if (rad < minRad)
-		rad = minRad;
-	else if (rad > maxRad)
-		rad = maxRad;
-
-	Vector3 R;
-	Rotation(&R);
-
-	//쉬프트 누르고 변환 시.
-	if (Mouse::Get()->Press(1) == true)
-	{
-		phi -= Math::PI * 0.5f*val.y*Time::Delta();
-		theta += Math::PI * 0.5f*val.x*Time::Delta();
-	}
-	//각도 제한(윗점과 아랫점 기준으로 제한
-
-	phi = Math::Clamp(phi, 0.1f, Math::PI - 0.1f);
-
+	if (val.z < minRad)
+		val.z = minRad;
+	else if (val.z > maxRad)
+		val.z = maxRad;
+	
+	//범위 제한(윗점과 아랫점 기준으로 제한
+	val.y = Math::Clamp(val.y, 0.05f, 0.95f);
 	////각도 보정
+	const float factor = 2.0f;
+	if (val.x >= 2.0f*factor)
+		val.x -= 2.0f*factor;
+	else if (val.x < 0.0f)
+		val.x += 2.0f*factor;
 
-	if (theta >= 2.0f*Math::PI)
-		theta -= 2.0f*Math::PI;
-	else if (theta < 0.0f)
-		theta += 2.0f*Math::PI;
 
-	//각도 회전에 따른 위치 이동
-	position = objPos + D3DXVECTOR3
-	(
-		(rad * sinf(phi) * cosf(theta)),
-		(rad * cosf(phi)),
-		(rad * sinf(phi) * sinf(theta))
-	);
-	OrbitUp();
+	rad = val.z;
+	phi = Math::PI * 0.5f*val.y;
+	theta = Math::PI/ factor *val.x;
 
-	Position(position);
 }
 
 void Orbit::OrbitUp()

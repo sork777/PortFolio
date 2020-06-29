@@ -58,7 +58,7 @@ void FogDemo::Update()
 
 	//displacement 매핑이 무지 안된다.
 	// 뚜껑 열리는 문제가 있음...
-	if (bTess)
+	/*if (bTess)
 	{
 		pass = 1;
 		cube->GetMesh()->Topology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
@@ -66,13 +66,6 @@ void FogDemo::Update()
 		sphere->GetMesh()->Topology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
 		cylinder->GetMesh()->Topology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
 		
-		cylinder->GetMesh()->Tessellation(true);
-		sphere->GetMesh()->Tessellation(true);
-		grid->GetMesh()->Tessellation(true);
-		cylinder->GetMesh()->Displacement(0.2f);
-		grid->GetMesh()->Displacement(1.5f);
-		cube->GetMesh()->Tessellation(true);
-		cube->GetMesh()->Displacement(0.5f);
 	}
 	else
 	{ 
@@ -82,12 +75,7 @@ void FogDemo::Update()
 		cube->GetMesh()->Topology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		grid->GetMesh()->Topology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-
-		cylinder->GetMesh()->Tessellation(false);
-		sphere->GetMesh()->Tessellation(false);
-		grid->GetMesh()->Tessellation(false);
-		cube->GetMesh()->Tessellation(false);
-	}
+	}*/
 
 	sphere->Update();
 	cylinder->Update();

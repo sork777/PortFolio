@@ -5,9 +5,14 @@
 #include "./ImGui_New/imgui.h"
 #include "Utilities/ImGuizmo.h"
 
-ActorEditor::ActorEditor(Actor* actor)
+ActorEditor::ActorEditor(Actor* actor)	
 	:actor(actor)
 {
+	// 받아온 액터를 통해 에딧용 액터 복사 생성
+	shader = actor->GetRootMeshData()->GetMesh()->GetShader();
+	e_Actor = new Actor(*actor);	
+	e_Actor->GetTransform()->Position(Vector3(0, 0, 0));
+	e_Actor->GetTransform()->Rotation(Vector3(0, 0, 0));
 	Initialize();
 }
 
@@ -21,30 +26,54 @@ void ActorEditor::Initialize()
 {
 	// 에디터 모드 활성화
 	bEdit = true;
-	// 0번 인스턴스만 랜더될거임.
-	actor->SetEditMode(true);
 	
-	curModel = actor->GetRootMeshData()->GetMesh();
-	curAnimator = actor->GetRootMeshData()->GetAnimation();
+	curModel = e_Actor->GetRootMeshData()->GetMesh();
+	curAnimator = e_Actor->GetRootMeshData()->GetAnimation();
 	bAnimate = curAnimator ? true : false;
 	if (bAnimate)
 	{
 		clips = curAnimator->Clips();
+		curAnimator->SetAnimState();
 	}
 	sky = new Sky(L"Environment/GrassCube1024.dds");	
+	//Create Material
+	{
+		floor = new Material(shader);
+		floor->LoadDiffuseMap("Floor.png");
+	}
+
+	//Create Mesh
+	{
+		Transform* transform = NULL;
+
+		grid = new MeshRender(shader, new MeshGrid(5, 5));
+		grid->AddInstance();
+		transform = grid->GetTransform(0);
+		transform->Position(0, 0, 0);
+		transform->Scale(12, 1, 12);
+	}
+	grid->UpdateTransforms();
 
 	float width = D3D::Width();
 	float height = D3D::Height();
 	renderTarget = new RenderTarget((UINT)width, (UINT)height);
 	depthStencil = new DepthStencil(width, height);
 
-	orbitCam = new Orbit(80.0f, 50.0f, 150.0f);
+	orbitCam = new Orbit(80.0f, 30.0f, 150.0f);
+	orbitCam->SetObjPos(TargetPos);
+	orbitCam->CameraMove(mouseVal);
+	orbitCam->Update();
 }
 
 void ActorEditor::Destroy()
 {
+	SafeDelete(e_Actor);
+	SafeDelete(orbitCam);
+	SafeDelete(depthStencil);
+	SafeDelete(renderTarget);
 	SafeDelete(sky);
-
+	SafeDelete(grid);
+	SafeDelete(floor);
 	SafeDelete(shader);
 }
 
@@ -52,8 +81,12 @@ void ActorEditor::Update()
 {
 	if (false == bEdit)		return;
 	//액터의 에딧모드 활성화
-	actor->SetEditMode(true);
-	actor->Update();
+	//sky->Update();
+	grid->Update();
+
+	e_Actor->Update();
+	
+	orbitCam->Update();
 }
 
 void ActorEditor::PreRender()
@@ -61,38 +94,27 @@ void ActorEditor::PreRender()
 	if (false == bEdit)		return;
 
 	Context::Get()->SetSubCamera(orbitCam);
-	//Vector3 campos, camrot;
-	//Context::Get()->GetCamera()->RotationDegree(&camrot);
-	//Context::Get()->GetCamera()->Position(&campos);
 
-	actor->GetTransform(0)->Position(&originActorPosition);
-	orbitCam->SetObjPos(originActorPosition);
-	orbitCam->Update();
-	// 버튼 이미지를 위한 카메라 고정
-	//Context::Get()->GetCamera()->RotationDegree(11, 0, 0);
-	// 액터 인스턴스를 기준으로 화면 돌리기.
-	//Context::Get()->GetCamera()->Position(originActorPosition.x, originActorPosition.y + 10.0f , originActorPosition.z - 50.0f);
-	sky->Update();
+	// 오빗카메라 업데이트
 
 	renderTarget->Set(depthStencil->DSV());
 	//renderTarget->Set(NULL);
 	{
-		sky->Render();
+		//sky->Render();
 
-		Animate();
-		actor->Tech(0, 0, 0);
-		actor->Pass(0, 1, 2);
-		actor->Render();
+		floor->Render();
+		grid->Render();
+
+		e_Actor->Tech(0, 0, 0);
+		e_Actor->Pass(0, 1, 2);
+		e_Actor->Render();
 
 	}
 	editSrv = renderTarget->SRV();
 
+	// 컨텍스트의 서브카메라 삭제
 	Context::Get()->SetMainCamera();
-	//Context::Get()->GetCamera()->RotationDegree(camrot);
-	//Context::Get()->GetCamera()->Position(campos);
 
-	//프리 랜더가 끝나면 액터의 에딧모드 종료.
-	actor->SetEditMode(false);
 }
 
 void ActorEditor::Render()
@@ -107,11 +129,21 @@ void ActorEditor::Render()
 		{
 			if (ImGui::Button("Compile"))
 			{
-				actor->ActorCompile();
+				ActorCompile();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("ResetActor"))
+			{
+				EditActorReset();
 			}
 			imguiWinChild_CompHeirarchy(size);
 			//ImGui::Separator();
 			ImguiWinChild_AnimCon(size);
+			ImGui::BeginChild("Cam_Property", ImVec2(size.x*0.3f, size.y*0.3f), true);
+			ImGui::Text("mouse <%.2f,%.2f,%.2f>", mouseVal.x, mouseVal.y, mouseVal.z);
+			orbitCam->Property();
+			ImGui::EndChild();
+
 		}
 		ImGui::EndGroup();
 		ImGui::SameLine();
@@ -119,6 +151,40 @@ void ActorEditor::Render()
 		(
 			editSrv? editSrv : nullptr, ImVec2(size.x*0.4f, size.y)
 		);
+		if (ImGui::IsMouseHoveringWindow())
+		{
+			ImVec2 mousXY = ImGui::GetMouseDragDelta(1);
+			if (ImGui::IsKeyPressed(VK_SHIFT))
+			{
+				if (ImGui::IsKeyDown('E'))
+					mouseVal.z += 50.0f*Time::Delta();
+				else if (ImGui::IsKeyDown('Q'))
+					mouseVal.z -= 50.0f*Time::Delta();
+
+				if (ImGui::IsKeyDown('W'))
+					TargetPos += 50.0f*Time::Delta()*orbitCam->Up();
+				else if (ImGui::IsKeyDown('S'))
+					TargetPos -= 50.0f*Time::Delta()*orbitCam->Up();
+				
+				if (ImGui::IsKeyDown('A'))
+					TargetPos -= 50.0f*Time::Delta()*orbitCam->Right();
+				else if (ImGui::IsKeyDown('D'))
+					TargetPos += 50.0f*Time::Delta()*orbitCam->Right();
+				orbitCam->SetObjPos(TargetPos);
+			}
+			if (ImGui::IsMouseDown(1) == true)
+			{
+				mouseVal.x += mousXY.x * 0.1f*Time::Delta();
+				mouseVal.y += mousXY.y * 0.1f*Time::Delta();
+			}
+
+			orbitCam->CameraMove(mouseVal);
+		}
+
+
+		//랜더될 RTV 위치및 크기
+		ImgOffset = ImGui::GetItemRectMin();
+		ImgSize = ImGui::GetItemRectSize();
 		ImGui::SameLine();
 
 		if (NULL != selecedComp)
@@ -147,8 +213,8 @@ void ActorEditor::ImguiWindow_Begin()
 	);
 
 	ImGuiWindowFlags windowFlags =
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoMove;
+		ImGuiWindowFlags_NoResize
+		|ImGuiWindowFlags_NoMove;
 	ImGui::Begin("Editor", &bEdit, windowFlags);
 
 }
@@ -162,7 +228,7 @@ void ActorEditor::imguiWinChild_CompHeirarchy(const ImVec2 & size)
 {
 	ImGui::BeginChild("Component_Heirarchy", ImVec2(size.x*0.3f, size.y*0.35f), true);
 	{
-		actor->ShowCompHeirarchy(&selecedComp);
+		e_Actor->ShowCompHeirarchy(&selecedComp);
 	}
 	ImGui::EndChild();
 }
@@ -194,6 +260,7 @@ void ActorEditor::ImguiWinChild_AnimCon(const ImVec2 & size)
 
 			curAnimator->Update();
 
+			selectedFrame = curAnimator->GetCurrFrame(0);
 			int frameCount = curAnimator->GetFrameCount(0) - 1;
 			ImGui::SliderInt("Frames", &selectedFrame, 0, frameCount);
 			selectedFrame = Math::Clamp(selectedFrame, 0, frameCount);
@@ -203,29 +270,49 @@ void ActorEditor::ImguiWinChild_AnimCon(const ImVec2 & size)
 	ImGui::EndChild();
 }
 
+void ActorEditor::ActorCompile()
+{
+	//원본 액터를 에딧용 액터를 통해 재컴파일
+	actor->ActorCompile(*e_Actor);
+}
+
+void ActorEditor::EditActorReset()
+{
+	//기존 에딧액터를 삭제후 다시 만들기
+	SafeDelete(e_Actor);
+	e_Actor = new Actor(*actor);
+}
+
 void ActorEditor::PlayButton()
 {
 	/* Play */
 	bool playbutton = (state == AnimationState::Play);
-
+	bool bButtonClicked = false;
 	if (!playbutton)
 	{
-		curAnimator->SetFrame(0, selectedFrame);
+		//curAnimator->SetFrame(0, selectedFrame);
 		if (ImGui::Button("Play"))
 		{
 			state = AnimationState::Play;
+			bButtonClicked = true;
 		}
 	}
 	else if (ImGui::Button("Pause"))
 	{
 		state = AnimationState::Pause;
+			bButtonClicked = true;
 	}
 
 	ImGui::SameLine();
 	if (ImGui::Button("Stop"))
 	{
 		state = AnimationState::Stop;
+		bButtonClicked = true;
+		selectedFrame = 0;
+
 	}
+	if (true == bButtonClicked)
+		curAnimator->SetAnimState(state, 0);
 }
 
 bool ActorEditor::ViewAnims()
@@ -239,7 +326,7 @@ bool ActorEditor::ViewAnims()
 			int preSel = selectedClip;
 			for (int i = 0; i < clips.size(); i++)
 			{
-				string name = String::ToString(clips[i]->Name());
+				string name = String::ToString(clips[i]->FileName());
 				bool bSelected = (selectedClip == i);
 				if (ImGui::Selectable(name.c_str(), bSelected,ImGuiSelectableFlags_AllowDoubleClick))
 				{
@@ -252,32 +339,6 @@ bool ActorEditor::ViewAnims()
 		}
 	}
 	return bChange;
-}
-
-void ActorEditor::Animate()
-{
-	if (false == bAnimate)
-		return;
-
-	switch (state)
-	{
-	case AnimationState::Stop:
-		curAnimator->SetFrame(0, 0);
-		selectedFrame = 0;
-		bPlay = false;
-		break;
-	case AnimationState::Play:
-		selectedFrame = curAnimator->GetCurrFrame(0);
-		bPlay = true;
-		break;
-	case AnimationState::Pause:
-		bPlay = false;
-		break;
-	default:
-		break;
-	}
-	if (bPlay)
-		curAnimator->PlayAnim();
 }
 
 void ActorEditor::RenderGizmo(Transform * sTransform)
@@ -295,9 +356,8 @@ void ActorEditor::RenderGizmo(Transform * sTransform)
 	Matrix matrix = sTransform->World();
 	
 
-	float width = D3D::Get()->Width();
-	float height = D3D::Get()->Height();
-	//Matrix view = Context::Get()->View();
+	//float width = D3D::Get()->Width();
+	//float height = D3D::Get()->Height();
 	Matrix view;
 	orbitCam->GetMatrix(&view);
 	Matrix proj = Context::Get()->Projection();
@@ -306,7 +366,7 @@ void ActorEditor::RenderGizmo(Transform * sTransform)
 	ImGuizmo::SetOrthographic(true);
 	ImGuizmo::SetDrawlist();
 	//offset,windowsize 순
-	ImGuizmo::SetRect(0, 0, width, height);
+	ImGuizmo::SetRect(ImgOffset.x, ImgOffset.y, ImgSize.x, ImgSize.y);
 	ImGuizmo::Manipulate
 	(
 		view,

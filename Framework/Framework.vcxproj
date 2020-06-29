@@ -22,9 +22,7 @@
     <ClCompile Include="Assets\ContentsAsset.cpp" />
     <ClCompile Include="Assets\AssetManager.cpp" />
     <ClCompile Include="Assets\ContentsAsset\TextureAsset.cpp" />
-    <ClCompile Include="Collision\CapsuleCollider.cpp" />
     <ClCompile Include="Collision\OBBCollider.cpp" />
-    <ClCompile Include="Collision\SphereCollider.cpp" />
     <ClCompile Include="Components\ObjectBase\ObjectBaseComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\CameraComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\OBB_CollisionComponent.cpp" />
@@ -135,9 +133,7 @@
   <ItemGroup>
     <ClInclude Include="Assets\AssetManager.h" />
     <ClInclude Include="Assets\ContentsAsset\TextureAsset.h" />
-    <ClInclude Include="Collision\CapsuleCollider.h" />
     <ClInclude Include="Collision\OBBCollider.h" />
-    <ClInclude Include="Collision\SphereCollider.h" />
     <ClInclude Include="Components\ObjectBase\CameraComponent.h" />
     <ClInclude Include="Components\ObjectBase\OBB_CollisionComponent.h" />
     <ClInclude Include="Components\ObjectBase\ObjectBaseComponent.h" />
@@ -145,6 +141,7 @@
     <ClInclude Include="Components\ObjectBase\ModelMeshComponent.h" />
     <ClInclude Include="Components\ObjectBase\FigureMeshComponent.h" />
     <ClInclude Include="Editor\ActorEditor.h" />
+    <ClInclude Include="Model\AnimData.h" />
     <ClInclude Include="Objects\ObjectPicker.h" />
     <ClInclude Include="Objects\Actor\Actor.h" />
     <ClInclude Include="Components\Common\MaterialPBR.h" />

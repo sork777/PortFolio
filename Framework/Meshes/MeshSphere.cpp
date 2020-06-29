@@ -4,7 +4,17 @@
 MeshSphere::MeshSphere(float radius, UINT stackCount, UINT sliceCount)
 	: radius(radius), stackCount(stackCount), sliceCount(sliceCount)
 {
+	type = MeshType::Sphere;
 
+}
+
+MeshSphere::MeshSphere(const MeshSphere & mesh)
+	:Mesh(mesh)
+{
+	type = MeshType::Sphere;
+	radius = mesh.radius;
+	stackCount = mesh.stackCount;
+	sliceCount = mesh.sliceCount;
 }
 
 MeshSphere::~MeshSphere()
@@ -59,7 +69,6 @@ void MeshSphere::Create()
 
 
 	vector<UINT> indices;
-	vector<UINT> indicetess;
 
 	for (UINT i = 1; i <= sliceCount; i++)
 	{
@@ -67,10 +76,6 @@ void MeshSphere::Create()
 		indices.push_back((i + 1));
 		indices.push_back(i);		
 
-		indicetess.push_back(0);
-		indicetess.push_back(i+2);
-		indicetess.push_back(i);
-		indicetess.push_back((i + 1));
 	}
 
 	UINT baseIndex = 1;
@@ -87,11 +92,6 @@ void MeshSphere::Create()
 			indices.push_back(baseIndex + i * ringVertexCount + j + 1);
 			indices.push_back(baseIndex + (i + 1) * ringVertexCount + j + 1);
 			
-			
-			indicetess.push_back(baseIndex + i * ringVertexCount + j);
-			indicetess.push_back(baseIndex + i * ringVertexCount + j + 1);
-			indicetess.push_back(baseIndex + (i + 1) * ringVertexCount + j);			
-			indicetess.push_back(baseIndex + (i + 1) * ringVertexCount + j + 1);
 		}
 	}
 
@@ -104,21 +104,9 @@ void MeshSphere::Create()
 		indices.push_back(baseIndex + i);
 		indices.push_back(baseIndex + i + 1);
 		
-		indicetess.push_back(southPoleIndex);
-		indicetess.push_back(baseIndex + i);
-		indicetess.push_back(baseIndex + (i + 1)+1);
-		indicetess.push_back(baseIndex + (i + 1));
 	}
 
 	this->indices = new UINT[indices.size()];
 	indexCount = indices.size();
 	copy(indices.begin(), indices.end(), stdext::checked_array_iterator<UINT *>(this->indices, indexCount));
-
-	this->TessIndices = new UINT[indicetess.size()];
-	tessICount = indicetess.size();
-	copy
-	(
-		indicetess.begin(), indicetess.end(),
-		stdext::checked_array_iterator<UINT *>(this->TessIndices, tessICount)
-	);
 }

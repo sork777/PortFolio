@@ -1,5 +1,5 @@
 #pragma once
-#define MAX_LINE_VERTEX 2000000
+#define MAX_LINE_VERTEX 20000
 
 class DebugLine
 {

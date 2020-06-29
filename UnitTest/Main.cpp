@@ -73,7 +73,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR param, int 
 	desc.AppName = L"D3D Game";
 	desc.Instance = instance;		//프로그램 식별점, 시작주소
 	desc.bFullScreen = false;
-	desc.bVsync = false;
+	desc.bVsync = true;
 	desc.Handle = NULL;				//윈도우
 	desc.Width = 1280;
 	desc.Height = 720;

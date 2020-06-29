@@ -8,8 +8,12 @@
 */
 class Actor :public BaseObject
 {
+	float time = 0.0f;
+	UINT count = 0;
 public:
 	Actor();
+	Actor(Model& model);
+	Actor(const Actor& actor);
 	virtual ~Actor();
 
 	// BaseObject을(를) 통해 상속됨
@@ -20,6 +24,7 @@ public:
 	virtual void Render() override;
 	virtual void PostRender() override;
 
+	void SetShader(Shader* shader) { root->SetShader(shader); }
 	void Tech(const UINT& mesh, const UINT& model, const UINT& anim);
 	void Pass(const UINT& mesh, const UINT& model, const UINT& anim);
 	
@@ -29,12 +34,11 @@ public:
 	void DelInstanceData(const UINT& instance);
 
 public:
-	void ActorCompile() { root->CompileComponent(); }
-	void SetEditMode(const bool& bEdit) { root->SetEditMode(bEdit); }
-
+	void ActorCompile(const Actor& editActor);
+	
 ///////////////////////////////////////////////////////////////////////////////
 public:
-	inline void SetRootComponent(ModelMeshComponent* actorRoot) { root = actorRoot; }
+	void SetRootComponent(ModelMeshComponent* actorRoot);
 	inline ModelMeshComponent* GetRootMeshData() { return root; }
 
 public:
@@ -45,6 +49,7 @@ public:
 private:
 	ModelMeshComponent* root;
 
+	bool	bEditMode = false;
 	bool	bSpawningObject;
 	int		spawnInstance;
 	Vector3 spawnPos;

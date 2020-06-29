@@ -18,7 +18,7 @@ Model::Model(Shader* shader)
 	sAnimEditSRV = shader->AsSRV("AnimEditTransformMap");
 }
 
-Model::Model(Model* model)
+Model::Model(const Model& model)
 	: name(L"")
 	, materialFilePath(L""), materialDirPath(L"")
 	, meshFilePath(L""), meshDirPath(L"")
@@ -27,15 +27,16 @@ Model::Model(Model* model)
 		D3DXMatrixIdentity(&worlds[i]);
 	instanceBuffer = new VertexBuffer(worlds, MAX_MODEL_INSTANCE, sizeof(Matrix), 1, true);
 
-
-	shader				= model->GetShader();
+	//쉐이더는 같은애를 공유하는 거임. 깊은 복사때도 그냥 같은 주소
+	SetShader(model.shader);
+	/*shader				= model.shader;
 	sBoneTransformsSRV	= shader->AsSRV("BoneTransformsMap");
 	sAnimEditSRV		= shader->AsSRV("AnimEditTransformMap");
-
-	materialFilePath	= model->MaterialPath();
-	materialDirPath		= model->MaterialDir();
-	meshFilePath		= model->MeshPath();
-	meshDirPath			= model->MeshDir();	
+*/
+	materialFilePath = model.materialFilePath;
+	materialDirPath  = model.materialDirPath;
+	meshFilePath	= model.meshFilePath;
+	meshDirPath		= model.meshDirPath;
 	ReadMaterial(materialFilePath, materialDirPath);
 	ReadMesh(meshFilePath, meshDirPath);
 }
@@ -44,21 +45,63 @@ Model::~Model()
 {
 	for (Material* material : materials)
 		SafeDelete(material);
+	materials.clear();
+	materials.shrink_to_fit();
 
 	for (ModelBone* bone : bones)
 		SafeDelete(bone);
+	bones.clear();
+	bones.shrink_to_fit();
 
 	for (ModelMesh* mesh : meshes)
 		SafeDelete(mesh);
+	meshes.clear();
+	meshes.shrink_to_fit();
 
 	for (Transform* transform : transforms)
 		SafeDelete(transform);
+	transforms.clear();
+	transforms.shrink_to_fit();
 
 	SafeRelease(editTexture);
-	SafeDelete(shader);
+	SafeRelease(editSrv);
+	//SafeDelete(shader);
 	SafeRelease(bonebuffer);
+	SafeRelease(boneSrv);
 	SafeDelete(instanceBuffer);
 
+}
+
+void Model::ModelMeshChanger(const Model& model)
+{
+	for (Material* material : materials)
+		SafeDelete(material);
+	materials.clear();
+	materials.shrink_to_fit();
+
+	for (ModelBone* bone : bones)
+		SafeDelete(bone);
+	bones.clear();
+	bones.shrink_to_fit();
+
+	for (ModelMesh* mesh : meshes)
+		SafeDelete(mesh);
+	meshes.clear();
+	meshes.shrink_to_fit();
+
+	SafeRelease(editTexture);
+	SafeRelease(editSrv);
+	SafeRelease(bonebuffer);
+	SafeRelease(boneSrv);
+
+	bAnimated = false;
+
+	materialFilePath = model.materialFilePath;
+	materialDirPath = model.materialDirPath;
+	meshFilePath = model.meshFilePath;
+	meshDirPath = model.meshDirPath;
+	ReadMaterial(materialFilePath, materialDirPath);
+	ReadMesh(meshFilePath, meshDirPath);
 }
 
 void Model::SetShader(Shader * shader)
@@ -80,7 +123,7 @@ void Model::Update()
 	UpdateTransforms();
 }
 
-void Model::Render(const int& drawCount)
+void Model::Render()
 {
 	if (bonebuffer == NULL)
 		CreateBoneBuffer();
@@ -97,9 +140,7 @@ void Model::Render(const int& drawCount)
 	if (boneSrv != NULL)
 		sBoneTransformsSRV->SetResource(boneSrv);
 
-	int draw = drawCount;
-	if (drawCount <= 0)
-		draw = transforms.size();
+	int draw = transforms.size();
 	for (ModelMesh* mesh : meshes)
 		mesh->Render(draw);
 }

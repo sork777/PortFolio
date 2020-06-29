@@ -4,6 +4,8 @@
 #define PI 3.1415926535897932384626433832795
 #define INV_PI 1.0 / PI
 #define EPSILON 0.00000001
+#define FLT_MAX 3.402823e+38
+#define FLT_MIN 1.175494e-38
 
 
 
@@ -348,9 +350,9 @@ CollisionOBB MatrixtoOBB(matrix world)
     output.AxisY = y;
     output.AxisZ = z;
     
-    output.HalfSize.x = length(x);
-    output.HalfSize.y = length(y);
-    output.HalfSize.z = length(z);
+    output.HalfSize.x = length(x)*0.5f;
+    output.HalfSize.y = length(y)*0.5f;
+    output.HalfSize.z = length(z)*0.5f;
     
     output.Position.x = world._41;
     output.Position.y = world._42;
@@ -358,7 +360,6 @@ CollisionOBB MatrixtoOBB(matrix world)
     
     return output;
 }
-
 
 int SperatingPlane(float3 position, float3 direction, CollisionOBB box1, CollisionOBB box2)
 {
@@ -376,3 +377,91 @@ int SperatingPlane(float3 position, float3 direction, CollisionOBB box1, Collisi
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+bool RayInterSection(float3 rayPos, float3 rayDir, float3 minV, float3 maxV, inout float dist)
+{
+    float d = 0.0f;
+    float maxValue = FLT_MAX;
+    float3 dir = normalize(rayDir);
+    
+    [flatten]
+    if (abs(dir.x) < EPSILON)
+    {
+        return false;
+    }
+    else
+    {
+        float inv = 1.0f / dir.x;
+        float minF = (minV.x - rayPos.x) * inv;
+        float maxF = (maxV.x - rayPos.x) * inv;
+
+        if (minF > maxF)
+        {
+            float temp = minF;
+            minF = maxF;
+            maxF = temp;
+        }
+
+        d = max(minF, d);
+        maxValue = min(maxF, maxValue);
+
+        if (d > maxValue)
+            return false;
+    }
+    
+    [flatten]
+    if (abs(dir.y) < EPSILON)
+    {
+        if (rayPos.y < minV.y || rayPos.y > maxV.y)
+            return false;
+    }
+    else
+    {
+        float inv = 1.0f / dir.y;
+        float minF = (minV.y - rayPos.y) * inv;
+        float maxF = (maxV.y - rayPos.y) * inv;
+
+        if (minF > maxF)
+        {
+            float temp = minF;
+            minF = maxF;
+            maxF = temp;
+        }
+
+        d = max(minF, d);
+        maxValue = min(maxF, maxValue);
+
+        if (d > maxValue)
+            return false;
+    }
+
+    [flatten]
+    if (abs(dir.z) < EPSILON)
+    {
+        if (rayPos.z < minV.z || rayPos.z > maxV.z)
+            return false;
+    }
+    else
+    {
+        float inv = 1.0f / dir.z;
+        float minF = (minV.z - rayPos.z) * inv;
+        float maxF = (maxV.z - rayPos.z) * inv;
+
+        if (minF > maxF)
+        {
+            float temp = minF;
+            minF = maxF;
+            maxF = temp;
+        }
+
+        d = max(minF, d);
+        maxValue = min(maxF, maxValue);
+
+        if (d > maxValue)
+            return false;
+    }
+    dist = d;
+    //SelPos = rayPos + dir * d;
+    return true;
+
+}

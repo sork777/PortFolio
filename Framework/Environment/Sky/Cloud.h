@@ -11,7 +11,6 @@ public:
 	void PostRender();
 
 private:
-	void CreateDome();
 	void CreatePlane();
 private:
 	Shader * shader;
@@ -28,7 +27,7 @@ private:
 	UINT domeCount=32;
 	UINT planeRes = 32;
 	float skyTop = 3.0f;
-	float skyBottom = -1.5f;
+	float skyBottom = -0.5f;
 	float multi = 3.0f;
 
 	VertexBuffer* domeVertexBuffer;

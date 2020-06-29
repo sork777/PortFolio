@@ -1,5 +1,15 @@
 #pragma once
 
+enum class MeshType
+{
+	None,
+	Cylinder,
+	Cube,
+	Grid,
+	Quad,
+	Sphere
+};
+
 class Mesh
 {
 public:
@@ -7,12 +17,14 @@ public:
 
 public:
 	Mesh();
+	Mesh(const Mesh& mesh);
 	virtual ~Mesh();
 
 	void Update();
 	void Render(const UINT& drawCount);
 
 	void SetShader(Shader* shader);
+	const MeshType& GetMeshType() const { return type; }
 
 public:
 	inline Shader* GetShader() { return shader; }
@@ -20,18 +32,14 @@ public:
 	inline void Tech(const UINT& val) { tech = val; }
 
 	inline void Topology(D3D11_PRIMITIVE_TOPOLOGY val) { topology = val; }
-	inline void Tessellation(const bool& bTess) { this->bTess = bTess; }
-	inline void Displacement(const float& dist) { displacement = dist < 0.0f ? 0.0f : dist; }
 
 protected:
 	virtual void Create() = 0;
 
-private:
-	bool bTess = false;
-	float displacement = 0.2f;
 
 protected:
 	Shader* shader;
+	MeshType type = MeshType::None;
 	D3D11_PRIMITIVE_TOPOLOGY topology;
 	UINT pass = 0;
 	UINT tech = 0;
@@ -40,11 +48,9 @@ protected:
 
 	VertexBuffer* vertexBuffer = NULL;
 	IndexBuffer* indexBuffer = NULL;
-	IndexBuffer* indexTessBuffer = NULL;
 
 	MeshVertex* vertices;
 	UINT* indices;
-	UINT* TessIndices;
 
-	UINT vertexCount, indexCount,tessICount;
+	UINT vertexCount, indexCount;
 };

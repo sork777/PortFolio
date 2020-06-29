@@ -17,28 +17,38 @@ class MeshRender;
 class FigureMeshComponent :public ObjectBaseComponent
 {
 public:
-	FigureMeshComponent(MeshRender* mesh);
+	FigureMeshComponent(Mesh* mesh);
+	FigureMeshComponent(const FigureMeshComponent& meshComp);
 	~FigureMeshComponent();
 		
+	void CompileComponent(const FigureMeshComponent& OBComp);
+
+private:
+	// 메시컴포넌트를 받아서 
+	void MeshCopy(Mesh& oMesh);
+
+public:
 	// ObjectBaseComponent을(를) 통해 상속됨
 	virtual void Update() override;
 	virtual void Render() override;
-	virtual bool Property(const UINT& instance = 0) override;
+	bool Property(const UINT& instance = 0) ;
 
-	virtual void Tech(const UINT& mesh, const UINT& model, const UINT& anim) override;
-	virtual void Pass(const UINT& mesh, const UINT& model, const UINT& anim) override;
+	void Tech(const UINT& mesh, const UINT& model, const UINT& anim) ;
+	void Pass(const UINT& mesh, const UINT& model, const UINT& anim) ;
 	
-	virtual void SetShader(Shader* shader) override;
+	void SetShader(Shader* shader) ;
+	MeshRender* GetMeshRender() { return meshRender; }
 
-	virtual void AddInstanceData() override;
-	virtual void DelInstanceData(const UINT& instance) override;
-	virtual const UINT& GetInstSize() override;
-	
-	virtual Transform* GetTransform(const UINT& instance = 0) override;
 public:
-	inline MeshRender* GetMeshRender() { return meshRender; }
+	void AddInstanceData() ;
+	void DelInstanceData(const UINT& instance) ;
+
+	virtual const UINT& GetInstSize() override;	
+	virtual Transform* GetTransform(const UINT& instance = 0) override;
 
 private:
+	// 메시는 공유
+	Mesh* mesh;
 	MeshRender* meshRender;
-};
 
+};

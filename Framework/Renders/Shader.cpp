@@ -527,3 +527,36 @@ ID3DX11EffectUnorderedAccessViewVariable * Shader::AsUAV(string name)
 //		desc.effect->CloneEffect(D3DX11_EFFECT_CLONE_FORCE_NONSINGLE, effect);
 //	}
 //}
+//
+//ShaderManager* ShaderManager::instance = NULL;
+//
+//ShaderManager * ShaderManager::Get()
+//{
+//	if (instance == NULL)
+//		Create();
+//	return instance;
+//}
+//
+//void ShaderManager::Create()
+//{
+//	if (instance == NULL)
+//		instance = new ShaderManager();
+//}
+//
+//void ShaderManager::Delete()
+//{
+//	SafeDelete(instance);
+//}
+//
+//ShaderManager::ShaderManager()
+//{
+//}
+//
+//ShaderManager::~ShaderManager()
+//{
+//	unordered_map<wstring, Shader*>::iterator iter;
+//	while (iter != registShaders.end())
+//		SafeDelete(iter->second);
+//	registShaders.clear();
+//}
+//

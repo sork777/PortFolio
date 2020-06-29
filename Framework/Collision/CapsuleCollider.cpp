@@ -4,6 +4,12 @@
 
 
 CapsuleCollider::CapsuleCollider()
+	:Collider()
+{
+}
+
+CapsuleCollider::CapsuleCollider(Shader * shader, Shader * cs)
+	:Collider(shader, cs)
 {
 }
 
@@ -16,16 +22,10 @@ void CapsuleCollider::Update()
 {
 }
 
-void CapsuleCollider::Render(Color color)
+void CapsuleCollider::Render(const int& draw)
 {
 }
 
-bool CapsuleCollider::IsIntersect(Collider * other)
+void CapsuleCollider::CreateComputeBuffer()
 {
-	return false;
-}
-
-bool CapsuleCollider::IsIntersectRay(Vector3 & position, Vector3 & direction, float & dist)
-{
-	return false;
 }

@@ -5,18 +5,36 @@
 
 ModelMeshComponent::ModelMeshComponent(Model* model)
 	:meshRender(NULL), animation(NULL)
-	,skeletonMesh(model)
 {
 	componentName = L"ModelMeshComp";
-	type = ObjectBaseComponentType::ModelMesh;
 	
-	meshRender = new ModelRender(model);
-	if (model->IsAnimationModel() == true)
+	std::wcout << componentName << " 생성" << endl;
+	type = ObjectBaseComponentType::ModelMesh;
+
+	//컴포넌트 마다 가지고있는 모델이 달라야 모델 바꿀때 다른게 안변함
+	skeletonMesh = new Model(*model);
+	meshRender = new ModelRender(skeletonMesh);
+	if (skeletonMesh->IsAnimationModel() == true)
 	{
-		animation = new ModelAnimator(model);
+		animation = new ModelAnimator(skeletonMesh);
 	}
+	//std::cout << "모델 주소 : " << skeletonMesh << endl;
+	//std::cout << "Render 주소 : " << meshRender << endl;
+	//std::cout << "Anim 주소 : " << animation << endl;
 }
 
+ModelMeshComponent::ModelMeshComponent(const ModelMeshComponent&  modelComp)
+	:ObjectBaseComponent(modelComp)
+	, meshRender(NULL), animation(NULL)
+{
+	std::wcout << componentName << " 복사생성" << endl;
+
+	componentName = L"ModelMeshComp";
+	type = ObjectBaseComponentType::ModelMesh;
+		
+	skeletonMesh = new Model(*modelComp.skeletonMesh);
+	ClonningComp(modelComp);
+}
 
 ModelMeshComponent::~ModelMeshComponent()
 {
@@ -26,6 +44,37 @@ ModelMeshComponent::~ModelMeshComponent()
 	
 }
 
+void ModelMeshComponent::ClonningComp(const ModelMeshComponent & oComp)
+{
+
+	//std::wcout << componentName << "-Clonning Comp 함수진입 " << endl;
+	//std::cout << "원본 컴포넌트 주소 : " << &oComp << endl;
+	//std::cout << "현재 컴포넌트 주소 : " << this << endl;
+	meshRender = new ModelRender(skeletonMesh);
+	if (skeletonMesh->IsAnimationModel() == true)
+	{
+		ModelAnimator* oAnim = oComp.animation;
+		animation = new ModelAnimator(skeletonMesh);
+		// 복사 원본에 애니메이션이 있으면 클립데이터를 복사
+		if (NULL != oAnim)
+			animation->CloneClips(oAnim->Clips());
+	}
+	Super::ClonningChildren(oComp.children);
+	//std::wcout << componentName << "-Clonning Comp 함수탈출 " << endl;
+}
+
+void ModelMeshComponent::CompileComponent(const ModelMeshComponent & OBComp)
+{
+	Super::CompileComponent(OBComp);
+
+	SafeDelete(meshRender);
+	SafeDelete(animation);
+
+	// 메시데이터 교체
+	skeletonMesh->ModelMeshChanger(*OBComp.skeletonMesh);
+	ClonningComp(OBComp);
+}
+
 void ModelMeshComponent::Update()
 {
 	if (animation != NULL)
@@ -33,30 +82,32 @@ void ModelMeshComponent::Update()
 		animation->Update();
 
 		//TODO: 플레이 선택에 따라 변경해야함.
-		int loop = bEditMode ? 1 : GetInstSize();
-		for (int i = 0; i < loop; i++)
-			animation->PlayAnim(i);
+		//if (!bEditMode)
+		{
+			int loop = GetInstSize();
+			for (int i = 0; i < loop; i++)
+				animation->PlayAnim(i);
+		}
 	}
 	else if (meshRender != NULL)
 	{
 		meshRender->Update();
 	}
-
+	
 	Super::Update();
 }
 
 void ModelMeshComponent::Render()
 {
-	int inst = bEditMode ? 1 : -1;
-
 	if (animation != NULL)
 	{
-		animation->Render(inst);
+		animation->Render();
 	}
 	else if (meshRender != NULL)
 	{
-		meshRender->Render(inst);
+		meshRender->Render();
 	}
+	
 	Super::Render();
 }
 
@@ -148,4 +199,29 @@ const UINT & ModelMeshComponent::GetInstSize()
 Transform * ModelMeshComponent::GetTransform(const UINT & instance)
 {
 	return skeletonMesh->GetTransform(instance);
+}
+
+void ModelMeshComponent::SetAnimState(const AnimationState & state, const UINT & instance)
+{
+	if (NULL != animation)
+		animation->SetAnimState(state, instance);
+}
+
+void ModelMeshComponent::PlayAllAnim()
+{
+	if (NULL != animation)
+	{
+		int loop = GetInstSize();
+		for (int i = 0; i < loop; i++)
+		animation->SetAnimState(AnimationState::Play, i);
+	}
+}
+void ModelMeshComponent::StopAllAnim()
+{
+	if (NULL != animation)
+	{
+		int loop = GetInstSize();
+		for (int i = 0; i < loop; i++)
+			animation->SetAnimState(AnimationState::Stop, i);
+	}
 }

@@ -55,6 +55,9 @@ void TerrainLodDemo::Initialize()
 void TerrainLodDemo::Destroy()
 {
 	SafeDelete(frustum);
+	SafeDelete(shader);
+	SafeDelete(skyShader);
+	SafeDelete(terrainShader);
 
 }
 
@@ -156,9 +159,8 @@ void TerrainLodDemo::Render()
 		editor->Render();
 	if (NULL != actor)
 	{
-		ObjectBaseComponent* root = actor->GetRootMeshData();
-		root->Tech(1, 1, 1);
-		root->Pass(0, 1, 2);
+		actor->Tech(1, 1, 1);
+		actor->Pass(0, 1, 2);
 		actor->Render();
 	}
 }
@@ -209,7 +211,7 @@ void TerrainLodDemo::CreateBaseActor()
 
 	actor = new Actor();
 	actor->SetRootComponent(modelMesh);
-	actor->GetRootMeshData()->SetShader(shader);
+	actor->SetShader(shader);
 
 	model = new Model(shader);
 	model->ReadMaterial(L"Weapon/Sword", L"../../_Textures/Model/");
@@ -222,7 +224,7 @@ void TerrainLodDemo::CreateBaseActor()
 	transform->RotationDegree(0, 0, 90);
 	transform->Position(-10, -5, -15);
 
-	//modelMesh->AttachSocket(L"RightHand");
+	modelMesh->AttachSocket(L"RightHand");
 	actor->GetRootMeshData()->LinkChildComponent(modelMesh);
 	
 	selecedComp = actor->GetRootMeshData();

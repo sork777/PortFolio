@@ -5,12 +5,14 @@
 ModelRender::ModelRender(Model* model)
 	: model(model)
 {
-	shader = model->GetShader();
-	sTransformsSRV = shader->AsSRV("TransformsMap");
+	SetShader(model->GetShader());
 }
 
 ModelRender::~ModelRender()
 {
+	SafeRelease(sTransformsSRV);
+	//SafeRelease(srv);
+	SafeRelease(texture);
 }
 
 void ModelRender::Update()
@@ -18,14 +20,14 @@ void ModelRender::Update()
 	model->Update();
 }
 
-void ModelRender::Render(const int& drawCount)
+void ModelRender::Render()
 {
 	if (texture == NULL)
 		CreateTexture();
 
 	if (srv != NULL)
 		sTransformsSRV->SetResource(srv);
-	model->Render(drawCount);
+	model->Render();
 }
 
 void ModelRender::SetShader(Shader * shader)

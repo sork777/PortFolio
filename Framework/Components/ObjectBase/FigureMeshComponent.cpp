@@ -3,18 +3,69 @@
 
 
 
-FigureMeshComponent::FigureMeshComponent(MeshRender* mesh)
-	:meshRender(mesh)
+FigureMeshComponent::FigureMeshComponent(Mesh* mesh)
+{
+	MeshCopy(*mesh);
+
+
+	componentName = L"FigureMeshComp";
+	type = ObjectBaseComponentType::FigureMesh;
+	meshRender = new MeshRender(shader, mesh);
+}
+
+FigureMeshComponent::FigureMeshComponent(const FigureMeshComponent& meshComp)
+	:ObjectBaseComponent(meshComp)
 {
 	componentName = L"FigureMeshComp";
 	type = ObjectBaseComponentType::FigureMesh;
-	//meshRender = new MeshRender(mesh);
+	
+	MeshCopy(*meshComp.mesh);
+
+	meshRender = new MeshRender(shader, mesh);
+	Super::ClonningChildren(meshComp.children);
 }
 
 
 FigureMeshComponent::~FigureMeshComponent()
 {
+	SafeDelete(mesh);
 	SafeDelete(meshRender);
+}
+
+void FigureMeshComponent::CompileComponent(const FigureMeshComponent & OBComp)
+{
+	Super::CompileComponent(OBComp);
+	// 도형 메시 복사
+	MeshCopy(*OBComp.mesh);
+	// 도형 메시 교체
+	meshRender->MeshChanger(mesh);
+}
+
+void FigureMeshComponent::MeshCopy(Mesh& oMesh)
+{
+	MeshType meshType = oMesh.GetMeshType();
+	switch (meshType)
+	{
+	case MeshType::None:
+		break;
+	case MeshType::Cylinder:
+		mesh = new MeshCylinder(*dynamic_cast<MeshCylinder*>(&oMesh));
+		break;
+	case MeshType::Cube:
+		mesh = new MeshCube(*dynamic_cast<MeshCube*>(&oMesh));
+		break;
+	case MeshType::Grid:
+		mesh = new MeshGrid(*dynamic_cast<MeshGrid*>(&oMesh));
+		break;
+	case MeshType::Quad:
+		mesh = new MeshQuad(*dynamic_cast<MeshQuad*>(&oMesh));
+		break;
+	case MeshType::Sphere:
+		mesh = new MeshSphere(*dynamic_cast<MeshSphere*>(&oMesh));
+		break;
+	default:
+		break;
+	}
 }
 
 void FigureMeshComponent::Update()
@@ -25,7 +76,7 @@ void FigureMeshComponent::Update()
 
 void FigureMeshComponent::Render()
 {
-	meshRender->Render(bEditMode ? 1 : -1);
+	meshRender->Render();
 	Super::Render();
 }
 
@@ -75,6 +126,7 @@ void FigureMeshComponent::SetShader(Shader * shader)
 void FigureMeshComponent::AddInstanceData()
 {
 	int index = meshRender->GetInstSize();
+
 	meshRender->AddInstance();
 	meshRender->GetTransform(index)->Local(baseTransform);
 	Super::AddInstanceData();

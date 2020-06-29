@@ -15,9 +15,13 @@ public:
 
 	inline Mesh* GetMesh() { return mesh; }
 	inline const UINT& GetInstSize() { return transforms.size(); }
+
 public:
 	void AddInstance();
 	void DelInstance(const UINT& instance);
+
+public:
+	void MeshChanger(Mesh* mesh);
 
 public:
 	inline Material* GetMaterial() { return material; }

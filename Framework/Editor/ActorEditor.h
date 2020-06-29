@@ -9,7 +9,6 @@
 */
 class Actor;
 
-
 class ActorEditor :public IEditor
 {
 public:
@@ -37,20 +36,15 @@ private:
 	void ImguiWinChild_AnimCon(const ImVec2& size = ImVec2(0, 0));
 
 private:
-	//void CompileButton();
+	void ActorCompile();
+	void EditActorReset();
 	void PlayButton();
 	bool ViewAnims();
-	void Animate();	
 
 	void RenderGizmo(Transform* sTransform);
 
 private:
-	enum class AnimationState : UINT
-	{
-		Stop = 0,
-		Play,
-		Pause
-	} state = AnimationState::Stop;
+	AnimationState state = AnimationState::Stop;
 
 private:	
 	enum class GizmoType
@@ -62,8 +56,13 @@ private:
 
 	GizmoType gizmoType = GizmoType::None;
 private:
+	Vector3 mouseVal = Vector3(2.5f, 1.0f, 0);
+	Vector3 TargetPos = Vector3(0, 5.0f, 0);
+	ImVec2 ImgOffset = ImVec2(0, 0);
+	ImVec2 ImgSize = ImVec2(0, 0);
+	
+private:
 	int selectedFrame	= 0;
-	//int selectedBone = 0;
 	int selectedClip = 0;
 
 	float takeTime	= 1.0f;
@@ -76,11 +75,12 @@ private:
 	
 	ModelAnimator*	curAnimator = NULL;
 	Model* curModel	= NULL;
+	Actor* e_Actor	= NULL;
 	Actor* actor	= NULL;
 
 	ObjectBaseComponent* selecedComp = NULL;
 	vector<ModelClip*>	clips;
-	Vector3 originActorPosition;
+
 private:
 	// È¯°æ
 	class Sky*	sky;

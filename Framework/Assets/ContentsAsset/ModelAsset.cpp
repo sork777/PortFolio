@@ -107,7 +107,7 @@ void ModelAsset::LoadAssetContents()
 ModelMeshComponent * ModelAsset::GetModelMeshCompFromModelAsset()
 {
 	// 데이터 분리를 위해 새로 생성
-	Model* newModel = new Model(model);
+	Model* newModel = new Model(*model);
 	ModelMeshComponent * newModelMesh = new ModelMeshComponent(newModel);
 	return newModelMesh;
 }

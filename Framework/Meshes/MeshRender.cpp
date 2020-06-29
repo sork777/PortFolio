@@ -54,6 +54,13 @@ void MeshRender::DelInstance(const UINT & instance)
 	transforms.erase(transforms.begin() + instance);
 }
 
+void MeshRender::MeshChanger(Mesh * mesh)
+{
+	Shader* shader = this->mesh->GetShader();
+	this->mesh = mesh;
+	mesh->SetShader(shader);
+}
+
 void MeshRender::SetMaterial(Material * material)
 {
 	this->material = material;

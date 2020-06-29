@@ -5,6 +5,7 @@ class MeshCube : public Mesh
 {
 public:
 	MeshCube();
+	MeshCube(const MeshCube& mesh);
 	~MeshCube();
 
 protected:
