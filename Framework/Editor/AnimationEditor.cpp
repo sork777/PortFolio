@@ -16,7 +16,7 @@ AnimationEditor::~AnimationEditor()
 
 void AnimationEditor::Initialize()
 {
-	shader = new Shader(L"027_Animation.fx");
+	shader = SETSHADER(L"027_Animation.fx");
 	sky = new Sky(L"Environment/GrassCube1024.dds");
 	//Create Material
 	{
@@ -50,7 +50,7 @@ void AnimationEditor::Destroy()
 	prevRenders.clear();
 	prevRenders.shrink_to_fit();
 
-	SafeDelete(shader);
+	
 }
 
 void AnimationEditor::Update()

@@ -83,7 +83,7 @@ void createTextureAndViews(UINT width, UINT height, DXGI_FORMAT format,
 FFTOceanSimulator::FFTOceanSimulator(OceanParameter& params)
 {
 	fftPlan = new FFT();
-	shader = new Shader(L"HW07_OceanSimulator.fxo");
+	shader = SETSHADER(L"HW07_OceanSimulator.fxo");
 
 	// Height map H(0)
 	// 0일때의 높이맵 H(0)
@@ -162,7 +162,7 @@ FFTOceanSimulator::FFTOceanSimulator(OceanParameter& params)
 
 FFTOceanSimulator::~FFTOceanSimulator()
 {
-	SafeDelete(shader);
+	
 	SafeDelete(fftPlan);
 
 	SafeDelete(Float2_H0);

@@ -27,7 +27,7 @@ ModelAnimator::~ModelAnimator()
 	SafeRelease(sUav);
 	SafeDelete(computeBuffer);
 	SafeDelete(csOutput);
-	SafeDelete(computeShader);
+	//SafeDelete(computeShader);
 
 	for (ModelClip* clip : clips)
 		SafeDelete(clip);
@@ -50,7 +50,7 @@ void ModelAnimator::Initialize()
 	sFrameBuffer = shader->AsConstantBuffer("CB_AnimationFrame");
 	sTransformsSRV = shader->AsSRV("TransformsMap");
 
-	computeShader = new Shader(L"PF_AttachBone.fx");
+	computeShader = SETSHADER(L"PF_AttachBone.fx");
 
 	sUav = computeShader->AsUAV("Output");
 	sComputeFrameBuffer = computeShader->AsConstantBuffer("CB_AnimationFrame");

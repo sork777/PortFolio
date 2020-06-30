@@ -32,7 +32,7 @@ Moon::Moon(Shader * shader)
 
 Moon::~Moon()
 {
-	SafeDelete(shader);
+	
 	SafeDelete(vertexBuffer);
 	SafeDelete(moon);
 	SafeDelete(moonGlow);

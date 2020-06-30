@@ -2,15 +2,14 @@
 #include "Renderer.h"
 
 Renderer::Renderer(Shader * shader)
-	: shader(shader), bCreateShader(false)
+	: shader(shader)
 {
 	Initialize();
 }
 
 Renderer::Renderer(wstring shaderFile)
-	: bCreateShader(true)
 {
-	shader = new Shader(shaderFile);
+	shader = SETSHADER(shaderFile);
 
 	Initialize();
 }
@@ -39,8 +38,7 @@ Renderer::~Renderer()
 	SafeDelete(vertexBuffer);
 	SafeDelete(indexBuffer);
 
-	if (bCreateShader == true)
-		SafeDelete(shader);
+		
 }
 
 void Renderer::SetShader(Shader * shader)

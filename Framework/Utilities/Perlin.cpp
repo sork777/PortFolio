@@ -6,7 +6,7 @@
 
 Perlin::Perlin()
 {
-	shader = new Shader(L"HW00_Perlin.fx");
+	shader = SETSHADER(L"HW00_Perlin.fx");
 	cbuffer = new ConstantBuffer(&perlinDesc, sizeof(PerlinDesc));
 	NoiseCs = new CsTexture();
 
@@ -23,7 +23,7 @@ Perlin::Perlin()
 
 Perlin::~Perlin()
 {
-	SafeDelete(shader);
+	
 	SafeDelete(cbuffer);
 	SafeDelete(NoiseCs);
 }

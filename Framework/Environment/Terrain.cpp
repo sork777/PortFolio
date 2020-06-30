@@ -34,7 +34,7 @@ Terrain::Terrain(Shader* shader, wstring heightMap)
 	sLayerMaps = shader->AsSRV("LayerMaps");
 
 	/* CS¿ë shader*/
-	CS_shader = new Shader(L"043_InterSection.fx");
+	CS_shader = SETSHADER(L"043_InterSection.fx");
 
 }
 

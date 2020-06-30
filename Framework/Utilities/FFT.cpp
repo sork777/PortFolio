@@ -4,7 +4,7 @@
 
 FFT::FFT()
 {
-	shader = new Shader(L"HW07_FFT.fx");
+	shader = SETSHADER(L"HW07_FFT.fx");
 }
 
 
@@ -93,7 +93,7 @@ void FFT::Create_Plan(UINT slices)
 
 void FFT::Destroy_Plan()
 {
-	SafeDelete(shader);
+	
 	SafeRelease(tmpSRV);
 	SafeRelease(tmpUAV);
 	SafeRelease(tmpBuffer);

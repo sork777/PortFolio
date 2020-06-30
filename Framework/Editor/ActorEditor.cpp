@@ -74,7 +74,7 @@ void ActorEditor::Destroy()
 	SafeDelete(sky);
 	SafeDelete(grid);
 	SafeDelete(floor);
-	SafeDelete(shader);
+	
 }
 
 void ActorEditor::Update()

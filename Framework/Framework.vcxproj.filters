@@ -281,6 +281,8 @@
     <ClCompile Include="Components\ObjectBase\OBB_CollisionComponent.cpp" />
     <ClCompile Include="Objects\Actor\Player.cpp" />
     <ClCompile Include="Objects\ObjectPicker.cpp" />
+    <ClCompile Include="CollisionTest\ColliderTest.cpp" />
+    <ClCompile Include="CollisionTest\OBBColliderTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -632,5 +634,7 @@
     <ClInclude Include="Objects\Actor\Player.h" />
     <ClInclude Include="Objects\ObjectPicker.h" />
     <ClInclude Include="Model\AnimData.h" />
+    <ClInclude Include="CollisionTest\ColliderTest.h" />
+    <ClInclude Include="CollisionTest\OBBColliderTest.h" />
   </ItemGroup>
 </Project>

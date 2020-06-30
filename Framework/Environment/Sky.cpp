@@ -5,7 +5,7 @@
 Sky::Sky()
 	:cubeSRV(NULL)
 {
-	shader = new Shader(L"022_Sky.fx");
+	shader = SETSHADER(L"022_Sky.fx");
 	buffer = new ConstantBuffer(&desc, sizeof(Desc));
 	sBuffer = shader->AsConstantBuffer("CB_Sky");
 
@@ -16,7 +16,7 @@ Sky::Sky()
 
 Sky::Sky(wstring cubeMapFile)
 {
-	shader = new Shader(L"022_Sky.fx");
+	shader = SETSHADER(L"022_Sky.fx");
 	buffer = new ConstantBuffer(&desc, sizeof(Desc));
 	sBuffer = shader->AsConstantBuffer("CB_Sky");
 
@@ -40,7 +40,7 @@ Sky::~Sky()
 	SafeRelease(sBuffer);
 	SafeRelease(cubeSRV);
 	SafeRelease(sCubeSRV);
-	SafeDelete(shader);
+	
 }
 
 void Sky::Update()

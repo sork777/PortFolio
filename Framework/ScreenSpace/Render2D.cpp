@@ -13,14 +13,14 @@ Render2D::Render2D(wstring shaderFile)
 	if (shaderFile == L"")
 		shaderFile = L"031_Render2D.fx";
 	
-	shader = new Shader(shaderFile);
+	shader = SETSHADER(shaderFile);
 
 	Initialize();
 
 }
 Render2D::~Render2D()
 {
-	SafeDelete(shader);
+	
 	SafeDelete(transform);
 	SafeDelete(perFrame);
 

@@ -123,6 +123,9 @@ typedef D3DXPLANE Plane;
 //#include "Collision/SphereCollider.h"
 //#include "Collision/CapsuleCollider.h"
 
+#include "CollisionTest/ColliderTest.h"
+#include "CollisionTest/OBBColliderTest.h"
+
 #include "Meshes/Mesh.h"
 #include "Meshes/MeshRender.h"
 #include "Meshes/MeshQuad.h"

@@ -11,7 +11,7 @@ TrailRenderer::TrailRenderer(UINT splitCount)
 
 TrailRenderer::~TrailRenderer()
 {
-	SafeDelete(shader);
+	
 	SafeDelete(transform)
 		;
 	SafeDelete(vertexBuffer);
@@ -28,7 +28,7 @@ TrailRenderer::~TrailRenderer()
 
 void TrailRenderer::Initialize()
 {
-	shader = new Shader(L"Effect/TrailEffect.fx");
+	shader = SETSHADER(L"Effect/TrailEffect.fx");
 	transform = new Transform(shader);
 	perframe = new PerFrame(shader);
 

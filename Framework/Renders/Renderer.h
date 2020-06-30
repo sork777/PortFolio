@@ -41,8 +41,6 @@ protected:
 	UINT indexCount;
 
 private:
-	bool bCreateShader;
-
 	D3D11_PRIMITIVE_TOPOLOGY topology;
 	UINT pass;
 	UINT tech;

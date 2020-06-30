@@ -30,30 +30,6 @@ ModelIllusion::ModelIllusion(ModelAnimator* animator, UINT meshIdx, UINT illusio
 		Material* srcMaterial = model->MaterialByIndex(0);
 		material->Name(L"ILLUSION_MAT");
 		material->CloneMaterial(srcMaterial);
-		/*material->Ambient(srcMaterial->Ambient());
-		material->Diffuse(srcMaterial->Diffuse());
-		material->Specular(srcMaterial->Specular());
-		material->Emissive(srcMaterial->Emissive());
-
-
-		if (srcMaterial->DiffuseMap() != NULL)
-			material->LoadDiffuseMapW(
-				srcMaterial->DiffuseMap()->GetFile(),
-				srcMaterial->DiffuseMap()->GetDir()
-			);
-
-		if (srcMaterial->SpecularMap() != NULL)
-			material->LoadSpecularMapW(
-				srcMaterial->SpecularMap()->GetFile(),
-				srcMaterial->SpecularMap()->GetDir()
-			);
-
-		if (srcMaterial->NormalMap() != NULL)
-			material->LoadNormalMapW(
-				srcMaterial->NormalMap()->GetFile(),
-				srcMaterial->NormalMap()->GetDir()
-			);*/
-
 
 		shader->AsSRV("TransformsMap")->SetResource(transformSrv);
 		shader->AsSRV("BoneTransformsMap")->SetResource(boneSrv);
@@ -74,14 +50,14 @@ ModelIllusion::~ModelIllusion()
 	SafeDelete(animEditSrv);
 
 	SafeDelete(frameBuffer);
-	SafeDelete(shader);
+	
 	tweens.clear();
 	tweens.shrink_to_fit();
 }
 
 void ModelIllusion::Initialize()
 {
-	shader = new Shader(L"Effect/Illusion.fx");
+	shader = SETSHADER(L"Effect/Illusion.fx");
 	perframe = new PerFrame(shader);
 	transform = new Transform(shader);
 	material = new Material(shader);

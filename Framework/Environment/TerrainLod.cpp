@@ -12,7 +12,7 @@ TerrainLod::TerrainLod(InitializeInfo& info)
 	this->info = info;
 	Topology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
 	
-	raiseCS = new Shader(L"HW08_TerrainLoDBrush.fx");
+	raiseCS = SETSHADER(L"HW08_TerrainLoDBrush.fx");
 	raiseCT[0] = new CsTexture(); 
 	raiseCT[1] = new CsTexture(); 
 	//////////////////////////////////////////////////////////////////////////////
@@ -110,8 +110,8 @@ TerrainLod::~TerrainLod()
 
 	SafeDelete(raiseCT[0]);
 	SafeDelete(raiseCT[1]);
-	SafeDelete(raiseCS);
-	SafeDelete(shader);
+	//SafeDelete(raiseCS);
+	
 }
 
 
@@ -1030,7 +1030,11 @@ void TerrainLod::TerrainController()
 			ImGui::Checkbox("Splatting", &bSplat);
 			ID3D11ShaderResourceView* srv = { 0 };
 			if (alphaTexture != NULL)
+			{
 				srv = alphaTexture->SRV();
+			}
+			else
+				srv = HMapSrv;
 			ImGui::PushID("AlphaTexture");
 			if (ImGui::ImageButton(srv, ImVec2(50, 50)))
 			{

@@ -85,7 +85,7 @@ void DebugLine::Render()
 DebugLine::DebugLine()
 	: drawCount(0)
 {
-	shader = new Shader(L"027_DebugLine.fx");
+	shader = SETSHADER(L"027_DebugLine.fx");
 
 	vertices = new VertexColor[MAX_LINE_VERTEX];
 	ZeroMemory(vertices, sizeof(VertexColor) * MAX_LINE_VERTEX);
@@ -103,5 +103,5 @@ DebugLine::~DebugLine()
 
 	SafeDelete(transform);
 	SafeDelete(perFrame);
-	SafeDelete(shader);
+	
 }

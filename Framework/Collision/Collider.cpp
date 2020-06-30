@@ -18,8 +18,8 @@ Collider::~Collider()
 //
 //Collider::Collider()	
 //{		
-//	shader = new Shader(L"027_DebugLine.fx");
-//	csShader = new Shader(L"Collider/Collision.fx");
+//	shader = SETSHADER(L"027_DebugLine.fx");
+//	csShader = SETSHADER(L"Collider/Collision.fx");
 //}
 //
 //Collider::Collider(Shader * shader, Shader * cs)
@@ -35,7 +35,7 @@ Collider::~Collider()
 //
 //	SafeDelete(ctransform);
 //	SafeDelete(perFrame);
-//	SafeDelete(shader);
+//	
 //}
 //
 //void Collider::Initalize()

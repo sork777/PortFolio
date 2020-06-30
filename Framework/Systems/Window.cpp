@@ -18,6 +18,7 @@ WPARAM Window::Run(IExecute * main)
 	Time::Create();
 	Time::Get()->Start();
 
+	ShaderManager::Create();
 	Gui::Create();
 	Context::Create();
 	DebugLine::Create();
@@ -47,6 +48,8 @@ WPARAM Window::Run(IExecute * main)
 	DebugLine::Delete();
 	Context::Delete();
 	Gui::Delete();
+	ShaderManager::Delete();
+
 	Time::Delete();
 	Mouse::Delete();
 	Keyboard::Delete();

@@ -25,7 +25,7 @@ ParticleEmitter::~ParticleEmitter()
 
 	SafeDelete(perFrame);
 	SafeDelete(transform);
-	SafeDelete(shader);
+	
 }
 
 void ParticleEmitter::Initialize()
@@ -33,8 +33,8 @@ void ParticleEmitter::Initialize()
 	pass	= 0;
 	tech	= 0;
 	
-	shader			= new Shader(L"Effect/ParticleEmitter.fx");
-	computeShader	= new Shader(L"Effect/ParticleSimulation.fx");
+	shader			= SETSHADER(L"Effect/ParticleEmitter.fx");
+	computeShader	= SETSHADER(L"Effect/ParticleSimulation.fx");
 
 	perFrame		= new PerFrame(shader);
 	transform		= new Transform(shader);

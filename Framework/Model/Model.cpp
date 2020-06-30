@@ -65,7 +65,7 @@ Model::~Model()
 
 	SafeRelease(editTexture);
 	SafeRelease(editSrv);
-	//SafeDelete(shader);
+	//
 	SafeRelease(bonebuffer);
 	SafeRelease(boneSrv);
 	SafeDelete(instanceBuffer);

@@ -1,6 +1,8 @@
 #include "Framework.h"
 #include "Shader.h"
 
+#pragma region Shader 클래스
+
 Shader::Shader(wstring file)
 	: file(L"../_Shaders/" + file)
 {
@@ -473,6 +475,8 @@ ID3DX11EffectUnorderedAccessViewVariable * Shader::AsUAV(string name)
 	return effect->GetVariableByName(name.c_str())->AsUnorderedAccessView();
 }
 
+#pragma endregion
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 //unordered_map<wstring, Shaders::ShaderDesc> Shaders::shaders;
@@ -528,35 +532,59 @@ ID3DX11EffectUnorderedAccessViewVariable * Shader::AsUAV(string name)
 //	}
 //}
 //
-//ShaderManager* ShaderManager::instance = NULL;
-//
-//ShaderManager * ShaderManager::Get()
-//{
-//	if (instance == NULL)
-//		Create();
-//	return instance;
-//}
-//
-//void ShaderManager::Create()
-//{
-//	if (instance == NULL)
-//		instance = new ShaderManager();
-//}
-//
-//void ShaderManager::Delete()
-//{
-//	SafeDelete(instance);
-//}
-//
-//ShaderManager::ShaderManager()
-//{
-//}
-//
-//ShaderManager::~ShaderManager()
-//{
-//	unordered_map<wstring, Shader*>::iterator iter;
-//	while (iter != registShaders.end())
-//		SafeDelete(iter->second);
-//	registShaders.clear();
-//}
-//
+
+#pragma region ShaderManager클래스
+
+ShaderManager* ShaderManager::instance = NULL;
+unordered_map<wstring, Shader*> ShaderManager::registShadersMap;
+
+ShaderManager * ShaderManager::Get()
+{
+	if (instance == NULL)
+		Create();
+	return instance;
+}
+
+void ShaderManager::Create()
+{
+	if (instance == NULL)
+		instance = new ShaderManager();
+}
+
+void ShaderManager::Delete()
+{
+	SafeDelete(instance);
+}
+
+ShaderManager::ShaderManager()
+{
+}
+
+ShaderManager::~ShaderManager()
+{
+	unordered_map<wstring, Shader*>::iterator iter = registShadersMap.begin();
+	for (; iter != registShadersMap.end(); iter++)
+	{
+		const wstring fileName = iter->first;
+		SafeDelete(registShadersMap[fileName]);
+	}
+	registShadersMap.clear();
+}
+
+
+Shader * ShaderManager::RegistShader(const wstring & fileName)
+{
+	if (registShadersMap.count(fileName) < 1)
+	{
+		Shader* newShader = new Shader(fileName);
+		registShadersMap[fileName] = newShader;
+		return newShader;
+	}
+	return registShadersMap[fileName];
+}
+
+Shader * ShaderManager::RegistShader(const string & fileName)
+{
+	return RegistShader(String::ToWString(fileName));
+}
+#pragma endregion

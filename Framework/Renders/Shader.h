@@ -110,24 +110,28 @@ private:
 	vector<Technique> techniques;
 };
 
-//
-//class ShaderManager
-//{
-//public:
-//	static ShaderManager* Get();
-//	static void Create();
-//	static void Delete();
-//
-//private:
-//	static ShaderManager* instance;
-//public:
-//	ShaderManager();
-//	~ShaderManager();
-//
-//	Shader* 
-//private:
-//	static unordered_map<wstring, Shader*> registShaders;
-//};
+
+class ShaderManager
+{
+public:
+	static ShaderManager* Get();
+	static void Create();
+	static void Delete();
+
+private:
+	static ShaderManager* instance;
+public:
+	ShaderManager();
+	~ShaderManager();
+
+	// 쉐이더가 없으면 등록하고 있으면 있는걸 되돌려주는 함수
+	Shader* RegistShader(const wstring& fileName);
+	Shader* RegistShader(const string& fileName);
+private:
+	static unordered_map<wstring, Shader*> registShadersMap;
+};
+
+#define SETSHADER(str) ShaderManager::Get()->RegistShader(str)
 
 //
 //class Shaders

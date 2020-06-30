@@ -4,7 +4,7 @@
 
 SSAO::SSAO()
 {
-	shader = new Shader(L"HW00_SSAO.fx");
+	shader = SETSHADER(L"HW00_SSAO.fx");
 	Initialize();
 }
 SSAO::SSAO(Shader* shader)
@@ -17,7 +17,7 @@ SSAO::SSAO(Shader* shader)
 SSAO::~SSAO()
 {
 	SafeDelete(cBuffer);
-	SafeDelete(shader);
+	
 	
 	for (UINT i = 0; i < 2; i++)
 		SafeDelete(renderSrvs[i]);

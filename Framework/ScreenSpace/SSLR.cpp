@@ -5,7 +5,7 @@
 
 SSLR::SSLR()
 {
-	shader = new Shader(L"HW06_SSLR.fx");
+	shader = SETSHADER(L"HW06_SSLR.fx");
 	Init();
 }
 

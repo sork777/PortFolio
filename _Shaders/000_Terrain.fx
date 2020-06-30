@@ -6,7 +6,8 @@ Texture2D LayerMaps[3];
 
 
 ///////////////////////////////////////////////////////////////////////////////
-
+/// Terrain
+///////////////////////////////////////////////////////////////////////////////
 struct VertexTerrain
 {
     float4 Position : Position0;
@@ -30,6 +31,74 @@ struct TerrainOutput
     float3 Tangent : Tangent0;
     float4 Color : Color0;
 };
+///////////////////////////////////////////////////////////////////////////////
+/// Terrain LOD
+///////////////////////////////////////////////////////////////////////////////
+struct TerrainLODDesc
+{
+    float MinDistance;
+    float MaxDistance;
+    float MinTessellation;
+    float MaxTessellation;
+
+    float TexelCellSpaceU;
+    float TexelCellSpaceV;
+    float WorldCellSpace;
+    float TerrainHeightRatio;
+
+    float2 TexScale;
+    float CB_Terrain_Padding2[2];
+
+    //float4 WorldFrustumPlanes[6];
+};
+float4 Planes[6];
+
+cbuffer CB_Terrain
+{
+    TerrainLODDesc Lod;
+};
+struct Vertexinput_Lod
+{
+    float4 Position : Position0;
+    float2 Uv : Uv0;
+    float2 BoundY : BoundY0;
+};
+
+struct VertexOutput_Lod
+{
+    float4 Position : Position0;
+    float2 Uv : Uv0;
+    float2 BoundY : BoundY0;
+   
+};
+
+struct ConstantHullOutput_Lod
+{
+    float Edge[4] : SV_TessFactor;
+    float Inside[2] : SV_InsideTessFactor;
+};
+
+
+struct HullOutput_Lod
+{
+    float4 Position : Position0;
+    float2 Uv : Uv0;
+};
+
+struct DomainOutput_Lod
+{
+    float4 Position : SV_Position0;
+    float3 wPosition : Position1;
+    float3 Normal : Normal0;
+    float3 Tangent : Tangent0;
+    float2 Uv : Uv0;
+    float2 TiledUv : Uv1; //offset을 통해 몇장 반복하는지를 정하는 uv?
+     
+    //클립 컬 합쳐서 2개 까지만 가능
+    float4 Clip : SV_ClipDistance0;
+    float4 Clip2 : SV_ClipDistance1;
+};
+///////////////////////////////////////////////////////////////////////////////
 
 TerrainOutput VS_Terrain(VertexTerrain input)
 {
@@ -173,6 +242,24 @@ float4 GetTerrainColor(float4 alpha, float2 uv)
 {
     //000_Header에 있으면 부르고 불러서 상관없음
     float4 base = BaseMap.Sample(LinearSampler, uv);
+     [flatten]
+    if (any(base.a) == false)
+    {
+        float width = uv.x / Lod.TexelCellSpaceU + 0.5f;
+        float height = uv.y / Lod.TexelCellSpaceV + 0.5f;
+        uint size = Lod.TexScale * 8;
+        float3 gray = float3(0.499f, 0.487f, 0.514f);
+        float3 white = float3(0.899f, 0.887f, 0.914f);
+        bool token = false;
+        
+        int w = width / size;
+        int h = height / size;
+        token = (w % 2 == 0) ? token : !token;
+        token = (h % 2 == 0) ? token : !token;
+        base = float4(lerp(gray, white, token), 1.0f);
+    }
+    
+    
     float4 layer;
 	//float alpha;
     float4 result;
@@ -272,70 +359,7 @@ float4 VS_Shadow_Terrain(TerrainOutput input, float4 color)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-struct TerrainLODDesc
-{
-    float MinDistance;
-    float MaxDistance;
-    float MinTessellation;
-    float MaxTessellation;
 
-    float TexelCellSpaceU;
-    float TexelCellSpaceV;
-    float WorldCellSpace;
-    float TerrainHeightRatio;
-
-    float2 TexScale;
-    float CB_Terrain_Padding2[2];
-
-    //float4 WorldFrustumPlanes[6];
-};
-float4 Planes[6];
-
-cbuffer CB_Terrain
-{
-    TerrainLODDesc Lod;
-};
-struct Vertexinput_Lod
-{
-    float4 Position : Position0;
-    float2 Uv : Uv0;
-    float2 BoundY : BoundY0;
-};
-
-struct VertexOutput_Lod
-{
-    float4 Position : Position0;
-    float2 Uv : Uv0;
-    float2 BoundY : BoundY0;
-   
-};
-
-struct ConstantHullOutput_Lod
-{
-    float Edge[4] : SV_TessFactor;
-    float Inside[2] : SV_InsideTessFactor;
-};
-
-
-struct HullOutput_Lod
-{
-    float4 Position : Position0;
-    float2 Uv : Uv0;
-};
-
-struct DomainOutput_Lod
-{
-    float4 Position : SV_Position0;
-    float3 wPosition : Position1;
-    float3 Normal : Normal0;
-    float3 Tangent : Tangent0;
-    float2 Uv : Uv0;
-    float2 TiledUv : Uv1; //offset을 통해 몇장 반복하는지를 정하는 uv?
-     
-    //클립 컬 합쳐서 2개 까지만 가능
-    float4 Clip : SV_ClipDistance0;
-    float4 Clip2 : SV_ClipDistance1;
-};
 
 float TessFactor(float3 position)
 {

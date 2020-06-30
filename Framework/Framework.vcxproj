@@ -22,6 +22,8 @@
     <ClCompile Include="Assets\ContentsAsset.cpp" />
     <ClCompile Include="Assets\AssetManager.cpp" />
     <ClCompile Include="Assets\ContentsAsset\TextureAsset.cpp" />
+    <ClCompile Include="CollisionTest\ColliderTest.cpp" />
+    <ClCompile Include="CollisionTest\OBBColliderTest.cpp" />
     <ClCompile Include="Collision\OBBCollider.cpp" />
     <ClCompile Include="Components\ObjectBase\ObjectBaseComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\CameraComponent.cpp" />
@@ -133,6 +135,8 @@
   <ItemGroup>
     <ClInclude Include="Assets\AssetManager.h" />
     <ClInclude Include="Assets\ContentsAsset\TextureAsset.h" />
+    <ClInclude Include="CollisionTest\ColliderTest.h" />
+    <ClInclude Include="CollisionTest\OBBColliderTest.h" />
     <ClInclude Include="Collision\OBBCollider.h" />
     <ClInclude Include="Components\ObjectBase\CameraComponent.h" />
     <ClInclude Include="Components\ObjectBase\OBB_CollisionComponent.h" />

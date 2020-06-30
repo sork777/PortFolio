@@ -8,19 +8,19 @@ void TerrainLodDemo::Initialize()
 	Context::Get()->GetCamera()->RotationDegree(23, 0, 0);
 	Context::Get()->GetCamera()->Position(0, 46, -85);
 
-	//shader = new Shader(L"HW02_Deferred.fx");
-	shader = new Shader(L"027_Animation.fx");
+	//shader = SETSHADER(L"HW02_Deferred.fx");
+	shader = SETSHADER(L"027_Animation.fx");
 	//shadow = new CSM(shader);
 	gBuffer = new GBuffer(shader);
 	//Sky
 	{
-		skyShader = new Shader(L"045_Scattering.fx");
+		skyShader = SETSHADER(L"045_Scattering.fx");
 		sky = new Atmosphere(skyShader);
 
 	}
 	//Terrain
 	{
-		terrainShader = new Shader(L"047_TerrainLod.fx");
+		terrainShader = SETSHADER(L"047_TerrainLod.fx");
 
 		TerrainLod::InitializeInfo info =
 		{
@@ -55,9 +55,9 @@ void TerrainLodDemo::Initialize()
 void TerrainLodDemo::Destroy()
 {
 	SafeDelete(frustum);
-	SafeDelete(shader);
-	SafeDelete(skyShader);
-	SafeDelete(terrainShader);
+	//SafeDelete(shader);
+	//SafeDelete(skyShader);
+	//SafeDelete(terrainShader);
 
 }
 

@@ -5,7 +5,7 @@
 
 ObjectPicker::ObjectPicker()
 {
-	shader = new Shader(L"PF_ObjectPicker.fx");
+	shader = SETSHADER(L"PF_ObjectPicker.fx");
 	perframe = new PerFrame(shader);
 
 	float width = D3D::Width();

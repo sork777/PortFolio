@@ -5,7 +5,7 @@
 
 HDR_Tone::HDR_Tone()
 {
-	shader = new Shader(L"HW05_HDR.fx");
+	shader = SETSHADER(L"HW05_HDR.fx");
 
 	Init();
 }

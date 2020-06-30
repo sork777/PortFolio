@@ -53,7 +53,7 @@ ObjectBaseComponent::~ObjectBaseComponent()
 	children.clear();
 	children.shrink_to_fit();
 	//쉐이더는 밖에서 오는거라 삭제는 패스
-//	SafeDelete(shader);
+//	
 }
 
 
