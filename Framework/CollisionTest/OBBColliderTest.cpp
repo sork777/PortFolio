@@ -7,12 +7,6 @@ OBBColliderTest::OBBColliderTest()
 	Initalize();
 }
 
-OBBColliderTest::OBBColliderTest(Shader * shader, Shader * cs)
-	:ColliderTest(shader,cs)
-{
-	Initalize();
-}
-
 OBBColliderTest::~OBBColliderTest()
 {
 }
@@ -42,20 +36,10 @@ void OBBColliderTest::Update()
 {	
 	for (int inst = 0; inst < colInfos.size(); inst++)
 	{
+		//콜라이더 안쓸때만 업뎃 안함
 		if (false == colInfos[inst]->bColliderOn) continue;
-
-		colInfos[inst]->transform->Update();
-
-		Matrix world = colInfos[inst]->transform->World();
-		colInfos[inst]->transform->Render();
-		if (colInfos[inst]->init != NULL)
-		{
-			colInfos[inst]->init->Update();
-			Matrix iWorld = colInfos[inst]->init->World();
-			colInfos[inst]->init->Render();
-			world = iWorld * world;
-		}
-		csInput[inst].data = world;
+		
+		csInput[inst].data = colInfos[inst]->transform->World();
 	}
 }
 
@@ -67,6 +51,7 @@ void OBBColliderTest::Render(const int& draw)
 	for (int inst = 0; inst < loop; inst++)
 	{
 		//콜라이더 사용 off면 다음것
+		if (NULL != frustum && false == csOutput[inst].Frustum) continue;
 		if (false == colInfos[inst]->bColliderOn)	continue;
 
 		Vector3 dest[8];
@@ -76,8 +61,8 @@ void OBBColliderTest::Render(const int& draw)
 			D3DXVec3TransformCoord(&dest[i], &lines[i], &world);
 
 		//충돌 여부에 따라 컬러 설정
-		//Color color = ()?norColor:colColor;
-		Color color = norColor;
+		Color color = (0 == csOutput[inst].Collision)?norColor:colColor;
+		//Color color = norColor;
 
 		RenderLine(dest[0], dest[1], color);
 		RenderLine(dest[1], dest[3], color);
@@ -113,47 +98,41 @@ void OBBColliderTest::RayIntersect(Vector3 & position, Vector3 & direction)
 
 	csShader->AsConstantBuffer("CB_Ray")->SetConstantBuffer(rayCB->Buffer());
 
-	obbCSBuffer->UpdateInput();
-	csShader->AsSRV("Col_InputsA")->SetResource(obbCSBuffer->SRV());
-	csShader->AsUAV("OBB_Outputs")->SetUnorderedAccessView(obbCSBuffer->UAV());
-	csShader->Dispatch(1, 0, ceil(GetSize() / 1024.0f), 1, 1);
-	obbCSBuffer->Copy(csObbOutput, sizeof(CS_ObbOutputDesc) * MAX_COLLISION);
+	computeBuffer->UpdateInput();
+	csShader->AsSRV("Col_InputsA")->SetResource(computeBuffer->SRV());
+	csShader->AsUAV("Col_Outputs")->SetUnorderedAccessView(computeBuffer->UAV());
+	csShader->Dispatch(1, 0, ceil(GetSize() / 1024), 1, 1);
+	// 해당 콜라이더 결과 복사
+	computeBuffer->Copy(csOutput, sizeof(CS_OutputDesc) * MAX_COLLISION);
 }
 const Vector3 & OBBColliderTest::GetMinRound(const UINT & inst)
 {
 	if (inst < colInfos.size())
-		return csObbOutput[inst].MinRound;
+	{
+		Vector3 pos, scale;
+		colInfos[inst]->transform->Position(&pos);
+		colInfos[inst]->transform->Scale(&scale);
+		return pos - scale;
+	}
 	return Vector3();
 }
 const Vector3 & OBBColliderTest::GetMaxRound(const UINT & inst)
 {
 	if (inst < colInfos.size())
-		return csObbOutput[inst].MaxRound;
+	{
+		Vector3 pos, scale;
+		colInfos[inst]->transform->Position(&pos);
+		colInfos[inst]->transform->Scale(&scale);
+		return pos + scale;
+	}
 	return Vector3();
 }
-
 const bool & OBBColliderTest::IsIntersectRay(OUT float& dist, const UINT & inst)
 {
 	if (inst < colInfos.size())
 	{
-		dist = csObbOutput[inst].Dist;
-		return csObbOutput[inst].Intersect;
+		dist = csOutput[inst].Dist;
+		return csOutput[inst].Collision;
 	}
 	return false;
-}
-
-void OBBColliderTest::CreateComputeBuffer()
-{
-	Super::CreateComputeBuffer();
-	UINT outSize = MAX_COLLISION;
-	//csInput = new CS_InputDesc[outSize];
-	csObbOutput = new CS_ObbOutputDesc[outSize];
-
-	obbCSBuffer = new StructuredBuffer
-	(
-		csInput,
-		sizeof(CS_InputDesc), outSize,
-		true,
-		sizeof(CS_ObbOutputDesc), outSize
-	);
 }

@@ -199,7 +199,6 @@ VertexOutput_Cloud VS_Cloud(VertexTexture input)
     output.Position = mul(output.Position, Projection);
 
     output.Uv = (input.Uv * CloudTiles);
-    output.oUv = input.Uv;
 
     return output;
 }
@@ -240,17 +239,25 @@ float4 PS_Cloud(VertexOutput_Cloud input) : SV_Target0
 
 float4 PS_CloudDome(VertexOutput_Dome input) : SV_Target0
 {
-    input.Uv = input.Uv * CloudTiles * CloudTiles;
+    float uF = abs(input.Uv.x * 2.0f - 1.0f) * abs(input.Uv.x * 2.0f - 1.0f);
+    float vF = abs(input.Uv.y * 2.0f - 1.0f) * abs(input.Uv.y * 2.0f - 1.0f);
+    
+    float uvF = 1.0f - saturate(uF + vF);
+    
+    float2 uv = input.Uv;
+    input.Uv = input.Uv * CloudTiles;
     
     float4 c1 = CloudMap.Sample(LinearSampler,input.Uv * 1 + Time * CloudSpeed);
     float4 c2 = CloudMap.Sample(LinearSampler,input.Uv * 2 + Time * CloudSpeed);
     float4 c3 = CloudMap.Sample(LinearSampler,input.Uv * 4 + Time * CloudSpeed);
     float4 c4 = CloudMap.Sample(LinearSampler,input.Uv * 8 + Time * CloudSpeed);
    
-    float4 cFinal = c1 + (c2 / 2) + (c3 / 4) +(c4 / 8);
-       
-    float4 cf = CloudCover - cFinal;
-    float4 density = pow(CloudSharpness, cf)-1.0f;
+    float4 cFinal = c1 + (c2 *0.5f) + (c3 * 0.25f) +c4*0.125f;
+     
+    float4 cf = cFinal - CloudCover;
+    cf = saturate(cf);
+    
+    float4 density = 1.0f-pow(CloudSharpness, cf);
     float4 color = saturate(density);
     float3 sunDir = (-normalize(GlobalLight.Direction));
     float3 up = float3(0, 1, 0);
@@ -259,7 +266,7 @@ float4 PS_CloudDome(VertexOutput_Dome input) : SV_Target0
     color.rgb *= dayfactor;
     
     return color;
-    //float4(1, 0, 0, 1);
+    //return float4(uF, 0, vF, 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

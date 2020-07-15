@@ -4,12 +4,7 @@
 ColliderTest::ColliderTest()	
 {		
 	shader = SETSHADER(L"027_DebugLine.fx");
-	csShader = SETSHADER(L"ColliderTest/Collision.fx");
-}
-
-ColliderTest::ColliderTest(Shader * shader, Shader * cs)
-	:shader(shader),csShader(cs)
-{
+	csShader = SETSHADER(L"Collider/Collision.fx");
 }
 
 
@@ -38,10 +33,18 @@ void ColliderTest::Initalize()
 
 	perFrame = new PerFrame(shader);
 	ctransform = new Transform(shader);
+
 }
 
 void ColliderTest::Render(const int& draw)
 {
+	if (NULL != frustum)
+	{
+		frustum->Update();
+		Plane planes[6];
+		frustum->Planes(planes);
+		shader->AsVector("Planes")->SetFloatVectorArray((float*)&planes, 0, 6);
+	}
 	// 디버그라인은 기본 랜더방식과 달리 모아서 하기때문에 얘만 따로.
 	perFrame->Update();
 	ctransform->Update();
@@ -72,8 +75,10 @@ void ColliderTest::AddInstance(Transform * transform , Transform * init )
 	if (MAX_COLLISION <= colInfos.size())
 		return;
 	Col_Info* newCol = new Col_Info();
-	newCol->transform = transform;
-	newCol->init = init;
+	newCol->transform = transform? transform:new Transform();
+	//최초를
+	newCol->transform->Parent(init);
+	//newCol->init = init;
 
 	colInfos.emplace_back(newCol);
 }
@@ -94,7 +99,7 @@ Transform * ColliderTest::GetTransform(const UINT & inst)
 Transform * ColliderTest::GetInit(const UINT & inst)
 {
 	if (inst < colInfos.size())
-		return colInfos[inst]->init;
+		return colInfos[inst]->transform->ParentTransform();
 	return nullptr;
 }
 
@@ -136,23 +141,32 @@ void ColliderTest::CSColliderTestB()
 
 void ColliderTest::ComputeColliderTest(const UINT& tech, const UINT& pass, ColliderTest * colB)
 {
+	if (NULL != frustum)
+	{
+		Plane planes[6];
+		frustum->Planes(planes);
+		csShader->AsVector("Planes")->SetFloatVectorArray((float*)&planes, 0, 6);
+	}
 	// 해당 콜라이더의 인풋 업데이트 및 파이프라인 입력
 	computeBuffer->UpdateInput();
 	csShader->AsSRV("Col_InputsA")->SetResource(computeBuffer->SRV());
 	// 아웃풋은 2개쓰면 메모리 공유되서 에러남
 	csShader->AsUAV("Col_Outputs")->SetUnorderedAccessView(computeBuffer->UAV());
-	//자기 자신과의 충돌
-	if (colB == NULL || this == colB)
+	
+	if (colB == NULL||this == colB)
 	{
-		csShader->Dispatch(tech, pass, ceil(GetSize()/1024.0f), GetSize(), 1);
+		CSColliderTestB();
+		csShader->AsScalar("ColB_Size")->SetInt(GetSize());
 	}
 	//colB와의 충돌
 	else
 	{
 		//colB는 B영역에서 인풋 업뎃 및 파이프라인 입력
 		colB->CSColliderTestB();
-		csShader->Dispatch(tech, pass, ceil(GetSize() / 1024.0f), colB->GetSize(), 1);
+		csShader->AsScalar("ColB_Size")->SetInt(colB->GetSize());
 	}
+		
+	csShader->Dispatch(tech, pass, ceil(GetSize()/1024), 1, 1);
 	// 해당 콜라이더 결과 복사
 	computeBuffer->Copy(csOutput, sizeof(CS_OutputDesc) * MAX_COLLISION);
 }

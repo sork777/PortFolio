@@ -27,7 +27,7 @@ private:
 	struct CloudDesc
 	{
 		float Tiles = 1.5f;
-		float Cover = 0.005f;
+		float Cover = 0.05f;
 		float Sharpness = 0.405f;
 		float Speed = 0.05f;
 	} cloudDesc;

@@ -10,7 +10,7 @@ void FogDemo::Initialize()
 	Context::Get()->GetCamera()->RotationDegree(23, 0, 0);
 	Context::Get()->GetCamera()->Position(0, 32, -67);
 	((Freedom *)Context::Get()->GetCamera())->Speed(20, 2);
-	shader = new Shader(L"027_Animation.fx");
+	shader =SETSHADER(L"027_Animation.fx");
 
 	Mesh();
 	sky = new Sky(L"Environment/GrassCube1024.dds");

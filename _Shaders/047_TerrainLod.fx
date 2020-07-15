@@ -163,6 +163,11 @@ float4 PS(DomainOutput_Lod input) : SV_Target0
     return float4(MaterialToColor(result), 1) + float4(gridColor, 1) + float4(brushColor, 1);
     //return float4(1, 0, 0, 1);
 }
+
+float4 PrePS(DomainOutput_Lod input) : SV_Target0
+{
+    return float4(input.Uv, 0, 1);
+}
 RasterizerState RS
 {
     Fillmode = Wireframe;
@@ -218,6 +223,13 @@ technique11 T0
         SetHullShader(CompileShader(hs_5_0, HS()));
         SetDomainShader(CompileShader(ds_5_0, DS()));
         SetPixelShader(CompileShader(ps_5_0, PS()));
+    }
+    pass P2
+    {
+        SetVertexShader(CompileShader(vs_5_0, VS()));
+        SetHullShader(CompileShader(hs_5_0, HS()));
+        SetDomainShader(CompileShader(ds_5_0, DS()));
+        SetPixelShader(CompileShader(ps_5_0, PrePS()));
     }
 }
 technique11 T1_Deffered

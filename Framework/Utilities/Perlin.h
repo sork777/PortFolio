@@ -15,8 +15,8 @@ public:
 	vector<Color>& GetPixels() { return PerlinPixel; }
 
 	void Resize(UINT size=0);
-private:
-	void ReSeed();
+//private:
+//	void ReSeed();
 private:
 	struct PerlinDesc
 	{

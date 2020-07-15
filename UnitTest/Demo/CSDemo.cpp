@@ -3,13 +3,13 @@
 
 void CSDemo::Initialize()
 {
-	CS_Intersection();
-	//CS_Structured();
+	//CS_Intersection();
+	CS_Structured();
 }
 
 void CSDemo::CS_Raw()
 {
-	Shader* shader = new Shader(L"043_ByteAddress.fx");
+	Shader* shader =SETSHADER(L"043_ByteAddress.fx");
 
 	struct Output
 	{
@@ -58,7 +58,7 @@ void CSDemo::CS_Raw()
 
 void CSDemo::CS_Structured()
 {
-	Shader* shader = new Shader(L"043_Structured.fx");
+	Shader* shader =SETSHADER(L"043_Structured.fx");
 
 	struct Output
 	{
@@ -76,7 +76,7 @@ void CSDemo::CS_Structured()
 	};
 
 	/* output°¹¼ö´Â ½º·¹µå °¹¼ö¶û µ¿ÀÏ */
-	UINT size = 2*10*8*3;
+	UINT size = 2*4*3*2;
 	Output* output = new Output[size];
 	//for (int i = 0; i < size; i++)
 	//	output[i].data = Math::Random(0.0f, 1000.0f);
@@ -86,7 +86,7 @@ void CSDemo::CS_Structured()
 	shader->AsSRV("Input")->SetResource(buffer->SRV());
 	shader->AsUAV("Output")->SetUnorderedAccessView(buffer->UAV());
 
-	shader->Dispatch(0, 0,2, 1, 1);
+	shader->Dispatch(0, 0,2, 2, 2);
 	buffer->Copy(output, sizeof(Output)* size);
 
 	FILE* file;
@@ -111,7 +111,7 @@ void CSDemo::CS_Structured()
 
 void CSDemo::CS_Intersection()
 {
-	Shader* shader = new Shader(L"043_InterSection.fx");
+	Shader* shader =SETSHADER(L"043_InterSection.fx");
 
 	struct InputDesc
 	{

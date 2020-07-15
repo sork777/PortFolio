@@ -26,9 +26,9 @@ private:
 	Texture* cloud;
 	UINT domeCount=32;
 	UINT planeRes = 32;
-	float skyTop = 3.0f;
+	float skyTop = 7.5f;
 	float skyBottom = -0.5f;
-	float multi = 3.0f;
+	//float multi = 3.0f;
 
 	VertexBuffer* domeVertexBuffer;
 	IndexBuffer* domeIndexBuffer;

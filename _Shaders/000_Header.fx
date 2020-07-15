@@ -27,6 +27,8 @@ TextureCube SkyCubeMap;
 /* DSV에 대한 SRV가 들어올거임 */ 
 Texture2D ShadowMap;
 
+float4 Planes[6];
+
 ///////////////////////////////////////////////////////////////////////////////
 /*                            Basic Functions                                */
 float4 WorldPosition(float4 position)

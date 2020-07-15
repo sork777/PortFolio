@@ -2,11 +2,11 @@
 #include "Main.h"
 #include "Systems/Window.h"
 
-#include "Practice/DeferredPrac.h"
-//#include "Demo/PBRDemo.h"
+//#include "Practice/DeferredPrac.h"
+#include "Demo/CSDemo.h"
 //#include "Demo/FogDemo.h"
 #include "Demo/TerrainLodDemo.h"
-#include "Demo/AnimEditorDemo.h"
+#include "Demo/ColliderTestDemo.h"
 
 void Main::Initialize()
 {

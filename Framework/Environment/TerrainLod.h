@@ -27,6 +27,7 @@ public:
 	TerrainLod(InitializeInfo& info);
 	~TerrainLod();
 	
+	void PreRender();
 	void Update();
 	void Render();
 	void TerrainController();
@@ -147,7 +148,6 @@ private:
 	Shader* raiseCS;
 
 	Vector4 BrushedArea;
-	OBBCollider* AreaCol;
 
 	/* Controller */
 private:
@@ -210,16 +210,28 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // QuadTree
 private:
-	QuadTreeNode* CreateQuadTreeData(QuadTreeNode* parent, Vector2& TopLeft, Vector2& BottomRight);
 	Vector2 GetMinMaxY(Vector2& TopLeft, Vector2& BottomRight);
+	QuadTreeNode* CreateQuadTreeData(QuadTreeNode* parent, Vector2& TopLeft, Vector2& BottomRight);
 
 	void UpdateQuadHeight();
-	//void CheckQuadCollider(QuadTreeNode* node, vector< QuadTreeNode*>& updateNode);
-	void CheckQuadCollider(QuadTreeNode* node, Collider* collider, vector< QuadTreeNode*>& updateNode);
+
+	void CheckQuadCollider(QuadTreeNode* node, vector< QuadTreeNode*>& updateNode);
 private:
 	QuadTree* quadTree;
 
-
 private:
-	OBBCollider* TestCol;
+	OBBColliderTest* TestCol;
+	OBBColliderTest* AreaCol;
+
+/////////////////////////////////////////////////////////////////////////////
+//UV Picking
+private:
+	RenderTarget* renderTarget;
+	DepthStencil* depthStencil;
+	ID3D11ShaderResourceView* preTerrainSrv;
+	//Render2D* render2D;
+
+	//uv랜더타겟에서 집어올 uv 색상
+	Color PickColor;
+	StructuredBuffer* computeBuffer = NULL;
 };

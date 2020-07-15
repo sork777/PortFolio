@@ -10,6 +10,7 @@
     <ClInclude Include="Practice\DeferredPrac.h" />
     <ClInclude Include="Demo\CSDemo.h" />
     <ClInclude Include="Demo\FogDemo.h" />
+    <ClInclude Include="Demo\ColliderTestDemo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -20,6 +21,7 @@
     <ClCompile Include="Practice\DeferredPrac.cpp" />
     <ClCompile Include="Demo\CSDemo.cpp" />
     <ClCompile Include="Demo\FogDemo.cpp" />
+    <ClCompile Include="Demo\ColliderTestDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Editors">

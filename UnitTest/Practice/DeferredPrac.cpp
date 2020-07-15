@@ -10,15 +10,15 @@ void DeferredPrac::Initialize()
 	Context::Get()->GetCamera()->RotationDegree(23, 0, 0);
 	Context::Get()->GetCamera()->Position(0, 46, -85);
 
-	shader = new Shader(L"HW02_Deferred.fx");
+	shader =SETSHADER(L"HW02_Deferred.fx");
 	shadow = new CSM(shader);
 
 	gBuffer = new GBuffer(shader);
 
-	skyShader = new Shader(L"045_Scattering.fx");
+	skyShader =SETSHADER(L"045_Scattering.fx");
 	sky = new Atmosphere(skyShader);
 	{
-		terrainShader = new Shader(L"047_TerrainLod.fx");
+		terrainShader =SETSHADER(L"047_TerrainLod.fx");
 		TerrainLod::InitializeInfo terraininfo =
 		{
 			shader,

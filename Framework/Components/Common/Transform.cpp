@@ -198,12 +198,13 @@ void Transform::Local(Matrix & matrix)
 
 void Transform::Parent(Transform * parent)
 {
-	this->parent = parent;	
 	prePMatrix = pMatrix;
-	if (parent != NULL)
-		pMatrix = parent->World();
+	if (parent == NULL)
+		this->parent = new Transform();
 	else
-		D3DXMatrixIdentity(&pMatrix);
+		this->parent = parent;	
+		//D3DXMatrixIdentity(&pMatrix);
+	pMatrix = this->parent->World();
 
 	bufferDesc.World = local * pMatrix;
 	D3DXMatrixInverse(&bufferDesc.InvWorld, NULL, &bufferDesc.World);

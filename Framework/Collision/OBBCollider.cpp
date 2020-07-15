@@ -45,7 +45,7 @@ void OBBCollider::Render(Color color)
 	if (init != NULL)
 	{
 		init->Render();
-		world = init->World()*transform->World();
+		world = transform->World()*init->World();
 	}
 
 	for (UINT i = 0; i < 8; i++)
@@ -106,7 +106,7 @@ void OBBCollider::SetObb()
 	Transform temp;
 	temp.World(transform->World());
 	if (init != NULL)
-		temp.World(init->World()*transform->World());
+		temp.World(transform->World()*init->World());
 
 	temp.Position(&obb.Position);
 

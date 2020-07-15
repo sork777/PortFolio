@@ -105,9 +105,9 @@ void Atmosphere::Render(bool bRTV)
 	//Scattering
 	{
 		position.y += 0.1f;
-
+		
 		GetTransform()->Position(position);
-		GetTransform()->Scale(1, 1, 1);
+		GetTransform()->Scale(1,1,1);
 		GetTransform()->Rotation(0, 0, 0);
 
 
@@ -123,19 +123,21 @@ void Atmosphere::Render(bool bRTV)
 		cloudBuffer->Apply();
 		sCloudBuffer->SetConstantBuffer(cloudBuffer->Buffer());
 
-
-		//static Transform* newTrans = new Transform();
-		//
-		//Vector3 T, S, R;
-		//newTrans->Property();
-		//newTrans->Scale(&S);
-		//newTrans->Rotation(&R);
-		//newTrans->Position(&T);
-		//T *= 0.01f;
-		//S *= 0.1f;
-		GetTransform()->Scale(2.5f, 2.0f, 2.5f);
-		//GetTransform()->Rotation(R);
-		GetTransform()->Position(position.x , position.y+0.5f, position.z);
+		static Vector3 S(20.0f, 16.0f, 20.0f);
+		static Vector3 P(0.0f, 0.50f, 0.0f);
+		ImGui::BeginChild("CloudProperty");
+		{
+			ImGui::SliderFloat3("CloudScale", (float*)&S, 0.1f, 20.0f);
+			ImGui::SliderFloat3("CloudPos", (float*)&P, -20.0f, 20.0f);
+			ImGui::SliderFloat("CloudCover", &cloudDesc.Cover, 0.0f, 1.0f);
+			ImGui::SliderFloat("CloudTile", &cloudDesc.Tiles, 0.0f, 2.0f);
+			ImGui::EndChild();
+		}
+		 
+		//GetTransform()->Scale(2.5f, 2.0f, 2.5f);
+		GetTransform()->Scale(S);
+		GetTransform()->Position(P+position);
+		//GetTransform()->Position(position.x , position.y+0.5f, position.z);
 
 		Super::Render();
 		cloud->Render();

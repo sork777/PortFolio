@@ -24,10 +24,10 @@ struct CS_Input
     uint GroupIndex : SV_GroupIndex;
 };
 
-[numthreads(240, 1, 1)]
+[numthreads(4, 3, 2)]
 void CS(CS_Input input)
 {
-    uint index = (input.GroupID.x * 240) + input.GroupIndex;
+    uint index = (input.GroupID.x * 24) + input.GroupIndex;
 
     //Output[index].index = index;
     //Output[index].id.x = input.DispatchThreadID.x;

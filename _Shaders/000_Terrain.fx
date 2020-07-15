@@ -51,7 +51,6 @@ struct TerrainLODDesc
 
     //float4 WorldFrustumPlanes[6];
 };
-float4 Planes[6];
 
 cbuffer CB_Terrain
 {

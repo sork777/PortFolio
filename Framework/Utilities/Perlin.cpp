@@ -13,10 +13,10 @@ Perlin::Perlin()
 	perlinDesc.BottomColor = Color(0, 0, 0, 0);
 	perlinDesc.TopColor = Color(1, 1, 1, 1);
 	perlinDesc.Octave = 5;
-	perlinDesc.Persistence = 0.2f;
+	perlinDesc.Persistence = 0.4f;
 	perlinDesc.SmoothedN = 0;
 	perlinDesc.Res = Vector2(512,512);
-	perlinDesc.GridSize = 1;
+	perlinDesc.GridSize = 2.5f;
 	perlinDesc.Seed = 0;
 }
 
@@ -43,7 +43,7 @@ void Perlin::PerlinController()
 		{
 			ImGui::PushItemWidth(100);
 			bChange |= (bSeedChange = ImGui::SliderInt("Seed", &perlinDesc.Seed, 1, 100));
-			bChange |=ImGui::SliderInt("Octave", &perlinDesc.Octave, 1, 10);
+			bChange |=ImGui::SliderInt("Octave", &perlinDesc.Octave, 3, 10);
 			bChange |=ImGui::SliderFloat("Persistence", &perlinDesc.Persistence, 0.1f, 1.0f);
 			bChange |=ImGui::SliderFloat("GridSize", &perlinDesc.GridSize, 0.1f, 10.0f);
 			ImGui::PopItemWidth();

@@ -34,6 +34,7 @@ Texture2D PerlinMap;
 void QuadRaiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
+    OutputMap[CurPixel.xy] = AlphaMap.Load(CurPixel);
     
     
     if (CurPixel.x >= HRaise.Box.x
@@ -55,6 +56,7 @@ void QuadRaiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 void CircleRaiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
+    OutputMap[CurPixel.xy] = AlphaMap.Load(CurPixel);
     
     
     float len = length(CurPixel.xy - HRaise.Position);
@@ -78,6 +80,7 @@ void CircleRaiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 void SlopeRaiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
+    OutputMap[CurPixel.xy] = AlphaMap.Load(CurPixel);
     
     
     if (CurPixel.x >= HRaise.Box.x
@@ -112,6 +115,7 @@ void SlopeRaiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 void QuadSplattingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
+    OutputMap[CurPixel.xy] = AlphaMap.Load(CurPixel);
     
     
     if (CurPixel.x >= HRaise.Box.x
@@ -133,6 +137,7 @@ void QuadSplattingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 void CircleSplattingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
+    OutputMap[CurPixel.xy] = AlphaMap.Load(CurPixel);
     
     
     float len = length(CurPixel.xy - HRaise.Position);
@@ -158,6 +163,7 @@ void CircleSplattingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 void SmoothingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
+    OutputMap[CurPixel.xy] = AlphaMap.Load(CurPixel);
 
     float4 color = float4(0, 0, 0, 0.0f);
     
@@ -208,6 +214,7 @@ void NoiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
 {
     uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
     float4 color = float4(0, 0, 0, 0);
+    OutputMap[CurPixel.xy] = AlphaMap.Load(CurPixel);
     
     
     int x = CurPixel.x - HRaise.Box.x;
@@ -226,6 +233,7 @@ void NoiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
             float height = color.r + color.g + color.b + color.a;
             height /= 4.0f;
             height /= 255.0f;
+            
             OutputMap[CurPixel.xy] += float4(0, 0, 0, height) * HRaise.Rate;
         }
     }
@@ -263,14 +271,23 @@ void InitNoAlphaCS(uint3 DispatchThreadID : SV_DispatchThreadID)
     OutputMap[CurPixel.xy] = AlphaMap.Load(CurPixel);
 }
 
-
-[numthreads(1024, 1, 1)]
-void SetCS(uint3 DispatchThreadID : SV_DispatchThreadID)
+///////////////////////////////////////////////////////////////////////////////////
+//UV Picking
+Texture2D<float4> Terrain;
+struct Col_Output
 {
-    uint3 CurPixel = uint3(DispatchThreadID.x % HRaise.Res.x, DispatchThreadID.x / HRaise.Res.x, 0);
-    OutputMap2[CurPixel.xy] = AlphaMap2.Load(CurPixel);
+    float4 Pickcolor;
+};
+RWStructuredBuffer<Col_Output> OutputPickColor;
+float3 MousePos;
+[numthreads(1, 1, 1)]
+void UVPick()
+{
+    uint3 PickPos = uint3(MousePos.x, MousePos.y, 0);    
+    OutputPickColor[0].Pickcolor = Terrain.Load(PickPos);
+    
 }
-
+///////////////////////////////////////////////////////////////////////////////////
 technique11 T0_Raise
 {
     pass P0_QuadRaise
@@ -341,11 +358,12 @@ technique11 T3_ETC
         SetPixelShader(NULL);
         SetComputeShader(CompileShader(cs_5_0, InitNoAlphaCS()));
     }
-    pass P2_DataSet
+ 
+    pass P2_UVPick
     {
         SetVertexShader(NULL);
         SetPixelShader(NULL);
-        SetComputeShader(CompileShader(cs_5_0, SetCS()));
+        SetComputeShader(CompileShader(cs_5_0, UVPick()));
     }
 }
 

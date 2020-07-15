@@ -91,7 +91,6 @@ struct VertexOutput_Cloud
 {
     float4 Position : SV_Position0;
     float2 Uv : Uv0;
-    float2 oUv : Uv1;
 };
 
 float Fade(float t)

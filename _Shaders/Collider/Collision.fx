@@ -194,24 +194,66 @@ StructuredBuffer<Col_Input> Col_InputsB;
 struct Col_Output
 {
     int bCollsion;
+    float Dist;
+    int ClosestNum;
+    int bFrustum;
 };
 RWStructuredBuffer<Col_Output> Col_Outputs;
 
+int ColB_Size;
+
+bool InFrustum(float3 center)
+{
+    [roll(6)]
+    for (int i = 0; i < 6; i++)
+    {
+        float4 plane = Planes[i];
+        if(!any(plane))
+            continue;
+        float3 n = normalize(plane.xyz);
+        float s = dot(float4(center, 1), plane);
+        [flatten]
+        if (s<0.0f)
+        {
+            return false;
+        }        
+    }
+    return true;
+}
 
 [numthreads(1024, 1, 1)]
-void CS_OBBtoOBB(uint GroupIndex : SV_GroupIndex, uint3 GroupID : SV_GroupID)
+void CS_OBBtoOBB(uint GroupIndex : SV_GroupIndex,uint GroupID:SV_GroupID)
 {
-    uint colA_ID = GroupIndex + 1024* GroupID.x;
-    uint colB_ID = GroupID.y;
+    uint colA_ID = GroupIndex+1024*GroupID.x;
     
     CollisionOBB colA, colB;
     colA = MatrixtoOBB(Col_InputsA[colA_ID].data);
-    colB = MatrixtoOBB(Col_InputsA[colB_ID].data);
+    bool finalCol = false;
+    float closestdist = FLT_MAX;
+    int closestN = -1;
+    //[unroll()]
+    for (int colB_ID = 0; colB_ID < ColB_Size; colB_ID++)
+    {
+        colB = MatrixtoOBB(Col_InputsB[colB_ID].data);
+            
+        bool bCollide = (colA_ID != colB_ID) ? Collision_OBBToOBB(colA, colB) : false;
+        float dist = bCollide ? length(colA.Position - colB.Position):FLT_MAX;
         
-    bool bCollide = Collision_OBBToOBB(colA, colB);
+        finalCol = finalCol|bCollide;
+        if (closestdist > dist)
+        {
+            closestdist = dist;
+            closestN = colB_ID;
+        }
 
-    int result = bCollide ? 1 : 0;
-    Col_Outputs[colA_ID].bCollsion = result;
+    }
+            
+    // 출력인자는 들어올때 전부 0으로 초기화되는듯 하다. 비교 무의미
+    Col_Outputs[colA_ID].bCollsion = finalCol;
+    Col_Outputs[colA_ID].Dist = closestdist;
+    Col_Outputs[colA_ID].ClosestNum = closestN;
+    Col_Outputs[colA_ID].bFrustum = InFrustum(colA.Position);
+    
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -220,21 +262,14 @@ struct MouseRay
     float3 RayPos;
     float padding;
     float3 RayDir;
+    float padding2;
 };
 cbuffer CB_Ray
 {
     MouseRay M_Ray;
 };
 
-struct OBB_Output
-{
-    int bIntersect;
-    float3 MaxRound;
-    float3 MinRound;
-    float dist;
-};
-RWStructuredBuffer<OBB_Output> OBB_Outputs;
-
+// 잘돌아감 0709
 [numthreads(1024, 1, 1)]
 void CS_RaytoOBB(uint GroupIndex : SV_GroupIndex, uint3 GroupID : SV_GroupID)
 {
@@ -243,21 +278,22 @@ void CS_RaytoOBB(uint GroupIndex : SV_GroupIndex, uint3 GroupID : SV_GroupID)
     CollisionOBB obb;
     obb = MatrixtoOBB(Col_InputsA[col_ID].data);
     
-    OBB_Outputs[col_ID].MaxRound = obb.Position +
+    float3 MaxRound = obb.Position +
 		obb.AxisX * obb.HalfSize.x +
 		obb.AxisY * obb.HalfSize.y +
 		obb.AxisZ * obb.HalfSize.z;
-    OBB_Outputs[col_ID].MinRound = obb.Position -
+    float3 MinRound = obb.Position -
 		obb.AxisX * obb.HalfSize.x -
 		obb.AxisY * obb.HalfSize.y -
 		obb.AxisZ * obb.HalfSize.z;
     
     float dist = FLT_MAX;
-    bool bCollide = RayInterSection(M_Ray.RayPos, M_Ray.RayDir, OBB_Outputs[col_ID].MinRound, OBB_Outputs[col_ID].MaxRound, dist);
+    bool bCollide = RayInterSection(M_Ray.RayPos, M_Ray.RayDir, MinRound,MaxRound, dist);
 
     //충돌 했으면 계산된 값, 아니면 FLT_MAX가 될거임
-    OBB_Outputs[col_ID].dist = dist;
-    OBB_Outputs[col_ID].bIntersect = bCollide ? 1 : 0;
+    Col_Outputs[col_ID].bCollsion = bCollide ? 1 : 0;
+    Col_Outputs[col_ID].Dist = dist;
+    Col_Outputs[col_ID].bFrustum = InFrustum(obb.Position);
 
 }
 technique11 T_OBB

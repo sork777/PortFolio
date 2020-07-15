@@ -346,9 +346,9 @@ CollisionOBB MatrixtoOBB(matrix world)
     float3 y = world._21_22_23;
     float3 z = world._31_32_33;
     
-    output.AxisX = x;
-    output.AxisY = y;
-    output.AxisZ = z;
+    output.AxisX = normalize(x);
+    output.AxisY = normalize(y);
+    output.AxisZ = normalize(z);
     
     output.HalfSize.x = length(x)*0.5f;
     output.HalfSize.y = length(y)*0.5f;

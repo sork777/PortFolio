@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Demo\AnimEditorDemo.h" />
+    <ClInclude Include="Demo\ColliderTestDemo.h" />
     <ClInclude Include="Demo\CSDemo.h" />
     <ClInclude Include="Demo\TerrainLodDemo.h" />
     <ClInclude Include="Demo\FogDemo.h" />
@@ -29,6 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Demo\AnimEditorDemo.cpp" />
+    <ClCompile Include="Demo\ColliderTestDemo.cpp" />
     <ClCompile Include="Demo\CSDemo.cpp" />
     <ClCompile Include="Demo\TerrainLodDemo.cpp" />
     <ClCompile Include="Demo\FogDemo.cpp" />

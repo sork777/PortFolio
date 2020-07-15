@@ -1,6 +1,7 @@
 #pragma once
 
 #define MAX_COLLISION 65536
+//#define MAX_COLLISION 1024
 //
 //enum class CollsionType
 //{
@@ -13,8 +14,6 @@ class ColliderTest
 {
 public:
 	ColliderTest();
-	//쉐이더 공유를 위함
-	ColliderTest(Shader* shader, Shader* cs);
 	virtual ~ColliderTest();
 
 	virtual void Initalize();
@@ -38,16 +37,16 @@ public:
 	const bool& IsCollision(const UINT& inst = 0);
 
 public:
-	inline const CollsionType& GetCollisionType() { return type; }
-	inline void SetDebugModeOn()	{ bDebugMode = true; }
-	inline void SetDebugModeOff()	{ bDebugMode = false; }
+	const CollsionType& GetCollisionType() { return type; }
+	void SetDebugModeOn()	{ bDebugMode = true; }
+	void SetDebugModeOff()	{ bDebugMode = false; }
 
+	void SetFrustum(Frustum* frustum) { this->frustum = frustum; }
 protected:
 	struct Col_Info
 	{
 		bool bColliderOn;
 		// 아무리 생각해도 위치 트랜스폼은 필수 같음.
-		Transform *	init;
 		Transform * transform;
 		Col_Info() {
 			bColliderOn = true;
@@ -63,19 +62,20 @@ protected:
 	bool bDebugMode;
 
 	CollsionType type;
+	Frustum* frustum =NULL;
 
 public:
-	virtual void ComputeColliderTest(const UINT& tech, const UINT& pass, ColliderTest * colB =NULL);
+	// collider 가 NULL 상태면 셀프 아니면 상호
+	// 이거 호출 할때마다 결과값 초기화된다.
+	// 충돌여부 바로 확인하면 됨.
+	void ComputeColliderTest(const UINT& tech, const UINT& pass, ColliderTest * colB =NULL);
 
 protected:
 	// ColliderTest 2개가 서로 충돌하는 경우 I/O data가 2개씩 필요.
 	// 그중 B로 지정될 애 계산할 영역
+	void CSColliderTestB();
 
-	virtual void CSColliderTestB();
-	// collider 가 NULL 상태면 셀프 아니면 상호
-	// 이거 호출 할때마다 결과값 초기화된다.
-	// 충돌여부 바로 확인하면 됨.
-	virtual void CreateComputeBuffer();
+	void CreateComputeBuffer();
 
 protected:
 	struct CS_InputDesc
@@ -85,8 +85,10 @@ protected:
 	//TODO: 상대방 여러개 충돌시 확인법은?
 	struct CS_OutputDesc
 	{
-		int Collision;
-		Vector3 Padding;
+		int Collision = 0;
+		float Dist = FLT_MAX;			// 마우스레이에서 가장 가까운 값이나 객체간의 거리.
+		int ClosestNum = -1;
+		int Frustum = 0;
 	};
 	CS_InputDesc*	csInput = NULL;
 	CS_OutputDesc*	csOutput = NULL;

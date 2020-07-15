@@ -69,19 +69,39 @@ TerrainLod::TerrainLod(InitializeInfo& info)
 
 	//else
 
+	//QuadTreeNode* root = CreateQuadTreeData(NULL,Vector2(0, 0), Vector2(width, height));
+
+	quadTree = new QuadTree();
+	quadTree->GetCollider()->SetDebugModeOn();
 	QuadTreeNode* root = CreateQuadTreeData(NULL,Vector2(0, 0), Vector2(width, height));
-	//quadTree->SetRootNode(root);
-	quadTree = new QuadTree(root);
+	quadTree->SetRootNode(root);
+	//quadTree = new QuadTree(root);
 
 	vertexBuffer = new VertexBuffer(vertices, vertexCount, sizeof(VertexTerrain));
 	indexBuffer = new IndexBuffer(indices, indexCount);
 
 
-	TestCol = new OBBCollider();
-	//TestCol->AddInstance(new Transform());
+	TestCol = new OBBColliderTest();
+	TestCol->AddInstance();
 	TestCol->GetTransform()->Scale(1, 3, 1);
-	AreaCol = new OBBCollider();
-	//AreaCol->AddInstance(new Transform());
+	AreaCol = new OBBColliderTest();
+	AreaCol->AddInstance();
+	AreaCol->SetDebugModeOn();
+
+	float width = D3D::Width();
+	float height = D3D::Height();
+	renderTarget = new RenderTarget((UINT)width, (UINT)height);
+	depthStencil = new DepthStencil(width, height);
+
+	//render2D = new Render2D();
+	//render2D->GetTransform()->Position(60, 60, 0);
+	//render2D->GetTransform()->Scale(100, 100, 1);
+	computeBuffer = new StructuredBuffer
+	(
+		NULL,
+		sizeof(Color), 1,
+		true
+	);
 }
 
 
@@ -115,6 +135,21 @@ TerrainLod::~TerrainLod()
 }
 
 
+void TerrainLod::PreRender()
+{
+	//Terrain UV Picking을 위한 프리랜더
+	// UV값을 r,g에 받은 형태로 랜더할거임.
+	renderTarget->Set(depthStencil->DSV());
+	{
+		Super::Render();
+		texelBuffer->Apply();
+		sTexelBuffer->SetConstantBuffer(texelBuffer->Buffer());
+		shader->DrawIndexed(0, 2, indexCount);
+	}
+	preTerrainSrv = renderTarget->SRV();
+	//render2D->SRV(preTerrainSrv);
+}
+
 void TerrainLod::Update()
 {
 	
@@ -125,6 +160,7 @@ void TerrainLod::Update()
 	//브러시 위치 업데이트
 	{
 		brushPos = GetPickedPosition();
+		brushPos.y = GetPickedHeight();
 		//터레인의 이동한 포지션 받기
 		GetTransform()->Position(&brushDesc.Location);
 		//마우스 위치 더하기
@@ -166,7 +202,7 @@ void TerrainLod::Update()
 			{
 				if (brushDesc.Type == 3)
 				{
-					if (brushPos.y > 0)
+					if (brushPos.y >= 0.0f)
 						if (bSlope == false)
 						{
 							//시작점 설정
@@ -257,15 +293,19 @@ void TerrainLod::Render()
 		lineColorBuffer->Apply();
 		sLineColorBuffer->SetConstantBuffer(lineColorBuffer->Buffer());
 	}
+	
 	texelBuffer->Apply();
 	sTexelBuffer->SetConstantBuffer(texelBuffer->Buffer());
 	shader->DrawIndexed(Tech() , Pass(), indexCount);
 
 	if (bQuadFrame)
+	{
+		quadTree->Update();
 		quadTree->Render();
+	}
 	//TODO: 나중 삭제
 	//TestCol->Render(Color(1, 1, 0, 1));
-	
+	//render2D->Render();
 }
 
 ////////////////////////////////////
@@ -307,10 +347,10 @@ void TerrainLod::AlphaTexture(wstring file, bool bUseAlpha)
 	HMapSrv->GetResource((ID3D11Resource **)&srcTexture);
 	Texture::ReadPixels(srcTexture, DXGI_FORMAT_R8G8B8A8_UNORM, &AlphaMapPixel);
 
-	SafeDelete(quadTree);
+	//SafeDelete(quadTree);
 	QuadTreeNode* root = CreateQuadTreeData(NULL, Vector2(0, 0), Vector2(width, height));
-	quadTree = new QuadTree(root);
-	//quadTree->SetRootNode(root);
+	//quadTree = new QuadTree();
+	quadTree->SetRootNode(root);
 }
 
 void TerrainLod::LayerTextures(wstring layer, UINT layerIndex)
@@ -465,37 +505,27 @@ void TerrainLod::LoadPerlinMap()
 
 Vector3 TerrainLod::GetPickedPosition()
 {
-	
-	Matrix world = GetTransform()->World();
-	Vector3 start, direction;
-	Matrix V = Context::Get()->View();
-	Matrix P = Context::Get()->Projection();
+	/*
+	Terrain UV Picking
+		1. 쉐이더에 마우스 좌표와 프리랜더로 랜더한 터레인의 uv 랜더타겟을 넘긴다.
+		2. 마우스좌표에 위치한 픽셀값을 읽는다.
+		3. 받아온 Color값에 보정값을 계산하고 uv와 터레인의 높이좌표값이 반대이므로 뒤집는다.
 
+		//TODO: 터레인의 변경에따라 uv값이 바뀌므로 브러시위치가 변하는 문제가 있음0715
+	*/
 	Vector3 mouse = Mouse::Get()->GetPosition();
-
-	Vector3 n, f;//근면 원면
-
-	//근면
-	mouse.z = 0.0f;
-	Context::Get()->GetViewport()->Unproject(&n, mouse, world, V, P);
-
-	//원면
-	mouse.z = 1.0f;
-	Context::Get()->GetViewport()->Unproject(&f, mouse, world, V, P);
-
-	//n에서 f로 쏜 방향
-	direction = f - n;
-	start = n;
-	QuadTreeNode* selectedQNode = NULL;
-	float minDst;
-	selectedQNode=quadTree->GetPickedNode(start,direction, minDst);
-	//선택노드 없으면 리턴
-	if (selectedQNode == NULL)
-		return Vector3(-1, -1, -1);
-	D3DXVec3Normalize(&direction, &direction);
-
-	// 선택좌표는 최단거리를 통해 계산
-	return start + direction * minDst;
+	//브러시 좌표의 시작점을 계산하기 위함
+	Vector3 result = Vector3(-0.5f*width,0.0f, -0.5f*height);
+	raiseCS->AsVector("MousePos")->SetFloatVector((float*)&mouse);
+	raiseCS->AsSRV("Terrain")->SetResource(preTerrainSrv);
+	raiseCS->AsUAV("OutputPickColor")->SetUnorderedAccessView(computeBuffer->UAV());
+	raiseCS->Dispatch(3, 2, 1, 1, 1);
+	computeBuffer->Copy(PickColor, sizeof(Color));
+	result.x += PickColor.r*width;
+	result.z += PickColor.g*height;
+	result.z = -result.z;
+	
+	return result;
 }
 
 float TerrainLod::GetPickedHeight()
@@ -629,15 +659,12 @@ void TerrainLod::UpdateAlphaMap(UINT pass, UINT tech)
 	raiseBuffer->Apply();
 	sRaiseBuffer->SetConstantBuffer(raiseBuffer->Buffer());
 	
+	static bool bMethodInodd = false;
 	raiseCS->AsSRV("AlphaMap")->SetResource(HMapSrv);
-	raiseCS->AsUAV("OutputMap")->SetUnorderedAccessView(raiseCT[0]->UAV());
+	raiseCS->AsUAV("OutputMap")->SetUnorderedAccessView(raiseCT[bMethodInodd ? 0 : 1]->UAV());
 	raiseCS->Dispatch(tech, pass, (int)(AlphaMapPixel.size()) / 1024, 1, 1);
-
-	raiseCS->AsSRV("AlphaMap2")->SetResource(raiseCT[0]->SRV());
-	raiseCS->AsUAV("OutputMap2")->SetUnorderedAccessView(raiseCT[1]->UAV());
-	raiseCS->Dispatch(3, 2, (int)(AlphaMapPixel.size()) / 1024, 1, 1);
-	HMapSrv = raiseCT[1]->SRV();
-	
+	HMapSrv = raiseCT[bMethodInodd?0:1]->SRV();
+	bMethodInodd = !bMethodInodd;
 	sAlphaTexture->SetResource(HMapSrv);
 
 
@@ -695,17 +722,15 @@ void TerrainLod::UpdateAlphaMap(UINT pass, UINT tech)
 	SafeRelease(texture);
 }
 
-//void TerrainLod::CheckQuadCollider(QuadTreeNode* node, vector< QuadTreeNode*>& updateNode)
-void TerrainLod::CheckQuadCollider(QuadTreeNode* node, Collider* collider, vector< QuadTreeNode*>& updateNode)
+void TerrainLod::CheckQuadCollider(QuadTreeNode* node, vector< QuadTreeNode*>& updateNode)
 {
-	node->GetCollider()->Update();
-	if (node->GetCollider()->IsIntersect(collider))
+	if (node->IsIntersect())
 	{
 		if (node->HasChilds())
 		{
 			for (QuadTreeNode* child : node->GetChildren())
 			{
-				CheckQuadCollider(child,collider, updateNode);
+				CheckQuadCollider(child, updateNode);
 			}
 		}
 		else
@@ -716,7 +741,7 @@ void TerrainLod::CheckQuadCollider(QuadTreeNode* node, Collider* collider, vecto
 
 void TerrainLod::UpdateQuadHeight()
 {
-	
+
 	float TileSize = bufferDesc.TexScale * 2;
 
 	int w = (int)(width)*0.5f;
@@ -730,35 +755,34 @@ void TerrainLod::UpdateQuadHeight()
 	CalcBoundY();
 	Vector3 scale = maxV3 - minV3;
 	Vector3 position = (maxV3 + minV3)*0.5f;
-	
+
 	AreaCol->GetTransform()->Position(position);
 	AreaCol->GetTransform()->Scale(scale);
 	AreaCol->Update();
 
 	vector< QuadTreeNode*> temp4updateNode;
-	CheckQuadCollider(quadTree->RootNode, AreaCol, temp4updateNode);
-	/*quadTree->Update();
-	OBBCollider* col = quadTree->GetCollider();*/
-	
+	quadTree->Update();
+	OBBColliderTest* col = quadTree->GetCollider();
+
 	//OBB끼리 충돌을 T0,P1로 해놨음
 	// 충돌 계산 직후에 값을 사용할것
-	//col->ComputeCollider(0, 0, AreaCol);
-	//CheckQuadCollider(quadTree->GetRootNode(), temp4updateNode);
+	quadTree->GetCollider()->ComputeColliderTest(0, 0, AreaCol);
+	CheckQuadCollider(quadTree->GetRootNode(), temp4updateNode);
 
 	float cellF = 1.0f / info.CellSpacing;
 	for (QuadTreeNode* node : temp4updateNode)
 	{
-		OBBCollider* col = node->GetCollider(); 
-		//UINT inst = node->GetColInst();
+		//OBBCollider* col = node->GetCollider();
+		UINT inst = node->GetColInst();
 		Vector2 TopLeft, BottomRight;
 
-		Vector3 MinR = col->GetMinRound();
-		Vector3 MaxR = col->GetMaxRound();
+		Vector3 MinR = col->GetMinRound(inst);
+		Vector3 MaxR = col->GetMaxRound(inst);
 
 		//생성 역순으로 되찾기
-		TopLeft = Vector2(MinR.x+w, -MaxR.z+h)*cellF;
-		BottomRight = Vector2(MaxR.x+w, -MinR.z+h)*cellF;
-		
+		TopLeft = Vector2(MinR.x + w, -MaxR.z + h)*cellF;
+		BottomRight = Vector2(MaxR.x + w, -MinR.z + h)*cellF;
+
 		Vector2 minMaxY = GetMinMaxY(TopLeft, BottomRight);
 		minMaxY.x = min(minMaxY.x, 0);
 		minMaxY.x -= 0.05f;
@@ -771,9 +795,10 @@ void TerrainLod::UpdateQuadHeight()
 		pos.y = (minMaxY.x + minMaxY.y)*0.5f;
 
 		col->GetTransform()->Position(pos);
-		col->GetTransform()->Scale(scale);		
+		col->GetTransform()->Scale(scale);
 	}
 }
+
 
 #pragma endregion
 
@@ -804,54 +829,52 @@ Vector2 TerrainLod::GetMinMaxY(Vector2& TopLeft, Vector2& BottomRight)
 	return Vector2(minY, maxY);
 }
 
-QuadTreeNode* TerrainLod::CreateQuadTreeData(QuadTreeNode* parent,Vector2& TopLeft, Vector2& BottomRight)
+QuadTreeNode* TerrainLod::CreateQuadTreeData(QuadTreeNode* parent, Vector2& TopLeft, Vector2& BottomRight)
 {
 	const float tolerance = 0.01f;
 	Vector2 minMaxY = GetMinMaxY(TopLeft, BottomRight);
 	minMaxY.x -= 0.05f;
 	minMaxY.y += 0.05f;
 	minMaxY *= bufferDesc.HeightRatio;
-	float minX = TopLeft.x * info.CellSpacing - width *0.5f;
+	float minX = TopLeft.x * info.CellSpacing - width * 0.5f;
 	float maxX = BottomRight.x * info.CellSpacing - width * 0.5f;
-	float minZ = -TopLeft.y * info.CellSpacing + height *0.5f;
+	float minZ = -TopLeft.y * info.CellSpacing + height * 0.5f;
 	float maxZ = -BottomRight.y * info.CellSpacing + height * 0.5f;
-	
+
 	// adjust the bounds to get a very slight overlap of the bounding boxes
 	minX -= tolerance;
 	maxX += tolerance;
 	minZ += tolerance;
 	maxZ -= tolerance;
-	QuadTreeNode* quadNode = new QuadTreeNode();
+	QuadTreeNode* quadNode = new QuadTreeNode(quadTree);
 	if (parent != NULL)
 		quadNode->SetParent(parent);
 	minMaxY.x = min(minMaxY.x, 0);
 
 	Vector3 minV3(minX, minMaxY.x, maxZ);
 	Vector3 maxV3(maxX, minMaxY.y, minZ);
-	Vector3 scale=maxV3-minV3;
+	Vector3 scale = maxV3 - minV3;
 	Vector3 position = (maxV3 + minV3)*0.5f;
 	Transform* transform = new Transform();
 	transform->Position(position);
 	transform->Scale(scale);
-	OBBCollider* collider = new OBBCollider(transform);
-
-	quadNode->SetCollider(collider);
-	////인스턴스번호
-	//UINT colinst = quadNode->GetColInst();
-	////인스턴스추가
-	//quadTree->GetCollider()->AddInstance(transform);
+	//인스턴스번호
+	UINT colinst = quadNode->GetColInst();
+	//인스턴스추가
+	quadTree->GetCollider()->AddInstance(transform);
 
 
 	float narrow = (BottomRight.x - TopLeft.x)*0.5f;
-	float depth  = (BottomRight.y - TopLeft.y) *0.5f;
+	float depth = (BottomRight.y - TopLeft.y) *0.5f;
 
 	float TileSize = bufferDesc.TexScale;
 	if (narrow >= TileSize && depth >= TileSize) {
-		quadNode->AddChild(	CreateQuadTreeData(quadNode,TopLeft, Vector2(TopLeft.x + narrow, TopLeft.y + depth))		);
-		quadNode->AddChild(	CreateQuadTreeData(quadNode,Vector2(TopLeft.x + narrow, TopLeft.y), Vector2(BottomRight.x, TopLeft.y + depth))		);
-		quadNode->AddChild(	CreateQuadTreeData(quadNode,Vector2(TopLeft.x, TopLeft.y + depth), Vector2(TopLeft.x + depth, BottomRight.y))		); 
-		quadNode->AddChild(	CreateQuadTreeData(quadNode,Vector2(TopLeft.x + narrow, TopLeft.y + depth), BottomRight)		); 
-	}	
+		//quadTree->GetCollider()->SetColliderTestOff(colinst);
+		quadNode->AddChild(CreateQuadTreeData(quadNode, TopLeft, Vector2(TopLeft.x + narrow, TopLeft.y + depth)));
+		quadNode->AddChild(CreateQuadTreeData(quadNode, Vector2(TopLeft.x + narrow, TopLeft.y), Vector2(BottomRight.x, TopLeft.y + depth)));
+		quadNode->AddChild(CreateQuadTreeData(quadNode, Vector2(TopLeft.x, TopLeft.y + depth), Vector2(TopLeft.x + depth, BottomRight.y)));
+		quadNode->AddChild(CreateQuadTreeData(quadNode, Vector2(TopLeft.x + narrow, TopLeft.y + depth), BottomRight));
+	}
 	return quadNode;
 }
 
@@ -991,7 +1014,7 @@ void TerrainLod::TerrainController()
 					
 					if (raiseDesc.RaiseType == 3 && bRangeChanged == true)
 					{
-						perlinGen->Resize((UINT)raiseDesc.Radius*2);
+						perlinGen->Resize((UINT)raiseDesc.Radius);
 						raiseCS->AsSRV("PerlinMap")->SetResource(perlinGen->GetPerlinSrv());
 					}
 					

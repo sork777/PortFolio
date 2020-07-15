@@ -256,7 +256,7 @@ float4 CalcNormaltoPBR(MeshOutput input)
     float3 viewDir = normalize(ViewPosition() - input.wPosition);
     float3 direction = -GlobalLight.Direction;
     
-    //if (any(Material.Specular.rgb))
+    if (any(Material.Specular.rgb))
     {
         float3 R = normalize(reflect(-direction, NormalVec));
         float RdotE = saturate(dot(R, viewDir));
@@ -285,7 +285,7 @@ float4 CalcNormaltoPBR(MeshOutput input)
     float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
     
     float3 irradiance = CalcSkyIrradiance(NormalVec);
-    float3 diffuse = albedo;// * irradiance;
+    float3 diffuse = albedo * irradiance;
     diffuse *= dot(NormalVec, direction);
     
     const float MAX_REF_LOD = 4.0f;

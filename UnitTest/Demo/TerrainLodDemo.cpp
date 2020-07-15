@@ -111,7 +111,7 @@ void TerrainLodDemo::PreRender()
 {
 	if (NULL != editor)
 		editor->PreRender();
-
+	terrain->PreRender();
 	/*for (ContentsAsset* asset : AssetManager::Get()->GetAllAssets())
 	{
 		asset->CreateButtonImage();
@@ -144,7 +144,7 @@ void TerrainLodDemo::PreRender()
 
 void TerrainLodDemo::Render()
 {
-	sky->Render(false);
+	//sky->Render(false);
 
 	//terrainMat->Render();
 	terrain->Render();

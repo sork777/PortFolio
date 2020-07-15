@@ -183,8 +183,8 @@ BlendState AlphaBlend2
     SrcBlend[0] = SRC_ALPHA;
     BlendOp[0] = Add;
 
-    SrcBlendAlpha[0] = SRC_ALPHA;
-    DestBlendAlpha[0] = INV_SRC_ALPHA;
+    SrcBlendAlpha[0] = Zero;
+    DestBlendAlpha[0] = Zero;
     RenderTargetWriteMask[0] = 0x0F;
 };
 BlendState AdditiveAlphaBlend
