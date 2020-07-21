@@ -83,8 +83,9 @@ private:
 // Brush
 public:
 	Vector3 GetPickedPosition();
+	float GetPickedHeight(const Vector3& position);
+
 private:
-	float GetPickedHeight();
 	/* 브러시의 raiseDesc 업데이트 */
 	void BrushUpdater(Vector3& position);
 	/* 쿼드 상승 */
@@ -220,8 +221,8 @@ private:
 	QuadTree* quadTree;
 
 private:
-	OBBColliderTest* TestCol;
-	OBBColliderTest* AreaCol;
+	OBBCollider* TestCol;
+	OBBCollider* AreaCol;
 
 /////////////////////////////////////////////////////////////////////////////
 //UV Picking

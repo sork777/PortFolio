@@ -24,7 +24,7 @@ public:
 	QuadTreeNode* GetPickedNode(Vector3& position);
 
 private:
-	OBBColliderTest* collider;	//픽킹 충돌처리용, Tree에서 연결
+	OBBCollider* collider;	//픽킹 충돌처리용, Tree에서 연결
 	UINT colInst;
 	Vector2 BoundsY;	//터레인 높이 측정용
 
@@ -51,10 +51,10 @@ public:
 
 	QuadTreeNode* GetRootNode() { return RootNode; }
 
-	OBBColliderTest* GetCollider() { return collider; }
+	OBBCollider* GetCollider() { return collider; }
 
 private:
 	QuadTreeNode* RootNode;
-	OBBColliderTest* collider;
+	OBBCollider* collider;
 };
 

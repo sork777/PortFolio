@@ -2,6 +2,7 @@
 
 #include "../BaseObject.h"
 
+class TerrainLod;
 /*
 	얘를 상속받아 Actor 오브젝트를 따로 만들어서 쓸것.
 	애니메이션 설정들을 전부 직접 작성.
@@ -53,5 +54,9 @@ private:
 	bool	bSpawningObject;
 	int		spawnInstance;
 	Vector3 spawnPos;
-};
 
+public:
+	void SetTerrain(TerrainLod* CurrentTerrain = NULL) { CurTerrain = CurrentTerrain; }
+private:
+	TerrainLod* CurTerrain = NULL;
+};

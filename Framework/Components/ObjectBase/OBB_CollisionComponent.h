@@ -23,8 +23,8 @@ public:
 	virtual Transform * GetTransform(const UINT & instance = 0) override;
 
 private:
-	//OBBCollider* colliders;
-	vector<OBBCollider*> colliders;
+	OBBCollider* colliders;
+	//vector<OBBCollider*> colliders;
 
 	Color lineColor = Color(0, 1, 0, 1);
 };

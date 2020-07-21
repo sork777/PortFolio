@@ -85,7 +85,7 @@ QuadTreeNode * QuadTreeNode::GetPickedNode(Vector3 & position)
 QuadTree::QuadTree()
 	:RootNode(NULL)
 {
-	collider = new OBBColliderTest();
+	collider = new OBBCollider();
 }
 
 

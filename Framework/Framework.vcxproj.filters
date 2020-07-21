@@ -255,10 +255,6 @@
     <ClCompile Include="Components\ObjectBase\ModelMeshComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\FigureMeshComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\CameraComponent.cpp" />
-    <ClCompile Include="Collision\Collider.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="Collision\OBBCollider.cpp" />
     <ClCompile Include="Components\ObjectBase\ObjectBaseComponent.cpp" />
     <ClCompile Include="LightEffects\CSM.cpp">
       <Filter>Objects</Filter>
@@ -281,8 +277,8 @@
     <ClCompile Include="Components\ObjectBase\OBB_CollisionComponent.cpp" />
     <ClCompile Include="Objects\Actor\Player.cpp" />
     <ClCompile Include="Objects\ObjectPicker.cpp" />
-    <ClCompile Include="CollisionTest\ColliderTest.cpp" />
-    <ClCompile Include="CollisionTest\OBBColliderTest.cpp" />
+    <ClCompile Include="Collision\Collider.cpp" />
+    <ClCompile Include="Collision\OBBCollider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -606,10 +602,6 @@
     <ClInclude Include="Components\ObjectBase\ModelMeshComponent.h" />
     <ClInclude Include="Components\ObjectBase\FigureMeshComponent.h" />
     <ClInclude Include="Components\ObjectBase\CameraComponent.h" />
-    <ClInclude Include="Collision\Collider.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Collision\OBBCollider.h" />
     <ClInclude Include="Components\ObjectBase\ObjectBaseComponent.h" />
     <ClInclude Include="LightEffects\CSM.h">
       <Filter>Objects</Filter>
@@ -634,7 +626,7 @@
     <ClInclude Include="Objects\Actor\Player.h" />
     <ClInclude Include="Objects\ObjectPicker.h" />
     <ClInclude Include="Model\AnimData.h" />
-    <ClInclude Include="CollisionTest\ColliderTest.h" />
-    <ClInclude Include="CollisionTest\OBBColliderTest.h" />
+    <ClInclude Include="Collision\Collider.h" />
+    <ClInclude Include="Collision\OBBCollider.h" />
   </ItemGroup>
 </Project>

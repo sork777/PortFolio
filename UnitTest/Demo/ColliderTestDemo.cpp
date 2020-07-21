@@ -21,21 +21,22 @@ void ColliderTestDemo::Initialize()
 	shader->AsSRV("SkyCubeMap")->SetResource(sky->CubeSRV());
 	shader->AsSRV("BRDFLUT")->SetResource(brdfLut->SRV());
 
-	testCol = new OBBColliderTest();
+	testCol = new OBBCollider();
 	testCol->SetDebugModeOn();
-	for (int i = 0; i < 2048; i++)
+	for (int i = 0; i < 50; i++)
 	{
-		Vector3 randpos = Math::RandomVec3(-100.0f, 100.f);
+		Vector3 randpos = Math::RandomVec3(-50.0f, 50.f);
 		randpos.y = Math::Clamp(randpos.y, 1.5f, 100.0f);
 		//Transform* trans = new Transform()
 		testCol->AddInstance();
 		testCol->GetTransform(i)->Position(randpos);
-		testCol->GetTransform(i)->Scale(0.5f, 0.5f, 0.5f);
+		testCol->GetTransform(i)->Scale(1.5f, 1.5f, 1.5f);
 	}
 	testCol->GetTransform(0)->Scale(5,5,5);
-
 	perspective = new Perspective(D3D::Width(), D3D::Height(), 1.0f, 1000.0f, Math::PI * 0.25f);
-	testCol->SetFrustum(new Frustum(NULL, perspective));
+	camera = new Fixity();
+	camera->Position(0, 0, -50);
+	testCol->SetFrustum(new Frustum(camera, perspective));
 }
 
 void ColliderTestDemo::Destroy()
@@ -44,8 +45,6 @@ void ColliderTestDemo::Destroy()
 
 void ColliderTestDemo::Update()
 {
-	
-
 
 	sky->Update();
 
@@ -92,6 +91,15 @@ void ColliderTestDemo::Update()
 	{
 		testCol->ComputeColliderTest(0, 0);
 	}
+	Vector3 campos, camrot;
+	camera->Position(&campos);
+	camera->RotationDegree(&camrot);
+
+	ImGui::SliderFloat3("CamPos", (float*)&campos, -100, 100);
+	ImGui::SliderFloat3("CamRot", (float*)&camrot, -180, 180);
+	camera->Position(campos);
+	camera->RotationDegree(camrot);
+
 	Vector3 pos,rot;
 	testCol->GetTransform()->Position(&pos);
 	testCol->GetTransform()->RotationDegree(&rot);

@@ -1,6 +1,5 @@
 #include "Actor.h"
-
-
+#include "Environment/TerrainLod.h"
 
 Actor::Actor()	
 	:root(NULL)
@@ -50,7 +49,17 @@ void Actor::Update()
 
 	root->Update();
 
-
+	if (NULL != CurTerrain)
+	{
+		int loop = root->GetInstSize();
+		for (int inst = 0; inst < loop; inst++)
+		{
+			Vector3 pos;
+			root->GetTransform(inst)->Position(&pos);
+			pos.y=CurTerrain->GetPickedHeight(pos);
+			root->GetTransform(inst)->Position(pos);
+		}
+	}
 	//밖으로 빼도 될것같은데...?
 	//생성해서 옮기는 도중임
 	if (true == bSpawningObject)

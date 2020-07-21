@@ -110,6 +110,7 @@ typedef D3DXPLANE Plane;
 #include "Components/Common/PerFrame.h"
 #include "Components/Common/Transform.h"
 
+//#include "Objects/BaseObject.h"
 #include "Objects/Actor/Actor.h"
 
 #include "Utilities/DebugLine.h"
@@ -122,9 +123,6 @@ typedef D3DXPLANE Plane;
 #include "Collision/OBBCollider.h"
 //#include "Collision/SphereCollider.h"
 //#include "Collision/CapsuleCollider.h"
-
-#include "CollisionTest/ColliderTest.h"
-#include "CollisionTest/OBBColliderTest.h"
 
 #include "Meshes/Mesh.h"
 #include "Meshes/MeshRender.h"

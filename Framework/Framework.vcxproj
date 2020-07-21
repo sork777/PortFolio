@@ -22,8 +22,7 @@
     <ClCompile Include="Assets\ContentsAsset.cpp" />
     <ClCompile Include="Assets\AssetManager.cpp" />
     <ClCompile Include="Assets\ContentsAsset\TextureAsset.cpp" />
-    <ClCompile Include="CollisionTest\ColliderTest.cpp" />
-    <ClCompile Include="CollisionTest\OBBColliderTest.cpp" />
+    <ClCompile Include="Collision\Collider.cpp" />
     <ClCompile Include="Collision\OBBCollider.cpp" />
     <ClCompile Include="Components\ObjectBase\ObjectBaseComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\CameraComponent.cpp" />
@@ -77,7 +76,6 @@
     <ClCompile Include="Utilities\Perlin.cpp" />
     <ClCompile Include="PostEffects\HDR_Tone.cpp" />
     <ClCompile Include="ScreenSpace\GBuffer.cpp" />
-    <ClCompile Include="Collision\Collider.cpp" />
     <ClCompile Include="LightEffects\CSM.cpp" />
     <ClCompile Include="LightEffects\Light.cpp" />
     <ClCompile Include="LightEffects\Mirror.cpp" />
@@ -135,8 +133,7 @@
   <ItemGroup>
     <ClInclude Include="Assets\AssetManager.h" />
     <ClInclude Include="Assets\ContentsAsset\TextureAsset.h" />
-    <ClInclude Include="CollisionTest\ColliderTest.h" />
-    <ClInclude Include="CollisionTest\OBBColliderTest.h" />
+    <ClInclude Include="Collision\Collider.h" />
     <ClInclude Include="Collision\OBBCollider.h" />
     <ClInclude Include="Components\ObjectBase\CameraComponent.h" />
     <ClInclude Include="Components\ObjectBase\OBB_CollisionComponent.h" />
@@ -202,7 +199,6 @@
     <ClInclude Include="Utilities\Perlin.h" />
     <ClInclude Include="PostEffects\HDR_Tone.h" />
     <ClInclude Include="ScreenSpace\GBuffer.h" />
-    <ClInclude Include="Collision\Collider.h" />
     <ClInclude Include="LightEffects\CSM.h" />
     <ClInclude Include="LightEffects\Light.h" />
     <ClInclude Include="LightEffects\Mirror.h" />

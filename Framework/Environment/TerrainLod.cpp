@@ -55,6 +55,9 @@ TerrainLod::TerrainLod(InitializeInfo& info)
 	bufferDesc.TexScale = info.CellSpacing*2.0f;
 	lineColorDesc.Size = info.CellSpacing*2.0f;
 
+	float MaxHeightRate = 3.0f*info.HeightRatio;
+	raiseRate = Math::Clamp(raiseRate, MaxHeightRate*0.01f, MaxHeightRate);
+
 	patchVertexRows = (width / info.CellsPerPatch) + 1;
 	patchVertexCols = (height / info.CellsPerPatch) + 1;
 
@@ -67,24 +70,19 @@ TerrainLod::TerrainLod(InitializeInfo& info)
 	CreateVertexData();
 	CreateIndexData();
 
-	//else
-
-	//QuadTreeNode* root = CreateQuadTreeData(NULL,Vector2(0, 0), Vector2(width, height));
-
 	quadTree = new QuadTree();
 	quadTree->GetCollider()->SetDebugModeOn();
 	QuadTreeNode* root = CreateQuadTreeData(NULL,Vector2(0, 0), Vector2(width, height));
 	quadTree->SetRootNode(root);
-	//quadTree = new QuadTree(root);
 
 	vertexBuffer = new VertexBuffer(vertices, vertexCount, sizeof(VertexTerrain));
 	indexBuffer = new IndexBuffer(indices, indexCount);
 
 
-	TestCol = new OBBColliderTest();
+	TestCol = new OBBCollider();
 	TestCol->AddInstance();
 	TestCol->GetTransform()->Scale(1, 3, 1);
-	AreaCol = new OBBColliderTest();
+	AreaCol = new OBBCollider();
 	AreaCol->AddInstance();
 	AreaCol->SetDebugModeOn();
 
@@ -137,6 +135,7 @@ TerrainLod::~TerrainLod()
 
 void TerrainLod::PreRender()
 {
+	if (Mouse::Get()->Press(0))return;
 	//Terrain UV Picking을 위한 프리랜더
 	// UV값을 r,g에 받은 형태로 랜더할거임.
 	renderTarget->Set(depthStencil->DSV());
@@ -160,7 +159,6 @@ void TerrainLod::Update()
 	//브러시 위치 업데이트
 	{
 		brushPos = GetPickedPosition();
-		brushPos.y = GetPickedHeight();
 		//터레인의 이동한 포지션 받기
 		GetTransform()->Position(&brushDesc.Location);
 		//마우스 위치 더하기
@@ -255,14 +253,6 @@ void TerrainLod::Update()
 		
 	}
 
-
-	//TODO: 나중 삭제
-	if (Mouse::Get()->Press(1) && Keyboard::Get()->Press(VK_SHIFT))
-	{
-		Vector3 pos = brushPos;
-		pos.y = GetPickedHeight() + 1.5f;
-		TestCol->GetTransform()->Position(pos);
-	}
 	Super::Update();
 	   	 
 }
@@ -510,8 +500,6 @@ Vector3 TerrainLod::GetPickedPosition()
 		1. 쉐이더에 마우스 좌표와 프리랜더로 랜더한 터레인의 uv 랜더타겟을 넘긴다.
 		2. 마우스좌표에 위치한 픽셀값을 읽는다.
 		3. 받아온 Color값에 보정값을 계산하고 uv와 터레인의 높이좌표값이 반대이므로 뒤집는다.
-
-		//TODO: 터레인의 변경에따라 uv값이 바뀌므로 브러시위치가 변하는 문제가 있음0715
 	*/
 	Vector3 mouse = Mouse::Get()->GetPosition();
 	//브러시 좌표의 시작점을 계산하기 위함
@@ -525,15 +513,17 @@ Vector3 TerrainLod::GetPickedPosition()
 	result.z += PickColor.g*height;
 	result.z = -result.z;
 	
+	result.y = GetPickedHeight(result);
+
 	return result;
 }
 
-float TerrainLod::GetPickedHeight()
+float TerrainLod::GetPickedHeight(const Vector3& position)
 {
 	int w = (int)(width)*0.5f;
 	int h = (int)(height)*0.5f;
-	int x = (int)ceil(brushPos.x) + w;
-	int z = -(int)ceil(brushPos.z) + h;
+	int x = (int)ceil(position.x) + w;
+	int z = -(int)ceil(position.z) + h;
 
 	if (x < 0 || x >= width) return -1.0f;
 	if (z < 0 || z >= height) return -1.0f;
@@ -728,6 +718,8 @@ void TerrainLod::CheckQuadCollider(QuadTreeNode* node, vector< QuadTreeNode*>& u
 	{
 		if (node->HasChilds())
 		{
+			//updateNode.emplace_back(node);
+
 			for (QuadTreeNode* child : node->GetChildren())
 			{
 				CheckQuadCollider(child, updateNode);
@@ -762,7 +754,7 @@ void TerrainLod::UpdateQuadHeight()
 
 	vector< QuadTreeNode*> temp4updateNode;
 	quadTree->Update();
-	OBBColliderTest* col = quadTree->GetCollider();
+	OBBCollider* col = quadTree->GetCollider();
 
 	//OBB끼리 충돌을 T0,P1로 해놨음
 	// 충돌 계산 직후에 값을 사용할것
@@ -789,13 +781,13 @@ void TerrainLod::UpdateQuadHeight()
 		minMaxY.y += 0.05f;
 		minMaxY *= bufferDesc.HeightRatio;
 		Vector3 pos, scale;
-		col->GetTransform()->Position(&pos);
-		col->GetTransform()->Scale(&scale);
+		col->GetTransform(inst)->Position(&pos);
+		col->GetTransform(inst)->Scale(&scale);
 		scale.y = minMaxY.y - minMaxY.x;
 		pos.y = (minMaxY.x + minMaxY.y)*0.5f;
 
-		col->GetTransform()->Position(pos);
-		col->GetTransform()->Scale(scale);
+		col->GetTransform(inst)->Position(pos);
+		col->GetTransform(inst)->Scale(scale);
 	}
 }
 
@@ -869,7 +861,7 @@ QuadTreeNode* TerrainLod::CreateQuadTreeData(QuadTreeNode* parent, Vector2& TopL
 
 	float TileSize = bufferDesc.TexScale;
 	if (narrow >= TileSize && depth >= TileSize) {
-		//quadTree->GetCollider()->SetColliderTestOff(colinst);
+		quadTree->GetCollider()->SetColliderTestOff(colinst);
 		quadNode->AddChild(CreateQuadTreeData(quadNode, TopLeft, Vector2(TopLeft.x + narrow, TopLeft.y + depth)));
 		quadNode->AddChild(CreateQuadTreeData(quadNode, Vector2(TopLeft.x + narrow, TopLeft.y), Vector2(BottomRight.x, TopLeft.y + depth)));
 		quadNode->AddChild(CreateQuadTreeData(quadNode, Vector2(TopLeft.x, TopLeft.y + depth), Vector2(TopLeft.x + depth, BottomRight.y)));
@@ -898,17 +890,7 @@ void TerrainLod::TerrainController()
 		ImGui::Checkbox("LOD", &bLod);
 		ImGui::Checkbox("WireFrame", &bWire);
 		Pass(bWire ? 1 : 0);
-		/*ImGui::SliderFloat("HeightRatio", &bufferDesc.HeightRatio, 10.0f, 100.0f);
-		if (ImGui::Button("Apply Height"))
-		{
-			ID3D11Texture2D* srcTexture;
-			HMapSrv->GetResource((ID3D11Resource **)&srcTexture);
-			Texture::ReadPixels(srcTexture, DXGI_FORMAT_R8G8B8A8_UNORM, &AlphaMapPixel);
-
-			SafeDelete(quadTree);
-			QuadTreeNode* root = CreateQuadTreeData(NULL, Vector2(0, 0), Vector2(width, height));
-			quadTree = new QuadTree(root);
-		}*/
+		
 		shader->AsScalar("UseLOD")->SetInt(bLod ? 1 : 0);
 		ImGui::Separator();
 		ImGui::ImageButton(HMapSrv, ImVec2(120, 120));
@@ -1018,8 +1000,8 @@ void TerrainLod::TerrainController()
 						raiseCS->AsSRV("PerlinMap")->SetResource(perlinGen->GetPerlinSrv());
 					}
 					
-
-					ImGui::SliderFloat("RaiseRate", &raiseRate, 10.0f, 300.0f);
+					float MaxHeightRate = 3.0f*info.HeightRatio;
+					ImGui::SliderFloat("RaiseRate", &raiseRate, MaxHeightRate*0.01f, MaxHeightRate);
 					raiseDesc.Rate = raiseRate * Time::Delta();
 
 					if (brushDesc.Type == 2)

@@ -281,6 +281,15 @@ void ActorEditor::EditActorReset()
 	//기존 에딧액터를 삭제후 다시 만들기
 	SafeDelete(e_Actor);
 	e_Actor = new Actor(*actor);
+
+	curModel = e_Actor->GetRootMeshData()->GetMesh();
+	curAnimator = e_Actor->GetRootMeshData()->GetAnimation();
+	if (bAnimate)
+	{
+		clips = curAnimator->Clips();
+		curAnimator->SetAnimState();
+	}
+	selecedComp = NULL;
 }
 
 void ActorEditor::PlayButton()

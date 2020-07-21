@@ -200,7 +200,8 @@ struct Col_Output
 };
 RWStructuredBuffer<Col_Output> Col_Outputs;
 
-int ColB_Size;
+int SelfCol;
+int Col_Size;
 
 bool InFrustum(float3 center)
 {
@@ -232,14 +233,16 @@ void CS_OBBtoOBB(uint GroupIndex : SV_GroupIndex,uint GroupID:SV_GroupID)
     float closestdist = FLT_MAX;
     int closestN = -1;
     //[unroll()]
-    for (int colB_ID = 0; colB_ID < ColB_Size; colB_ID++)
+    for (int colB_ID = 0; colB_ID < Col_Size; colB_ID++)
     {
-        colB = MatrixtoOBB(Col_InputsB[colB_ID].data);
-            
-        bool bCollide = (colA_ID != colB_ID) ? Collision_OBBToOBB(colA, colB) : false;
+        float4x4 data = lerp(Col_InputsB[colB_ID].data, Col_InputsA[colB_ID].data, SelfCol);
+        colB = MatrixtoOBB(data);
+        bool bSameNum = SelfCol ? (colA_ID == colB_ID) : false;
+        bool bCollide = bSameNum ? false : Collision_OBBToOBB(colA, colB);
+        
         float dist = bCollide ? length(colA.Position - colB.Position):FLT_MAX;
         
-        finalCol = finalCol|bCollide;
+        finalCol = finalCol | bCollide;
         if (closestdist > dist)
         {
             closestdist = dist;

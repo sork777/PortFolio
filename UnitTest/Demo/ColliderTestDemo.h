@@ -32,7 +32,8 @@ private:
 
 	Texture* brdfLut;
 
-	OBBColliderTest* testCol;
+	OBBCollider* testCol;
+	Fixity* camera;
 	Perspective* perspective;
 
 };

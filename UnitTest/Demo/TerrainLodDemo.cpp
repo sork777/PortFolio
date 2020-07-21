@@ -26,7 +26,7 @@ void TerrainLodDemo::Initialize()
 		{
 			terrainShader,
 			//shader,
-			1.0f, 64, 20,
+			1.0f, 64, 100,
 		};
 		terrain = new TerrainLod(info);
 		//terrain->BaseTexture(L"Terrain/Dirt3.png");
@@ -144,7 +144,7 @@ void TerrainLodDemo::PreRender()
 
 void TerrainLodDemo::Render()
 {
-	//sky->Render(false);
+	sky->Render(false);
 
 	//terrainMat->Render();
 	terrain->Render();
@@ -212,6 +212,7 @@ void TerrainLodDemo::CreateBaseActor()
 	actor = new Actor();
 	actor->SetRootComponent(modelMesh);
 	actor->SetShader(shader);
+	actor->SetTerrain(terrain);
 
 	model = new Model(shader);
 	model->ReadMaterial(L"Weapon/Sword", L"../../_Textures/Model/");
