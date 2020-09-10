@@ -45,12 +45,12 @@ void ParticleEmitter::Initialize()
 	point.Scale		= Vector2(1, 1);
 	vertexBuffer	= new VertexBuffer(&point, 1, sizeof(ParticleVertex));
 
-	for (UINT i = 0; i < MAX_INSTANCE; i++)
+	for (UINT i = 0; i < MAX_PARTICLE_INSTANCE; i++)
 	{
 		D3DXMatrixIdentity(&instDesc[i].world);
 	}
 
-	instanceBuffer	= new VertexBuffer(&instDesc, MAX_INSTANCE, sizeof(ParticleDesc),1,true);
+	instanceBuffer	= new VertexBuffer(&instDesc, MAX_PARTICLE_INSTANCE, sizeof(ParticleDesc),1,true);
 	sInstanceBuffer = shader->AsConstantBuffer("CB_Particle");
 	sParticleTex	= shader->AsSRV("ParticleTex");
 	particleTex		= new Texture(L"Particle/Smoke.png");
@@ -256,7 +256,7 @@ void ParticleEmitter::PlayParticles()
 
 	computeShader->Dispatch(csTech, csPass, ceil((float)particleCount /1024.0f), 1, 1);
 	//계산 결과 카피
-	computeBuffer->Copy(csOutput, sizeof(CS_OutputDesc) * MAX_INSTANCE);
+	computeBuffer->Copy(csOutput, sizeof(CS_OutputDesc) * MAX_PARTICLE_INSTANCE);
 }
 
 void ParticleEmitter::UpdateParticles()
@@ -299,7 +299,7 @@ void ParticleEmitter::UpdateParticles()
 	D3D11_MAPPED_SUBRESOURCE subResource;
 	D3D::GetDC()->Map(instanceBuffer->Buffer(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
 	{
-		memcpy(subResource.pData, &instDesc, sizeof(ParticleDesc) * MAX_INSTANCE);
+		memcpy(subResource.pData, &instDesc, sizeof(ParticleDesc) * MAX_PARTICLE_INSTANCE);
 	}
 	D3D::GetDC()->Unmap(instanceBuffer->Buffer(), 0);
 }
@@ -309,14 +309,14 @@ void ParticleEmitter::EmittParticles()
 	//경과 시간에 델타 적립
 	elapsed += csInfoDesc.DeltaTime;
 
-	if (particleCount >= MAX_INSTANCE)
+	if (particleCount >= MAX_PARTICLE_INSTANCE)
 		return;
 	// 시간당 방출량을 곱해서 방출할 파티클양 결정
 	int emitCount = elapsed * emittPerSec;
 
 	// 방출량을 더하면 파티클최대치를 초과하는 경우
-	if (particleCount + emitCount >= MAX_INSTANCE)
-		emitCount = MAX_INSTANCE - particleCount-1;
+	if (particleCount + emitCount >= MAX_PARTICLE_INSTANCE)
+		emitCount = MAX_PARTICLE_INSTANCE - particleCount-1;
 
 	// 방출 반복
 	while (emitCount > 0)
@@ -830,7 +830,7 @@ void ParticleEmitter::CreateComputeShader()
 {
 	csConstBuffer = new ConstantBuffer(&csInfoDesc, sizeof(ParticleInfoDesc));
 
-	UINT outSize = MAX_INSTANCE;
+	UINT outSize = MAX_PARTICLE_INSTANCE;
 	csInput = new CS_InputDesc[outSize];
 	csOutput = new CS_OutputDesc[outSize];
 

@@ -141,6 +141,7 @@ void IndexBuffer::Render()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+#pragma region CS
 
 CsResource::CsResource()
 	:input(NULL),srv(NULL)
@@ -165,7 +166,6 @@ void CsResource::Copy(void * data, UINT size)
 	D3D::GetDC()->Unmap(result, 0);
 }
 
-
 void CsResource::CreateBuffer()
 {
 	/* 가상함수라 생성자 콜이 안되서 */
@@ -178,7 +178,10 @@ void CsResource::CreateBuffer()
 	CreateResult();
 }
 
+#pragma endregion
+
 ////////////////////////////////////////////////////////////////////////////////
+#pragma region Raw
 
 RawBuffer::RawBuffer(void * inputData, UINT byteWidth)
 	:CsResource()
@@ -288,8 +291,11 @@ void RawBuffer::CreateResult()
 
 	result = (ID3D11Resource*)buffer;
 }
+#pragma endregion
 
 ////////////////////////////////////////////////////////////////////////////////
+#pragma region Structured
+
 StructuredBuffer::StructuredBuffer(void * inputData, UINT stride, UINT count, bool bCopy, UINT outputStride, UINT outputCount, bool bSwap)
 	: CsResource()
 	, inputData(inputData), stride(stride), count(count)
@@ -314,6 +320,7 @@ StructuredBuffer::StructuredBuffer(void * inputData, UINT stride, UINT count, bo
 StructuredBuffer::~StructuredBuffer()
 {
 }
+
 void StructuredBuffer::UpdateInput()
 {
 	/*D3D11_MAPPED_SUBRESOURCE subResource;
@@ -341,6 +348,7 @@ void StructuredBuffer::UpdateInput()
 		0
 	);
 }
+
 void StructuredBuffer::SwapData()
 {
 	if (bSwap == false)
@@ -348,6 +356,7 @@ void StructuredBuffer::SwapData()
 	swap(srv, srv2);
 	swap(uav, uav2);
 }
+
 void StructuredBuffer::CreateInput()
 {
 	ID3D11Buffer* buffer = NULL;
@@ -414,7 +423,6 @@ void StructuredBuffer::CreateSRV()
 		Check(D3D::GetDevice()->CreateShaderResourceView(buffer, &srvDesc, &srv2));
 }
 
-
 void StructuredBuffer::CreateUAV()
 {
 	ID3D11Buffer* buffer = (ID3D11Buffer *)output;
@@ -451,10 +459,12 @@ void StructuredBuffer::CreateResult()
 
 	result = (ID3D11Buffer *)buffer;
 }
+#pragma endregion
 
 ////////////////////////////////////////////////////////////////////////////////
+#pragma region CSTex
 
-CsTexture::CsTexture(UINT width, UINT height, bool bCpuWrite, bool bGpuWrite, DXGI_FORMAT format)
+CsTexture::CsTexture(UINT width, UINT height, DXGI_FORMAT format, bool bCpuWrite, bool bGpuWrite)
 	:width(width), height(height), format(format)
 	,bCpuWrite(bCpuWrite), bGpuWrite(bGpuWrite)
 	
@@ -555,3 +565,4 @@ void CsTexture::CreateUAV()
 	UAVDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 	D3D::GetDevice()->CreateUnorderedAccessView(Tex, &UAVDesc, &uav);
 }
+#pragma endregion

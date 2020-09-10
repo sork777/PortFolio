@@ -5,58 +5,79 @@
 
 
 ModelAsset::ModelAsset(Model* model)
+	:modelAnimation(NULL), modelRender(NULL)
 {
+	shader = SETSHADER(L"027_Animation.fx");
+
 	assetType = ContentsAssetType::Model;
 	assetName = model->Name();
-	//sky = new Sky(L"Environment/GrassCube1024.dds");
+	
+
 	//버튼 이미지를 위한 준비
-	this->model = model;
-	//TODO: 모델 기본 크기에 맞춰서 자동 스케일링 필요
-	model->AddInstance();
-	model->UpdateTransforms();
+	this->model = new Model(*model);
+	this->model->SetShader(shader);
+	//모델 기본 크기에 맞춰서 자동 스케일링
+	this->model->Update();
+	Vector3 autoCalVolume = this->model->GetMax() - this->model->GetMin();
+	float max = autoCalVolume.x;
+	bool bZRot=false;
+	max = max > autoCalVolume.y ? max : autoCalVolume.y;
+	if (max <= autoCalVolume.z)
+	{
+		max = autoCalVolume.z;
+		bZRot = true;
+		autoCalVolume.y *= 0.0f;
+	}
+	float scaleFactor = (bZRot?20.0f:8.0f) / max;
+	autoCalVolume.x *= 0.0f;
+	autoCalVolume.y *= scaleFactor;
+	autoCalVolume.z *= 0.0f;
+
+	this->model->AddInstance();
+	this->model->GetTransform()->Scale(scaleFactor, scaleFactor, scaleFactor);
+	this->model->GetTransform()->RotationDegree(Vector3(0, bZRot?90:0, 0));
+	this->model->UpdateTransforms();
 	
 	modelRender = new ModelRender(this->model);
-
-	if (model->IsAnimationModel() == true)
+	bHasAnim = this->model->IsAnimationModel();
+	if (bHasAnim == true)
 	{
 		modelAnimation = new ModelAnimator(this->model);
+		//T-pose를 자동 배정해주기 위함
 		modelAnimation->ReadClip(model->MeshPath(), model->MeshDir());
 	}
 	
-	float width = D3D::Width();
-	float height = D3D::Height();
-	renderTarget = new RenderTarget((UINT)width, (UINT)height);
-	depthStencil = new DepthStencil(width, height);
-	
+	//버튼이미지를 위한 랜더타겟 관련
+	{
+		float width = D3D::Width();
+		float height = D3D::Height();
+		renderTarget = new RenderTarget((UINT)width, (UINT)height);
+		depthStencil = new DepthStencil(width, height);
+		orbitCam = new Orbit(30.0f, 30.0f, 30.0f);
+				
+		orbitCam->SetObjPos(autoCalVolume);
+		orbitCam->CameraMove(mouseVal);
+		orbitCam->Update();
+	}
 }
 
 ModelAsset::~ModelAsset()
 {
+	SafeDelete(orbitCam);
 }
 
 void ModelAsset::CreateButtonImage()
 {
+	// 프로젝트내의 버튼이미지 생성 위치에 따라 클리핑 되는 현상 있음
 	// 버튼 이미지 생성
+	orbitCam->Update();
+	Context::Get()->SetSubCamera(orbitCam);
 
-	// 매 타임 찍어줘야 한다... 아니면 랜더타겟이 축소됨..
-	//if (true == bCreateButton)
-	//	return;
-	Vector3 campos, camrot;
-	Context::Get()->GetCamera()->RotationDegree(&camrot);
-	Context::Get()->GetCamera()->Position(&campos);
-
-	// 버튼 이미지를 위한 카메라 고정
-	Context::Get()->GetCamera()->RotationDegree(0,0,0);
-	Context::Get()->GetCamera()->Position(0,45,-100);
-	
-	renderTarget->Set(depthStencil->DSV());
-
-	//sky->Update();
-	//sky->Render();
+	renderTarget->Set(depthStencil->DSV(),Color(0.5f,0.6f,0.5f,1.0f));
+	//model->Tech(1);
 	if (modelAnimation != NULL)
 	{
 		modelAnimation->Update();
-		modelAnimation->PlayAnim(0);
 		model->Pass(2);
 		modelAnimation->Render();
 	}
@@ -66,11 +87,10 @@ void ModelAsset::CreateButtonImage()
 		model->Pass(1);
 		modelRender->Render();
 	}
+	model->Update();
+	model->Render();
 	buttonSrv = renderTarget->SRV();
-
-	Context::Get()->GetCamera()->RotationDegree(camrot);
-	Context::Get()->GetCamera()->Position(campos);
-
+	Context::Get()->SetMainCamera();
 	bCreateButton = true;
 }
 
@@ -109,5 +129,15 @@ ModelMeshComponent * ModelAsset::GetModelMeshCompFromModelAsset()
 	// 데이터 분리를 위해 새로 생성
 	Model* newModel = new Model(*model);
 	ModelMeshComponent * newModelMesh = new ModelMeshComponent(newModel);
+	if (bHasAnim == true)
+		newModelMesh->GetAnimation()->CloneClips(modelAnimation->Clips());
 	return newModelMesh;
+}
+
+void ModelAsset::SetClip(const wstring & file, const wstring & directoryPath)
+{
+	if (NULL != modelAnimation)
+	{
+		modelAnimation->ReadClip(file, directoryPath);
+	}
 }

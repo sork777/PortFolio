@@ -1,12 +1,15 @@
 #pragma once
-#define MAX_MODEL_TRANSFORMS 250
-#define MAX_MODEL_KEYFRAMES 500
+#define MAX_BONE_TRANSFORMS 250
+#define MAX_ANIM_KEYFRAMES 500
 #define MAX_MODEL_INSTANCE 500
 #define MAX_ANIMATION_CLIPS 15
 
 class ModelBone;
 class ModelMesh;
-
+/*
+	TODO: 0904 Animator랑 Render의 텍스쳐맵에서 INSTANCE관련 부분 배제하기
+	동적으로 메모리 재설정 시키기
+*/
 class Model
 {
 public:
@@ -16,10 +19,11 @@ public:
 	Model(const Model& model);
 	~Model();
 
+
 	void ModelMeshChanger(const Model& model);
 
 	void SetShader(Shader* shader);
-
+	void Initialize();
 	void Update();
 	void Render();
 	
@@ -32,26 +36,26 @@ public:
 	void DelInstance(const UINT& instance);
 
 	const UINT& GetInstSize()						{ return transforms.size(); }
-	inline Transform* GetTransform(const UINT& instance)	{ return transforms[instance]; }
+	Transform* GetTransform(const UINT& instance=0)	{ return transforms[instance]; }
 protected:
 	void AddTransform();
 
 public:
-	inline Shader* GetShader()						{ return shader; }
-	inline ID3D11ShaderResourceView* GetBoneSrv()	{ return boneSrv; }
-	inline const bool& IsAnimationModel()			{ return bAnimated; }
+	Shader* GetShader()						{ return shader; }
+	ID3D11ShaderResourceView* GetBoneSrv()	{ return boneSrv; }
+	const bool& IsAnimationModel()			{ return bAnimated; }
 
 public:
-	inline const wstring& Name()			{ return name; }
-	inline const wstring& MaterialPath()	{ return materialFilePath; }
-	inline const wstring& MaterialDir()		{ return materialDirPath; }
-	inline const wstring& MeshPath()		{ return meshFilePath; }
-	inline const wstring& MeshDir()			{ return meshDirPath; }
+	const wstring& Name()			{ return name; }
+	const wstring& MaterialPath()	{ return materialFilePath; }
+	const wstring& MaterialDir()		{ return materialDirPath; }
+	const wstring& MeshPath()		{ return meshFilePath; }
+	const wstring& MeshDir()			{ return meshDirPath; }
 
 public:
 	const UINT& MaterialCount()					{ return materials.size(); }
-	inline vector<Material *>& Materials()				{ return materials; }
-	inline Material* MaterialByIndex(const UINT& index)	{ return materials[index]; }
+	vector<Material *>& Materials()				{ return materials; }
+	Material* MaterialByIndex(const UINT& index)	{ return materials[index]; }
 	Material* MaterialByName(const wstring& name);
 
 	const UINT& BoneCount()								{ return bones.size(); }
@@ -95,13 +99,13 @@ protected:
 
 	//인스턴싱 정보
 	Matrix				worlds[MAX_MODEL_INSTANCE];
-	VertexBuffer*		instanceBuffer;
+	VertexBuffer*		instanceBuffer = NULL;
 	vector<Transform *> transforms;
 	
 	// 모델이 가지고 있을 본
-	Matrix									boneTrans[MAX_MODEL_TRANSFORMS];
+	Matrix									boneTrans[MAX_BONE_TRANSFORMS];
 	ID3D11Texture1D*						bonebuffer = NULL;
-	ID3D11ShaderResourceView*				boneSrv;
+	ID3D11ShaderResourceView*				boneSrv = NULL;
 	ID3DX11EffectShaderResourceVariable*	sBoneTransformsSRV;
 
 
@@ -112,17 +116,22 @@ public:
 	void AddSocketEditData(const UINT& boneID, const UINT& clipCount);
 
 	inline ID3D11ShaderResourceView* GetEditSrv() { return editSrv; }
+	//애니메이터에서 CSCopy를 최소화 하기위한것
+	const bool& IsEditTexChanged() { return bChangedEditTex; }
+	void AdaptEditTex() { bChangedEditTex = false; }
+
 private:
 	void CreateAnimEditTexture();
 
 private:
+	bool bChangedEditTex = true;
 	// 애니메이션의 글로벌 변화
 	// 최종적으로 클립 저장시 곱해서 변화된 애를 저장할 것.
-	ID3D11Texture2D* editTexture = NULL;
-	ID3D11ShaderResourceView* editSrv;
-	ID3DX11EffectShaderResourceVariable* sAnimEditSRV;
+	ID3D11Texture2D*						editTexture = NULL;
+	ID3D11ShaderResourceView*				editSrv	= NULL;
+	ID3DX11EffectShaderResourceVariable*	sAnimEditSRV;
 
-	Matrix animEditTrans[MAX_ANIMATION_CLIPS][MAX_MODEL_TRANSFORMS];
+	Matrix animEditTrans[MAX_ANIMATION_CLIPS][MAX_BONE_TRANSFORMS];
 
 #pragma endregion
 public:
@@ -132,4 +141,13 @@ public:
 private:
 	int selectedBoneNum = -1;
 
+public:
+	const Vector3& GetMin() { return minV; }
+	const Vector3& GetMax() { return maxV; }
+
+private:
+	void CalcMeshVolume();
+private:
+	bool bCalcVolume = false;
+	Vector3 minV, maxV;
 };

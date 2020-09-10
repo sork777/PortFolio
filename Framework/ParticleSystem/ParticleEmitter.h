@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_INSTANCE 4096
+#define MAX_PARTICLE_INSTANCE 4096
 
 // 방출기 형태
 enum class EmitterType
@@ -81,7 +81,7 @@ private:
 
 	UINT				particleCount	= 0;
 	Texture*			particleTex		= NULL;
-	ParticleDesc		instDesc[MAX_INSTANCE];
+	ParticleDesc		instDesc[MAX_PARTICLE_INSTANCE];
 	VertexBuffer*		instanceBuffer;	//인스턴싱용 버퍼
 
 	ID3DX11EffectConstantBuffer*			sInstanceBuffer;

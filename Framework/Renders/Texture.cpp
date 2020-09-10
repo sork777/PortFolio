@@ -451,6 +451,8 @@ vector<ID3D11Texture2D*> TextureArray::CreateTextures(vector<wstring>& names, UI
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#pragma region TextureCube
+
 
 TextureCube::TextureCube(Vector3 & position, UINT width, UINT height)
 	:position(position), width(width), height(height),
@@ -532,7 +534,7 @@ TextureCube::TextureCube(Vector3 & position, UINT width, UINT height)
 
 	viewport = new Viewport((float)width, (float)height);
 
-
+	Position(position);
 }
 
 TextureCube::~TextureCube()
@@ -603,3 +605,5 @@ void TextureCube::Set(Shader * shader)
 
 	viewport->RSSetViewport();
 }
+
+#pragma endregion

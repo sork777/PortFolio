@@ -282,7 +282,7 @@ float4 CalcNormaltoPBR(MeshOutput input)
     Lo += rad;
     
     float3 kS = FresnelSchlickRoughness(max(dot(NormalVec, viewDir), 0.0f), F0, rough) +Material.Specular.rgb * metallic;
-    float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
+    float3 kD = float3(1.0f, 1.0f, 1.0f)-kS;
     
     float3 irradiance = CalcSkyIrradiance(NormalVec);
     float3 diffuse = albedo * irradiance;
@@ -291,17 +291,16 @@ float4 CalcNormaltoPBR(MeshOutput input)
     const float MAX_REF_LOD = 4.0f;
     float3 prefilteredColor = SkyCubeMap.SampleLevel(BasicSampler, R, rough * MAX_REF_LOD).rgb;
     float2 brdf = BRDFLUT.Sample(BasicSampler, float2(max(dot(NormalVec, viewDir), 0.0f), rough)).rg;
-    //float3 specular = prefilteredColor * (kS * brdf.x + brdf.y) * metallic;
-    float3 specular = lerp((kS * brdf.x + brdf.y), prefilteredColor, 1 - metallic);
-
+    prefilteredColor = lerp(prefilteredColor, float3(1, 1, 1), rough);
+    
+    float3 specular = (kS * brdf.x + brdf.y) * prefilteredColor;
     float3 ambient = (kD * diffuse+ specular); // * ao;
     float3 color = ambient + Lo;
-    //float3 color = ambient;
+    
     float NdotE = dot(NormalVec, viewDir);
     float emissive = smoothstep(1.0f - Material.Emissive.a, 1.0f, 1.0f - saturate(NdotE));
     float3 emiss = Material.Emissive.rgb * emissive;
     
-    // color = color / (color + float3(1.0f, 1.0f, 1.0f));
     color = pow(color, float3(1.0f / 2.2f, 1.0f / 2.2f, 1.0f / 2.2f));
     
     float U = saturate(dot(direction, float3(0, 1, 0)));

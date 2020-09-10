@@ -5,16 +5,15 @@ ObjectBaseComponent::ObjectBaseComponent()
 	:shader(NULL), parent(NULL)
 {
 	baseTransform = new Transform();
+	baseInitTransform = new Transform();
 	compID = GUID_Generator::Generate();
-
-	std::cout << "현재 컴포넌트 주소 : " << this << endl;
 }
 
 ObjectBaseComponent::ObjectBaseComponent(const ObjectBaseComponent& OBComp)
 	:shader(NULL), parent(NULL)
 {
 	bEditMode = true;
-	shader = OBComp.shader;
+	//shader = OBComp.shader;
 	compID = OBComp.compID;
 	parentSocketName = OBComp.parentSocketName;
 	componentName = OBComp.componentName;
@@ -25,8 +24,9 @@ ObjectBaseComponent::ObjectBaseComponent(const ObjectBaseComponent& OBComp)
 	//베이스는 부모에 트랜스폼을 얹지 않는다.
 	baseTransform->Parent(OBComp.baseTransform->Parent());
 
-	std::cout << "원본 컴포넌트 주소 : " << &OBComp << endl;
-	std::cout << "현재 컴포넌트 주소 : " << this << endl;
+	baseInitTransform = new Transform();
+	baseInitTransform->Local(OBComp.baseInitTransform->Local());
+	baseInitTransform->Parent(OBComp.baseInitTransform->Parent());
 
 }
 
@@ -55,7 +55,6 @@ ObjectBaseComponent::~ObjectBaseComponent()
 	//쉐이더는 밖에서 오는거라 삭제는 패스
 //	
 }
-
 
 /*
 	1. 에딧용 액터에서 컴포넌트를 받아서 복사할거임
@@ -89,9 +88,15 @@ void ObjectBaseComponent::CompileComponent(const ObjectBaseComponent & OBComp)
 		componentName = OBComp.componentName;
 		parentSocket = OBComp.parentSocket;
 
-		baseTransform = new Transform();
+		//baseTransform = new Transform();
+		OBComp.baseInitTransform->Local(OBComp.baseTransform->Local());
+		OBComp.baseInitTransform->Parent(OBComp.baseTransform->Parent());
+
 		baseTransform->Local(OBComp.baseTransform->Local());
 		baseTransform->Parent(OBComp.baseTransform->Parent());
+
+		baseInitTransform->Local(OBComp.baseInitTransform->Local());
+		baseInitTransform->Parent(OBComp.baseInitTransform->Parent());
 	}
 }
 
@@ -100,11 +105,9 @@ void ObjectBaseComponent::ClonningChildren(const vector<ObjectBaseComponent*>& o
 	for (ObjectBaseComponent* child : oChildren)
 	{
 		ObjectBaseComponentType type = child->GetType();
-		//ObjectBaseComponent* component = NULL;
 		switch (type)
 		{
 		case ObjectBaseComponentType::ModelMesh:
-			//component = new ModelMeshComponent(*dynamic_cast<ModelMeshComponent*>(child));
 			LinkChildComponent( new ModelMeshComponent(*dynamic_cast<ModelMeshComponent*>(child)));
 			break;
 		case ObjectBaseComponentType::FigureMesh:
@@ -180,7 +183,7 @@ void ObjectBaseComponent::Render()
 	}
 }
 
-bool ObjectBaseComponent::Property(const UINT& instance)
+bool ObjectBaseComponent::Property(const int & instance)
 {
 	bool bChange = false;
 
@@ -196,13 +199,12 @@ bool ObjectBaseComponent::Property(const UINT& instance)
 		Model* model = modelMesh->GetMesh();
 		
 		int click = -1;
-		int presocket = parentSocket;
 		if (ImGui::CollapsingHeader("SelectBone"))
 		{
 			parentSocket = model->BoneHierarchy(&click);
 		}
 			
-		bChange |= presocket != parentSocket;
+		bChange = (click == 0);
 		if (true == bChange)
 		{
 			if (parentSocket < 0)
@@ -219,6 +221,8 @@ bool ObjectBaseComponent::Property(const UINT& instance)
 void ObjectBaseComponent::SetShader(Shader * shader)
 {
 	this->shader = shader;
+	for (ObjectBaseComponent* child : children)
+		child->SetShader(shader);
 }
 
 void ObjectBaseComponent::Tech(const UINT & mesh, const UINT & model, const UINT & anim)
@@ -255,6 +259,13 @@ void ObjectBaseComponent::DelInstanceData(const UINT & instance)
 		child->DelInstanceData(instance);
 }
 
+void ObjectBaseComponent::SyncBaseTransform()
+{
+	baseTransform->Local(baseInitTransform);
+	for (ObjectBaseComponent* child : children)
+		child->SyncBaseTransform();
+}
+
 
 #pragma region Component 계층/팝업
 
@@ -278,6 +289,7 @@ void ObjectBaseComponent::ComponentHeirarchy(OUT ObjectBaseComponent** selectedC
 
 	if (ImGui::TreeNodeEx(String::ToString(componentName).c_str(), flags))
 	{
+		ImGui::PushID(compID);
 		if (ImGui::IsItemClicked())
 		{
 			*selectedComp = this;
@@ -292,6 +304,7 @@ void ObjectBaseComponent::ComponentHeirarchy(OUT ObjectBaseComponent** selectedC
 		{
 			child->ComponentHeirarchy(selectedComp);
 		}
+		ImGui::PopID();
 		ImGui::TreePop();
 	}
 	ImGui::PopStyleVar();
@@ -328,11 +341,14 @@ void ObjectBaseComponent::ComponentPopup()
 
 void ObjectBaseComponent::AddSkeletonMeshComponentPopup()
 {
+	//애니메이션있는쪽에 클립 필요함.
 	ModelAsset* asset =dynamic_cast<ModelAsset*>( AssetManager::Get()->ViewAssets(ContentsAssetType::Model));
 
 	if (NULL != asset)
 	{
-		LinkChildComponent(asset->GetModelMeshCompFromModelAsset());
+		ModelMeshComponent* modelcomp = asset->GetModelMeshCompFromModelAsset();
+		LinkChildComponent(modelcomp);
+		modelcomp->SetShader(shader);
 	}
 }
 
@@ -400,7 +416,7 @@ void ObjectBaseComponent::LinkChildComponent(ObjectBaseComponent * component)
 	// 벡터 정렬
 	sort(children.begin(), children.end());
 	//자식의 쉐이더도 자신의 쉐이더와 통일
-	component->SetShader(shader);
+//	component->SetShader(shader);
 	component->LinkParentComponent(this);
 }
 

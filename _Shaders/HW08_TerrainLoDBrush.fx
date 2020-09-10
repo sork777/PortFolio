@@ -1,6 +1,8 @@
 #include "000_Header.fx"
 
 #define PI_2 2 * 3.14159265f
+#define PIXELBYTE 65535.0f
+
 struct RaiseDesc
 {
     float4 Box;
@@ -26,8 +28,6 @@ cbuffer CB_Raise
 Texture2D<float4> AlphaMap;
 RWTexture2D<float4> OutputMap;
 
-Texture2D<float4> AlphaMap2;
-RWTexture2D<float4> OutputMap2;
 Texture2D PerlinMap;
 
 [numthreads(1024,1,1)]
@@ -44,11 +44,14 @@ void QuadRaiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
     {
         [branch]
         if (HRaise.RaiseType == 0)
-            OutputMap[CurPixel.xy] += float4(0, 0, 0, 1.0f / 255.0f) * HRaise.Rate;
+            OutputMap[CurPixel.xy] += float4(0, 0, 0, 1.0f / PIXELBYTE) * HRaise.Rate;
         else if (HRaise.RaiseType == 1)
-            OutputMap[CurPixel.xy] -= float4(0, 0, 0, 1.0f / 255.0f) * HRaise.Rate;
+            OutputMap[CurPixel.xy] -= float4(0, 0, 0, 1.0f / PIXELBYTE) * HRaise.Rate;
         else 
             OutputMap[CurPixel.xy] *= float4(1, 1, 1, 0);
+        
+        OutputMap[CurPixel.xy] = saturate(OutputMap[CurPixel.xy]);
+        
     }
 }
 
@@ -67,12 +70,13 @@ void CircleRaiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
         float factor = sin(angle) * HRaise.Factor * HRaise.Rate;
         [branch]
         if (HRaise.RaiseType == 0)
-            OutputMap[CurPixel.xy] += float4(0, 0, 0, 1.0f / 255.0f) * factor;
+            OutputMap[CurPixel.xy] += float4(0, 0, 0, 1.0f / PIXELBYTE) * factor;
         else if (HRaise.RaiseType == 1)
-            OutputMap[CurPixel.xy] -= float4(0, 0, 0, 1.0f / 255.0f) * HRaise.Rate;
+            OutputMap[CurPixel.xy] -= float4(0, 0, 0, 1.0f / PIXELBYTE) * HRaise.Rate;
         else 
             OutputMap[CurPixel.xy] *= float4(1, 1, 1, 0);
-
+        
+        OutputMap[CurPixel.xy] = saturate(OutputMap[CurPixel.xy]);
     }
 }
 
@@ -101,10 +105,12 @@ void SlopeRaiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
         else
 			height = abs(CurPixel.x - x);
 
-        height *= tan(HRaise.Factor) * 1.0f / 255.0f;
+        height *= tan(HRaise.Factor) * 1.0f / PIXELBYTE;
         
         OutputMap[CurPixel.xy] *= float4(1, 1, 1, 0);
         OutputMap[CurPixel.xy] += float4(0, 0, 0, height);
+        
+        OutputMap[CurPixel.xy] = saturate(OutputMap[CurPixel.xy]);        
     }
 
 }
@@ -125,11 +131,14 @@ void QuadSplattingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
     {
         [branch]
         if (HRaise.SplattingLayer == 0)
-            OutputMap[CurPixel.xy] += float4(1.0f / 255.0f, 0, 0, 0) * HRaise.Factor;
+            OutputMap[CurPixel.xy] += float4(1.0f /PIXELBYTE, 0, 0, 0) * HRaise.Factor;
         else if (HRaise.SplattingLayer == 1)
-            OutputMap[CurPixel.xy] += float4(0, 1.0f / 255.0f, 0, 0) * HRaise.Factor;
+            OutputMap[CurPixel.xy] += float4(0, 1.0f /PIXELBYTE, 0, 0) * HRaise.Factor;
         else if (HRaise.SplattingLayer == 2)
-            OutputMap[CurPixel.xy] += float4(0, 0, 1.0f / 255.0f, 0) * HRaise.Factor;
+            OutputMap[CurPixel.xy] += float4(0, 0, 1.0f /PIXELBYTE, 0) * HRaise.Factor;
+        
+        OutputMap[CurPixel.xy] = saturate(OutputMap[CurPixel.xy]);
+
     }
 }
 
@@ -148,12 +157,12 @@ void CircleSplattingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
         float factor = sin(angle) * HRaise.Factor;
       [branch]
         if (HRaise.SplattingLayer == 0)
-            OutputMap[CurPixel.xy] += float4(1.0f / 255.0f, 0, 0, 0) * factor;
+            OutputMap[CurPixel.xy] += float4(1.0f /PIXELBYTE, 0, 0, 0) * factor;
         else if (HRaise.SplattingLayer == 1)
-            OutputMap[CurPixel.xy] += float4(0, 1.0f / 255.0f, 0, 0) *factor;
+            OutputMap[CurPixel.xy] += float4(0, 1.0f /PIXELBYTE, 0, 0) * factor;
         else if (HRaise.SplattingLayer == 2)                          
-            OutputMap[CurPixel.xy] += float4(0, 0, 1.0f / 255.0f, 0) * factor;
-
+            OutputMap[CurPixel.xy] += float4(0, 0, 1.0f /PIXELBYTE, 0) * factor;
+        OutputMap[CurPixel.xy] = saturate(OutputMap[CurPixel.xy]);
     }
 }
 
@@ -185,6 +194,8 @@ void SmoothingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
             color /= (2 * r + 1) * (2 * r + 1);
             OutputMap[CurPixel.xy] *= float4(1, 1, 1, 0);
             OutputMap[CurPixel.xy] += float4(0, 0, 0, color.a);
+            
+            OutputMap[CurPixel.xy] = saturate(OutputMap[CurPixel.xy]);    
         }
     }
     else if (HRaise.BrushType == 2)
@@ -204,6 +215,8 @@ void SmoothingCS(uint3 DispatchThreadID : SV_DispatchThreadID)
             color /= (2 * r + 1) * (2 * r + 1);
             OutputMap[CurPixel.xy] *= float4(1, 1, 1, 0);
             OutputMap[CurPixel.xy] += float4(0, 0, 0, color.a);
+        
+            OutputMap[CurPixel.xy] = saturate(OutputMap[CurPixel.xy]);    
         }
 
     }
@@ -232,9 +245,11 @@ void NoiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
             color=PerlinMap.Load(PerlinPixel);
             float height = color.r + color.g + color.b + color.a;
             height /= 4.0f;
-            height /= 255.0f;
+            height /= PIXELBYTE;
             
             OutputMap[CurPixel.xy] += float4(0, 0, 0, height) * HRaise.Rate;
+       
+            OutputMap[CurPixel.xy] = saturate(OutputMap[CurPixel.xy]);
         }
     }
     else if (HRaise.BrushType == 2)
@@ -247,8 +262,10 @@ void NoiseCS(uint3 DispatchThreadID : SV_DispatchThreadID)
             color = PerlinMap.Load(PerlinPixel);
             float height = color.r + color.g + color.b+color.a;
             height /= 4.0f;
-            height /= 255.0f;
+            height /= PIXELBYTE;
             OutputMap[CurPixel.xy] += float4(0, 0, 0, height) * HRaise.Rate;
+        
+            OutputMap[CurPixel.xy] = saturate(OutputMap[CurPixel.xy]);
         }
     }
 }

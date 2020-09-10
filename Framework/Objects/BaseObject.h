@@ -1,17 +1,15 @@
 #pragma once
 #include "Framework.h"
 #include "Utilities/GUID_Generator.h"
+#include "Environment/Terrain/TerrainLod.h"
+
 /*
-Object
->레벨에 표기될 애들
-	CubeSky
-	Terrain?
-	Mesh
-	Model(Actor)
-> ID 가지고 있을것.
->> 생성은 각자
->> 객체 추가는...?
+	상속관계에 있는 클래스의 헤더파일 확인 잘해야 함 0901
+	하나라도 놓치면 C2504에러남..
+	오류목록에서 에러나는 부분이랑 표기되는 부분이 엇갈림
+	-> 확인해야할것은 함수나 클래스가 아닌 파일명
 */
+
 
 class BaseObject
 {
@@ -28,9 +26,12 @@ public:
 	virtual void Update() = 0;
 	virtual void PreRender() = 0;
 	virtual void Render() = 0;
-	virtual void PostRender() = 0;
+	virtual const bool& ObjectProperty() = 0;
 
-private:	
+public:
+	virtual void ObjectArrangementAtTerrain(TerrainLod* CurrentTerrain) abstract;
+
+protected:	
 	UINT Object_ID;
 	wstring Object_Name;
 };

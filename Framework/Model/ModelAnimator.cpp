@@ -60,23 +60,22 @@ void ModelAnimator::Initialize()
 
 void ModelAnimator::Update()
 {
-	model->Update();	
-}
-
-void ModelAnimator::Render()
-{
 	if (computeBuffer == NULL)
 	{
 		CreateComputeDesc();
 	}
-	
+	//model->Update();	
+}
+
+void ModelAnimator::Render()
+{
 	if (clipSrv != NULL)
 		sTransformsSRV->SetResource(clipSrv);
 
 	frameBuffer->Apply();
 	sFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
 	//주의, 버퍼 다 올리고 랜더하지 않으면 다른 애니메이터랑 꼬일수 있음.
-	model->Render();	
+	//model->Render();	
 }
 
 void ModelAnimator::SetShader(Shader * shader)
@@ -90,11 +89,15 @@ void ModelAnimator::SetShader(Shader * shader)
 void ModelAnimator::CloneClips(const vector<ModelClip*>& oClips)
 {
 	//기존 객체의 클립데이터 삭제
-	for (ModelClip* clip : clips)
-		SafeDelete(clip);
+	
+	int size = clips.size();
+	if (size > 0)
+	{
+		for (ModelClip* clip : clips)
+			SafeDelete(clip);
+	}
 	clips.clear();
 	clips.shrink_to_fit();
-	//SafeRelease(clipSrv);
 
 	for (ModelClip* oClip : oClips)
 	{
@@ -116,8 +119,9 @@ Matrix ModelAnimator::GetboneWorld(const UINT& instance, const UINT& boneIndex)
 
 		return temp;
 	}
-	if (computeBuffer != NULL)
+	if (computeBuffer != NULL && model->IsEditTexChanged())
 	{
+		model->AdaptEditTex();
 		sComputeFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
 
 		// 본인덱스를 통해 모델의 트랜스폼 맵에서 필요한 부분만 빼옴.
@@ -279,7 +283,7 @@ void ModelAnimator::AddSocket(const int& parentBoneIndex, const wstring& bonenam
 	//각 클립에서 추가된 소켓 데이터를 갱신
 	D3D11_BOX destRegion;
 	destRegion.left = 0;
-	destRegion.right = 4 * MAX_MODEL_TRANSFORMS;
+	destRegion.right = 4 * MAX_BONE_TRANSFORMS;
 	//왠지 CS에서 터짐
 	//destRegion.left = 4 * (index);
 	//destRegion.right = 4 * (index+1);
@@ -304,7 +308,7 @@ void ModelAnimator::AddSocket(const int& parentBoneIndex, const wstring& bonenam
 				0,
 				&destRegion,
 				clipTransforms[x].Transform[y],
-				sizeof(Matrix)*MAX_MODEL_TRANSFORMS,
+				sizeof(Matrix)*MAX_BONE_TRANSFORMS,
 				0
 			);
 		}
@@ -444,27 +448,27 @@ void ModelAnimator::UpdateTextureArray()
 	{
 		D3D11_TEXTURE2D_DESC desc;
 		ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
-		desc.Width = MAX_MODEL_TRANSFORMS * 4;
-		desc.Height = MAX_MODEL_KEYFRAMES;
+		desc.Width = MAX_BONE_TRANSFORMS * 4;
+		desc.Height = MAX_ANIM_KEYFRAMES;
 		desc.ArraySize = clips.size();
 		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		desc.MipLevels = 1;
 		desc.SampleDesc.Count = 1;
-		UINT pageSize = MAX_MODEL_TRANSFORMS * 4 * 16 * MAX_MODEL_KEYFRAMES;
+		UINT pageSize = MAX_BONE_TRANSFORMS * 4 * 16 * MAX_ANIM_KEYFRAMES;
 		
 		void* p = VirtualAlloc(NULL, pageSize*clips.size(), MEM_RESERVE, PAGE_READWRITE); //예약
 
 		for(UINT c = 0; c < clips.size(); c++)
 		{
-			for(UINT y = 0; y < MAX_MODEL_KEYFRAMES; y++)
+			for(UINT y = 0; y < MAX_ANIM_KEYFRAMES; y++)
 			{
 				UINT start = c * pageSize;
-				void* temp = (BYTE *)p + MAX_MODEL_TRANSFORMS * y * sizeof(Matrix) + start;
+				void* temp = (BYTE *)p + MAX_BONE_TRANSFORMS * y * sizeof(Matrix) + start;
 
-				VirtualAlloc(temp, MAX_MODEL_TRANSFORMS * sizeof(Matrix), MEM_COMMIT, PAGE_READWRITE); //공간 할당
-				memcpy(temp, clipTransforms[c].Transform[y], MAX_MODEL_TRANSFORMS * sizeof(Matrix)); //복사
+				VirtualAlloc(temp, MAX_BONE_TRANSFORMS * sizeof(Matrix), MEM_COMMIT, PAGE_READWRITE); //공간 할당
+				memcpy(temp, clipTransforms[c].Transform[y], MAX_BONE_TRANSFORMS * sizeof(Matrix)); //복사
 			}
 		}
 
@@ -474,7 +478,7 @@ void ModelAnimator::UpdateTextureArray()
 			void* temp = (BYTE *)p + c * pageSize;
 
 			subResource[c].pSysMem = temp;
-			subResource[c].SysMemPitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix);
+			subResource[c].SysMemPitch = MAX_BONE_TRANSFORMS * sizeof(Matrix);
 			subResource[c].SysMemSlicePitch = pageSize;
 		}
 		Check(D3D::GetDevice()->CreateTexture2D(&desc, subResource, &clipTextureArray));
@@ -504,7 +508,7 @@ void ModelAnimator::UpdateTextureArray()
 
 void ModelAnimator::CreateClipTransform(const UINT& index)
 {
-	Matrix* bones = new Matrix[MAX_MODEL_TRANSFORMS];
+	Matrix* bones = new Matrix[MAX_BONE_TRANSFORMS];
 	
 	ModelClip* clip = ClipByIndex(index);
 	for(UINT f = 0; f < clip->FrameCount(); f++)
@@ -552,8 +556,8 @@ void ModelAnimator::CreateClipTransform(const UINT& index)
 
 void ModelAnimator::CreateNoClipTransform(const UINT& index)
 {
-	for(UINT y = 0; y < MAX_MODEL_KEYFRAMES; y++)
-		memcpy(clipTransforms[index].Transform[y], clipTransforms[0].Transform[0], MAX_MODEL_TRANSFORMS * sizeof(Matrix)); //복사
+	for(UINT y = 0; y < MAX_ANIM_KEYFRAMES; y++)
+		memcpy(clipTransforms[index].Transform[y], clipTransforms[0].Transform[0], MAX_BONE_TRANSFORMS * sizeof(Matrix)); //복사
 }
 
 void ModelAnimator::CreateComputeDesc()

@@ -2,7 +2,6 @@
 #include "000_Light.fx"
 #include "000_Model.fx"
 #include "000_Terrain.fx"
-#include "HW00_Mesh_Instance.fx"
 
 
 float4 PS(MeshOutput input) : SV_Target0

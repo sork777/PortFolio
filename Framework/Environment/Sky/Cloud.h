@@ -9,7 +9,8 @@ public:
 	void Update();
 	void Render(bool bGlow = false);
 	void PostRender();
-
+	
+	void WireCloud() { ImGui::Checkbox("WireCloud", &bwire); }
 private:
 	void CreatePlane();
 private:
@@ -29,6 +30,7 @@ private:
 	float skyTop = 7.5f;
 	float skyBottom = -0.5f;
 	//float multi = 3.0f;
+	bool bwire = false;
 
 	VertexBuffer* domeVertexBuffer;
 	IndexBuffer* domeIndexBuffer;

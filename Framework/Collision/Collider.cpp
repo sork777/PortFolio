@@ -21,19 +21,41 @@ Collider::~Collider()
 void Collider::Initalize()
 {
 	bDebugMode = false;
+	bChangeCount = true;
 	drawCount = 0;
-
-
-	vCount = MAX_COLLISION * lineCount*2;
+	vertices = NULL;
+	vertexBuffer = NULL;
+	/*
+	vCount = MAX_COLLISION * lineCount * 2;
 
 	vertices = new VertexColor[vCount];
 	ZeroMemory(vertices, sizeof(VertexColor) * vCount);
 
 	vertexBuffer = new VertexBuffer(vertices, vCount, sizeof(VertexColor), 0, true);
+	bChangeCount = false;
+	*/
 
 	perFrame = new PerFrame(shader);
 	ctransform = new Transform(shader);
 
+}
+
+void Collider::Update()
+{
+	if (bChangeCount)
+	{
+		SafeDeleteArray(vertices);
+		SafeDelete(vertexBuffer);
+		//UINT size = ceil(colInfos.size() / 8192.0f) * 8192;
+		vCount = colInfos.size()* lineCount * 2;
+		//vCount = MAX_COLLISION * lineCount * 2;
+
+		vertices = new VertexColor[vCount];
+		ZeroMemory(vertices, sizeof(VertexColor) * vCount);
+
+		vertexBuffer = new VertexBuffer(vertices, vCount, sizeof(VertexColor), 0, true);
+		bChangeCount = false;
+	}
 }
 
 void Collider::Render(const int& draw)
@@ -55,7 +77,7 @@ void Collider::Render(const int& draw)
 	vertexBuffer->Render();
 	D3D::GetDC()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
-	shader->Draw(0, 0, drawCount * 2);
+	shader->Draw(0, bDefferedMode, drawCount * 2);
 
 	drawCount = 0;
 	ZeroMemory(vertices, sizeof(VertexColor) * vCount);
@@ -72,12 +94,16 @@ void Collider::AddInstance(Transform * transform , Transform * init )
 	
 	newCol->transform->Parent(init);
 	colInfos.emplace_back(newCol);
+	bChangeCount = true;
 }
 
 void Collider::DelInstance(const UINT & inst)
 {
 	if (inst < colInfos.size())
+	{
 		colInfos.erase(colInfos.begin() + inst);
+		bChangeCount = true;
+	}
 }
 
 Transform * Collider::GetTransform(const UINT & inst)
@@ -94,22 +120,22 @@ Transform * Collider::GetInit(const UINT & inst)
 	return nullptr;
 }
 
-void Collider::SetColliderTestOn(const UINT & inst)
+void Collider::SetCollisionOn(const UINT & inst)
 {
 	if (inst < colInfos.size())
-		colInfos[inst]->bColliderOn = true;
+		colInfos[inst]->bCollisionOn = true;
 }
 
-void Collider::SetColliderTestOff(const UINT & inst)
+void Collider::SetCollisionOff(const UINT & inst)
 {
 	if (inst < colInfos.size())
-		colInfos[inst]->bColliderOn = false;
+		colInfos[inst]->bCollisionOn = false;
 }
 
 const bool & Collider::IsCollisionOn(const UINT & inst)
 {
 	if (inst < colInfos.size())
-		return colInfos[inst]->bColliderOn;
+		return colInfos[inst]->bCollisionOn;
 
 	return false;
 }

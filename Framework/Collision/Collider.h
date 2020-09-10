@@ -17,7 +17,7 @@ public:
 	virtual ~Collider();
 
 	virtual void Initalize();
-	virtual void Update() abstract;
+	virtual void Update();
 	virtual void Render(const int& draw = -1);
 	virtual void Property(const UINT& inst = 0) abstract;
 
@@ -31,25 +31,25 @@ public:
 	Transform * GetTransform(const UINT& inst = 0);
 	Transform * GetInit(const UINT& inst = 0);
 
-	void SetColliderTestOn(const UINT& inst = 0);
-	void SetColliderTestOff(const UINT& inst = 0);
+	void SetCollisionOn(const UINT& inst = 0);
+	void SetCollisionOff(const UINT& inst = 0);
 	const bool& IsCollisionOn(const UINT& inst = 0);
 	const bool& IsCollision(const UINT& inst = 0);
 
 public:
 	const CollsionType& GetCollisionType() { return type; }
-	void SetDebugModeOn()	{ bDebugMode = true; }
-	void SetDebugModeOff()	{ bDebugMode = false; }
+	void SetDebugMode(const bool& bDebug)	{ bDebugMode = bDebug; }
+	void SetDefferedMode(const bool& bDeffered)	{ bDefferedMode = bDeffered; }
 
 	void SetFrustum(Frustum* frustum) { this->frustum = frustum; }
 protected:
 	struct Col_Info
 	{
-		bool bColliderOn;
+		bool bCollisionOn;
 		// 아무리 생각해도 위치 트랜스폼은 필수 같음.
 		Transform * transform;
 		Col_Info() {
-			bColliderOn = true;
+			bCollisionOn = true;
 		}
 	};
 
@@ -60,6 +60,8 @@ protected:
 
 protected:
 	bool bDebugMode;
+	bool bDefferedMode;
+	bool bChangeCount;
 
 	CollsionType type;
 	Frustum* frustum =NULL;

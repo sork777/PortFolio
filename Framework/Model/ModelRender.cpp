@@ -5,6 +5,8 @@
 ModelRender::ModelRender(Model* model)
 	: model(model)
 {
+	texture = NULL;
+	srv = NULL;
 	SetShader(model->GetShader());
 }
 
@@ -17,17 +19,17 @@ ModelRender::~ModelRender()
 
 void ModelRender::Update()
 {
-	model->Update();
+	if (texture == NULL)
+		CreateTexture();
+	//model->Update();
 }
 
 void ModelRender::Render()
 {
-	if (texture == NULL)
-		CreateTexture();
 
 	if (srv != NULL)
 		sTransformsSRV->SetResource(srv);
-	model->Render();
+	//model->Render();
 }
 
 void ModelRender::SetShader(Shader * shader)
@@ -59,7 +61,7 @@ void ModelRender::UpdateTransform(UINT instanceId, UINT boneIndex, Transform & t
 	D3D11_MAPPED_SUBRESOURCE subResource;
 	D3D::GetDC()->Map(texture, 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
 	{
-		memcpy(subResource.pData, boneTransforms, MAX_MODEL_INSTANCE * MAX_MODEL_TRANSFORMS * sizeof(Matrix));
+		memcpy(subResource.pData, boneTransforms, MAX_MODEL_INSTANCE * MAX_BONE_TRANSFORMS * sizeof(Matrix));
 	}
 	D3D::GetDC()->Unmap(texture, 0);
 }
@@ -78,7 +80,7 @@ void ModelRender::CreateTexture()
 	{
 		D3D11_TEXTURE2D_DESC desc;
 		ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
-		desc.Width = MAX_MODEL_TRANSFORMS * 4;
+		desc.Width = MAX_BONE_TRANSFORMS * 4;
 		desc.Height = MAX_MODEL_INSTANCE;
 		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		desc.Usage = D3D11_USAGE_DYNAMIC;
@@ -111,8 +113,8 @@ void ModelRender::CreateTexture()
 		
 		D3D11_SUBRESOURCE_DATA subResource;
 		subResource.pSysMem = boneTransforms;
-		subResource.SysMemPitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix);
-		subResource.SysMemSlicePitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix) * MAX_MODEL_INSTANCE;
+		subResource.SysMemPitch = MAX_BONE_TRANSFORMS * sizeof(Matrix);
+		subResource.SysMemSlicePitch = MAX_BONE_TRANSFORMS * sizeof(Matrix) * MAX_MODEL_INSTANCE;
 
 		Check(D3D::GetDevice()->CreateTexture2D(&desc, &subResource, &texture));
 	}

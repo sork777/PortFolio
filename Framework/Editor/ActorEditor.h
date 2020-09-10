@@ -11,8 +11,9 @@ class Actor;
 
 class ActorEditor :public IEditor
 {
+	void Env_Init();
 public:
-	ActorEditor(Actor* actor);
+	ActorEditor();
 	~ActorEditor();
 
 	// IEditor을(를) 통해 상속됨
@@ -24,8 +25,10 @@ public:
 	virtual void Render() override;
 	virtual void PostRender() override;
 
-	void EditModeOn() { bEdit = true; }
-	const bool& IsEditMode() { return bEdit; }
+public:
+	const bool& IsOpenedEditor() { return bEdit; }
+	void SetActor(Actor* actor);
+
 private:
 	void ImguiWindow_Begin();
 	void ImguiWindow_End();

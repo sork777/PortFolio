@@ -12,7 +12,6 @@ VertexOutput_Lod VS(Vertexinput_Lod input)
     
     return output;
 }
-uint UseLOD;
 //                                                             бщ controll_point
 ConstantHullOutput_Lod HS_Constant(InputPatch<VertexOutput_Lod, 4> input)
 {
@@ -25,7 +24,7 @@ ConstantHullOutput_Lod HS_Constant(InputPatch<VertexOutput_Lod, 4> input)
     float3 boxExtents = (vMin - vMax) * 0.5f;
 
     ConstantHullOutput_Lod output;
-    [flatten]
+    [branch]
     if (ContainFrustumCube(boxCenter, boxExtents))
     {
         output.Edge[0] = 0;
@@ -36,33 +35,31 @@ ConstantHullOutput_Lod HS_Constant(InputPatch<VertexOutput_Lod, 4> input)
         output.Inside[0] = 0;
         output.Inside[1] = 0;
 
-        return output;
     }
-    [flatten]
-    if (UseLOD < 1)
+    else if (Lod.UseLOD ==0)
     {
         output.Edge[0] = output.Edge[1] =
         output.Edge[2] = output.Edge[3] =
         output.Inside[0] = output.Inside[1] = Lod.MaxTessellation;
-        return output;
 
     }
-   
+    else if (Lod.UseLOD == 1)
+    {
+        float3 e0 = (input[0].Position + input[2].Position).xyz * 0.5f;
+        float3 e1 = (input[0].Position + input[1].Position).xyz*0.5f;
+        float3 e2 = (input[1].Position + input[3].Position).xyz*0.5f;
+        float3 e3 = (input[2].Position + input[3].Position).xyz*0.5f;
 
-    float3 e0 = (input[0].Position + input[2].Position).xyz * 0.5f;
-    float3 e1 = (input[0].Position + input[1].Position).xyz*0.5f;
-    float3 e2 = (input[1].Position + input[3].Position).xyz*0.5f;
-    float3 e3 = (input[2].Position + input[3].Position).xyz*0.5f;
+        output.Edge[0] = TessFactor(e0);
+        output.Edge[1] = TessFactor(e1);
+        output.Edge[2] = TessFactor(e2);
+        output.Edge[3] = TessFactor(e3);
 
-    output.Edge[0] = TessFactor(e0);
-    output.Edge[1] = TessFactor(e1);
-    output.Edge[2] = TessFactor(e2);
-    output.Edge[3] = TessFactor(e3);
-
-    float3 c = (input[0].Position + input[1].Position + input[2].Position + input[3].Position).xyz;
-    c *= 0.25f;
-    output.Inside[0] = TessFactor(c);
-    output.Inside[1] = TessFactor(c);
+        float3 c = (input[0].Position + input[1].Position + input[2].Position + input[3].Position).xyz;
+        c *= 0.25f;
+        output.Inside[0] = TessFactor(c);
+        output.Inside[1] = TessFactor(c);
+    }
 
     return output;
 }

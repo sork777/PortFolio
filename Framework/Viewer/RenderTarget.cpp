@@ -54,10 +54,10 @@ void RenderTarget::SaveTexture(wstring file)
 	Check(D3DX11SaveTextureToFile(D3D::GetDC(), backBuffer, D3DX11_IFF_PNG, file.c_str()));
 }
 
-void RenderTarget::Set(ID3D11DepthStencilView * dsv)
+void RenderTarget::Set(ID3D11DepthStencilView * dsv, const Color& color)
 {
 	D3D::Get()->SetRenderTarget(rtv, dsv);
-	D3D::Get()->Clear(Color(0, 0, 0, 1), rtv, dsv);
+	D3D::Get()->Clear(color, rtv, dsv);
 }
 
 void RenderTarget::Sets(vector<RenderTarget*>& rtvs, ID3D11DepthStencilView * dsv)
@@ -71,3 +71,15 @@ void RenderTarget::Sets(vector<RenderTarget*>& rtvs, ID3D11DepthStencilView * ds
 	for (UINT i = 0; i < rtvs.size(); i++)
 		D3D::Get()->Clear(Color(0, 0, 0, 0),views[i],dsv);
 }
+//
+//void RenderTarget::UseOuterSrv(ID3D11ShaderResourceView * oSrv)
+//{
+//	srv = oSrv;
+//	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+//	ZeroMemory(&srvDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+//	srvDesc.Format = format;
+//	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+//	srvDesc.Texture2D.MipLevels = 1;
+//
+//	D3D::GetDevice()->CreateShaderResourceView(backBuffer, &srvDesc, oSrv?&oSrv:&srv);
+//}

@@ -3,7 +3,7 @@
 #include "PostEffects/HDR_Tone.h"
 #include "Environment/Sky/Atmosphere.h"
 #include "Environment/Ocean/FFTOcean.h"
-#include "Environment/TerrainLod.h"
+#include "Environment/Terrain/TerrainLod.h"
 
 void DeferredPrac::Initialize()
 {

@@ -11,8 +11,9 @@ public:
 	ID3D11ShaderResourceView* SRV() { return srv; }
 
 	void SaveTexture(wstring file);
-	void Set(ID3D11DepthStencilView* dsv);
+	void Set(ID3D11DepthStencilView* dsv,const Color& color= Color(0, 0, 0, 1));
 	static void Sets(vector<RenderTarget*>& rtvs, ID3D11DepthStencilView* dsv);
+	//void UseOuterSrv(ID3D11ShaderResourceView* oSrv = NULL);
 private:
 	UINT width, height;
 	DXGI_FORMAT format;

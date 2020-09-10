@@ -28,10 +28,10 @@ enum class ObjectBaseComponentType
 
 class ObjectBaseComponent : public IComponent
 {
-//public:
-//	const UINT& GetCompID() { return compID; }
-//
-//protected:
+public:
+	const UINT& GetCompID() { return compID; }
+
+protected:
 	UINT compID;
 
 public:
@@ -40,16 +40,17 @@ public:
 	ObjectBaseComponent(const ObjectBaseComponent& OBComp);
 	virtual ~ObjectBaseComponent();
 	
+	// IComponent을(를) 통해 상속됨
+	virtual void Update() override;
+	virtual void Render() override;
+
 	//일단 메시계열에만 오버라이딩 하자.
 	virtual	void CompileComponent(const ObjectBaseComponent& OBComp);
 protected:
 	void ClonningChildren(const vector< ObjectBaseComponent*>& oChildren);
 
 public:
-	// IComponent을(를) 통해 상속됨
-	virtual void Update() override;
-	virtual void Render() override;
-	virtual bool Property(const UINT& instance = 0);
+	virtual bool Property(const int & instance = -1);
 
 	virtual void SetShader(Shader* shader);
 	virtual void Tech(const UINT& mesh, const UINT& model, const UINT& anim);
@@ -64,17 +65,20 @@ public:
 	virtual const UINT& GetInstSize() abstract;
 	virtual Transform* GetTransform(const UINT& instance = 0) abstract;
 	
+	void SyncBaseTransform();
 public:
 	void AttachSocket(const wstring& wstr) { parentSocketName = wstr; }
 	const int& GetSocket()				{ return parentSocket; }
 	wstring& ComponentName()			{ return componentName; }
-	Transform* GetBaseTransform()		{ return baseTransform; }
+	Transform* GetBaseInitTransform()	{ return baseInitTransform; }
 	ObjectBaseComponentType& GetType()	{ return type; }
 
 protected:
 	Shader*		shader;
 	//컴포넌트 인스턴싱의 초기 트랜스폼
 	Transform*	baseTransform;
+	// base의 초기값을 지닐 트랜스폼, 컴파일할때 base를 적용해줄거임
+	Transform*	baseInitTransform;
 	vector<bool> chageTrans;
 
 	wstring	parentSocketName	= L"None";

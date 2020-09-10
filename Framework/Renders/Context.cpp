@@ -65,6 +65,45 @@ void Context::Render()
 {
 	viewport->RSSetViewport();
 
+}
+
+void Context::ResizeScreen()
+{
+	perspective->Set(D3D::Width(), D3D::Height());
+	viewport->Set(D3D::Width(), D3D::Height());
+}
+Matrix Context::View()
+{
+	Matrix view;
+	if (subCamera != NULL)
+	{
+		subCamera->GetMatrix(&view);
+		return view;
+	}
+	camera->GetMatrix(&view);
+	return view;
+}
+
+Matrix Context::Projection()
+{
+	Matrix projection;
+	perspective->GetMatrix(&projection);
+
+	return projection;
+}
+
+void Context::SetFree()
+{
+	camera = freeCam;
+}
+
+void Context::SetObit()
+{
+	camera = orbitCam;
+}
+
+void Context::ShowContextInfo()
+{
 	ImGui::Begin("Context");
 	{
 		string str = string("Frame Rate : ") + to_string(ImGui::GetIO().Framerate);
@@ -102,39 +141,4 @@ void Context::Render()
 		ImGui::Text(Rot.c_str());
 		ImGui::End();
 	}
-}
-
-void Context::ResizeScreen()
-{
-	perspective->Set(D3D::Width(), D3D::Height());
-	viewport->Set(D3D::Width(), D3D::Height());
-}
-Matrix Context::View()
-{
-	Matrix view;
-	if (subCamera != NULL)
-	{
-		subCamera->GetMatrix(&view);
-		return view;
-	}
-	camera->GetMatrix(&view);
-	return view;
-}
-
-Matrix Context::Projection()
-{
-	Matrix projection;
-	perspective->GetMatrix(&projection);
-
-	return projection;
-}
-
-void Context::SetFree()
-{
-	camera = freeCam;
-}
-
-void Context::SetObit()
-{
-	camera = orbitCam;
 }

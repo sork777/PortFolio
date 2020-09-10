@@ -2,7 +2,7 @@
 
 #include "Systems\IExecute.h"
 
-class Actor;
+//class Actor;
 
 class TerrainLodDemo :public IExecute
 {
@@ -21,6 +21,7 @@ private:
 
 private:
 	void SetGBuffer();
+
 private:
 	Shader* skyShader;
 	Shader* terrainShader;
@@ -39,10 +40,17 @@ private:
 	Material* terrainMat;
 
 	TextureCube* cubeTex;
+
+	class ActorManager* actorMgr;
 private:
 	void CreateBaseActor();
+
 private:
-	ActorEditor* editor = NULL;
 	Actor* actor;
 	ObjectBaseComponent* selecedComp = NULL;
+
+	class TerrainEditor* tEdit=NULL;
+
+	Material*	floor;
+	MeshRender* grid;
 };

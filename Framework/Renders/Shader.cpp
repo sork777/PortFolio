@@ -477,62 +477,6 @@ ID3DX11EffectUnorderedAccessViewVariable * Shader::AsUAV(string name)
 
 #pragma endregion
 
-///////////////////////////////////////////////////////////////////////////////
-//
-//unordered_map<wstring, Shaders::ShaderDesc> Shaders::shaders;
-//
-//void Shaders::Delete()
-//{
-//	for (Pair p : shaders)
-//	{
-//		SafeRelease(p.second.blob);
-//		SafeRelease(p.second.effect);
-//	}
-//}
-//
-//void Shaders::GetEffect(wstring fileName, ID3DBlob** blob, ID3DX11Effect** effect)
-//{
-//	bool isFind = false;
-//
-//	if (shaders.count(fileName) < 1)
-//	{
-//		Pair p;
-//
-//		// 못찾았을 경우.
-//		ID3DBlob* error;
-//		INT flag = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY | D3D10_SHADER_PACK_MATRIX_ROW_MAJOR;
-//
-//		HRESULT hr = D3DCompileFromFile(fileName.c_str(), NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, NULL, "fx_5_0", flag, NULL, &p.second.blob, &error);
-//		if (FAILED(hr))
-//		{
-//			if (error != NULL)
-//			{
-//				string str = (const char *)error->GetBufferPointer();
-//				MessageBoxA(NULL, str.c_str(), "Shader Error", MB_OK);
-//			}
-//			assert(false);
-//		}
-//
-//		hr = D3DX11CreateEffectFromMemory(p.second.blob->GetBufferPointer(), p.second.blob->GetBufferSize(), 0, D3D::GetDevice(), &p.second.effect);
-//		Check(hr);
-//
-//		p.first = fileName;
-//
-//		shaders.insert(p);
-//
-//		*blob = p.second.blob;
-//		p.second.effect->CloneEffect(D3DX11_EFFECT_CLONE_FORCE_NONSINGLE, effect);
-//	}
-//	else
-//	{
-//		ShaderDesc desc = shaders.at(fileName);
-//
-//		*blob = desc.blob;
-//		desc.effect->CloneEffect(D3DX11_EFFECT_CLONE_FORCE_NONSINGLE, effect);
-//	}
-//}
-//
-
 #pragma region ShaderManager클래스
 
 ShaderManager* ShaderManager::instance = NULL;

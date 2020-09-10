@@ -79,36 +79,13 @@ void SSAO::Initialize()
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Down Scale
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	CSminiDepthbuffer = new StructuredBuffer(NULL, 4 * sizeof(float), width * height);
 
-	//D3D11_BUFFER_DESC bufferDesc;
-	//ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	//bufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-	//bufferDesc.StructureByteStride = 4 * sizeof(float);
-	//bufferDesc.ByteWidth = width * height * bufferDesc.StructureByteStride;
-	//bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	//D3D::GetDevice()->CreateBuffer(&bufferDesc, NULL, &miniDepthBuffer);
-
-	//ZeroMemory(&UAVDesc, sizeof(UAVDesc));
-	//UAVDesc.Format = DXGI_FORMAT_UNKNOWN;
-	//UAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-	//UAVDesc.Buffer.FirstElement = 0;
-	//UAVDesc.Buffer.NumElements = width * height;
-	//D3D::GetDevice()->CreateUnorderedAccessView(miniDepthBuffer, &UAVDesc, &miniDepthUAV);
-
-	//ZeroMemory(&SRVDesc, sizeof(SRVDesc));
-	//SRVDesc.Format = DXGI_FORMAT_UNKNOWN;
-	////SRVDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	//SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-	//SRVDesc.Buffer.FirstElement = 0;
-	//SRVDesc.Buffer.NumElements = width * height;
-	//D3D::GetDevice()->CreateShaderResourceView(miniDepthBuffer, &SRVDesc, &miniDepthSRV);
-	//
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Constant Buffer
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	cBuffer = new ConstantBuffer(&desc, sizeof(TDownscaleDesc));
-	CSminiDepthbuffer = new StructuredBuffer(NULL, 4 * sizeof(float), width * height);
 }
 
 void SSAO::RenderSSAO()

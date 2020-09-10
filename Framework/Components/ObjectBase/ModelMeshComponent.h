@@ -29,7 +29,7 @@ public:
 
 	virtual void Update() override;
 	virtual void Render() override;
-	bool Property(const UINT& instance = 0) override;
+	virtual bool Property(const int& instance = -1) override;
 
 	void Tech(const UINT& mesh, const UINT& model, const UINT& anim) override;
 	void Pass(const UINT& mesh, const UINT& model, const UINT& anim) override;

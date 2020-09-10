@@ -7,99 +7,44 @@
 
 TerrainLod::TerrainLod(InitializeInfo& info)
 	:Renderer(info.shader), baseTexture(NULL)
-	, BrushedArea(+FLT_MAX, -0, +FLT_MAX, -0)
+	//, BrushedArea(+FLT_MAX, -0, +FLT_MAX, -0)
 {
 	this->info = info;
 	Topology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-	
-	raiseCS = SETSHADER(L"HW08_TerrainLoDBrush.fx");
-	raiseCT[0] = new CsTexture(); 
-	raiseCT[1] = new CsTexture(); 
+
+
 	//////////////////////////////////////////////////////////////////////////////
 	// Const buffer & shader effects
 	//////////////////////////////////////////////////////////////////////////////
-	
-	brushBuffer = new ConstantBuffer(&brushDesc, sizeof(BrushDesc));
-	sBrushBuffer = shader->AsConstantBuffer("CB_TerrainBrush");
-
-	lineColorBuffer = new ConstantBuffer(&lineColorDesc, sizeof(LineColorDesc));
-	sLineColorBuffer = shader->AsConstantBuffer("CB_GridLine");
-
-	raiseBuffer = new ConstantBuffer(&raiseDesc, sizeof(RaiseDesc));
-	sRaiseBuffer = raiseCS->AsConstantBuffer("CB_Raise");
-
-	texelBuffer = new ConstantBuffer(&bufferDesc, sizeof(BufferDesc));
-	sTexelBuffer = shader->AsConstantBuffer("CB_Terrain");
 
 	sBaseTexture = shader->AsSRV("BaseMap");
 	sLayerTexture = shader->AsSRV("LayerMaps");
 	sNormalTexture = shader->AsSRV("NormalMap");
 	sAlphaTexture = shader->AsSRV("AlphaMap");
-	
-	/* 기본 높이맵 호출 - 손 안댄것*/	
-	{
-		UpdateAlphaMap(0, 3);
-		ID3D11Texture2D* srcTexture;
-		HMapSrv->GetResource((ID3D11Resource **)&srcTexture);
-		D3D11_TEXTURE2D_DESC desc;
-		srcTexture->GetDesc(&desc);
-		width = desc.Width-1;
-		height = desc.Height-1;
-		raiseDesc.Res = Vector2(width + 1, height + 1);
-		Texture::ReadPixels(srcTexture, DXGI_FORMAT_R8G8B8A8_UNORM, &AlphaMapPixel);
-	}
 
-	bufferDesc.TexelCellSpaceU = 1.0f / ((float)width);
-	bufferDesc.TexelCellSpaceV = 1.0f / ((float)height);
-	bufferDesc.HeightRatio = info.HeightRatio;
-	bufferDesc.TexScale = info.CellSpacing*2.0f;
-	lineColorDesc.Size = info.CellSpacing*2.0f;
-
-	float MaxHeightRate = 3.0f*info.HeightRatio;
-	raiseRate = Math::Clamp(raiseRate, MaxHeightRate*0.01f, MaxHeightRate);
-
-	patchVertexRows = (width / info.CellsPerPatch) + 1;
-	patchVertexCols = (height / info.CellsPerPatch) + 1;
-
-	vertexCount = patchVertexRows * patchVertexCols;
-	faceCount = (patchVertexRows - 1) * (patchVertexCols - 1);
-	indexCount = faceCount * 4;
-
-	LoadPerlinMap();
-	CalcBoundY();
-	CreateVertexData();
-	CreateIndexData();
-
-	quadTree = new QuadTree();
-	quadTree->GetCollider()->SetDebugModeOn();
-	QuadTreeNode* root = CreateQuadTreeData(NULL,Vector2(0, 0), Vector2(width, height));
-	quadTree->SetRootNode(root);
-
-	vertexBuffer = new VertexBuffer(vertices, vertexCount, sizeof(VertexTerrain));
-	indexBuffer = new IndexBuffer(indices, indexCount);
-
-
-	TestCol = new OBBCollider();
-	TestCol->AddInstance();
-	TestCol->GetTransform()->Scale(1, 3, 1);
-	AreaCol = new OBBCollider();
-	AreaCol->AddInstance();
-	AreaCol->SetDebugModeOn();
-
-	float width = D3D::Width();
-	float height = D3D::Height();
-	renderTarget = new RenderTarget((UINT)width, (UINT)height);
-	depthStencil = new DepthStencil(width, height);
-
-	//render2D = new Render2D();
-	//render2D->GetTransform()->Position(60, 60, 0);
-	//render2D->GetTransform()->Scale(100, 100, 1);
+	uvPickShader = SETSHADER(L"HW08_TerrainLoDBrush.fx");
 	computeBuffer = new StructuredBuffer
 	(
 		NULL,
 		sizeof(Color), 1,
 		true
 	);
+
+	texelBuffer = new ConstantBuffer(&bufferDesc, sizeof(BufferDesc));
+	sTexelBuffer = shader->AsConstantBuffer("CB_Terrain");
+	
+	CreateInitHeightMap();
+	
+	Initialize();
+
+	AreaCol = new OBBCollider();
+	AreaCol->AddInstance();
+	AreaCol->SetDebugMode(true);
+
+	float width = D3D::Width();
+	float height = D3D::Height();
+	renderTarget = new RenderTarget((UINT)width, (UINT)height);
+	depthStencil = new DepthStencil(width, height);
 }
 
 
@@ -119,19 +64,82 @@ TerrainLod::~TerrainLod()
 	SafeRelease(sLayerTexture);
 	SafeDelete(alphaTexture);
 	SafeRelease(sAlphaTexture);
-	SafeDelete(normalTexture);
-
-	SafeDelete(brushBuffer);
-	SafeRelease(sBrushBuffer);
-	SafeDelete(raiseBuffer);
-	SafeRelease(sRaiseBuffer);
-
-	SafeDelete(raiseCT[0]);
-	SafeDelete(raiseCT[1]);
-	//SafeDelete(raiseCS);
-	
+	SafeDelete(normalTexture);	
 }
 
+
+void TerrainLod::CreateInitHeightMap()
+{
+	ID3D11Texture2D* texture;
+
+	//CreateTexture
+	{
+		D3D11_TEXTURE2D_DESC desc;
+		ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
+		desc.Width = 512;
+		desc.Height = 512;
+		desc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.SampleDesc.Count = 1;
+		
+		Check(D3D::GetDevice()->CreateTexture2D(&desc, NULL, &texture));
+	}
+
+	//Create SRV
+	{
+		D3D11_TEXTURE2D_DESC desc;
+		texture->GetDesc(&desc);
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		ZeroMemory(&srvDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = 1;
+		srvDesc.Format = desc.Format;
+
+		Check(D3D::GetDevice()->CreateShaderResourceView(texture, &srvDesc, &HMapSrv));
+	}
+}
+
+void TerrainLod::Initialize()
+{
+	////////////////////////////////////////
+	// 알파맵 사이즈 변화에 따라 바뀌어야할것들
+	{
+		ID3D11Texture2D* srcTexture;
+		HMapSrv->GetResource((ID3D11Resource **)&srcTexture);
+		D3D11_TEXTURE2D_DESC desc;
+		srcTexture->GetDesc(&desc);
+		width = desc.Width - 1;
+		height = desc.Height - 1;
+		Texture::ReadPixels(srcTexture, DXGI_FORMAT_R16G16B16A16_UNORM, &AlphaMapPixel);
+	}
+	bufferDesc.TexelCellSpaceU = 1.0f / ((float)width);
+	bufferDesc.TexelCellSpaceV = 1.0f / ((float)height);
+	bufferDesc.HeightRatio = info.HeightRatio;
+	bufferDesc.TexScale = info.CellSpacing*2.0f;
+
+	patchVertexRows = (width / info.CellsPerPatch) + 1;
+	patchVertexCols = (height / info.CellsPerPatch) + 1;
+
+	vertexCount = patchVertexRows * patchVertexCols;
+	faceCount = (patchVertexRows - 1) * (patchVertexCols - 1);
+	indexCount = faceCount * 4;
+
+	CalcBoundY();
+	CreateVertexData();
+	CreateIndexData();
+
+	vertexBuffer = new VertexBuffer(vertices, vertexCount, sizeof(VertexTerrain));
+	indexBuffer = new IndexBuffer(indices, indexCount);
+
+	quadTree = new QuadTree();
+	QuadTreeNode* root = CreateQuadTreeData(NULL, Vector2(0, 0), Vector2(width, height));
+	quadTree->SetRootNode(root);
+	quadTree->Update();
+}
 
 void TerrainLod::PreRender()
 {
@@ -150,109 +158,7 @@ void TerrainLod::PreRender()
 }
 
 void TerrainLod::Update()
-{
-	
-	//레이즈 여부 초기값은 false로
-	bool bRaise = false;
-	bool bNoise = raiseDesc.RaiseType == 3 ? true : false;
-	bool bSmooth = raiseDesc.RaiseType == 4 ? true : false;
-	//브러시 위치 업데이트
-	{
-		brushPos = GetPickedPosition();
-		//터레인의 이동한 포지션 받기
-		GetTransform()->Position(&brushDesc.Location);
-		//마우스 위치 더하기
-		brushDesc.Location += brushPos;
-	}
-	if (brushDesc.Type != 0 && brushDesc.Type != 3)
-		BrushUpdater(brushPos);
-	if (bSplat == true && Keyboard::Get()->Press(VK_SHIFT))
-	{
-		//스플래팅
-		if (Mouse::Get()->Press(0))
-		{
-			if (brushDesc.Type == 1)
-				UpdateAlphaMap(0, 1);
-			else if (brushDesc.Type == 2)
-				UpdateAlphaMap(1, 1);
-		}
-	}
-	if (brushDesc.Type > 0)
-	{		
-		if (bSplat == false && Keyboard::Get()->Press(VK_SHIFT))
-		{
-			if (Mouse::Get()->Press(0))
-			{
-				if (brushDesc.Type == 1)
-				{
-					bNoise?HeightNoise():
-					bSmooth ? HeightSmoothing() : RaiseHeightQuad();
-				}
-				if (brushDesc.Type == 2)
-				{
-					bNoise ? HeightNoise() :
-					bSmooth ? HeightSmoothing() : RaiseHeightCircle();
-				}
-				bRaise = true;
-			}
-			//press는 누른 상태라서 down으로
-			if (Mouse::Get()->Down(0))
-			{
-				if (brushDesc.Type == 3)
-				{
-					if (brushPos.y >= 0.0f)
-						if (bSlope == false)
-						{
-							//시작점 설정
-							slopBox.x = brushPos.x;
-							slopBox.y = brushPos.z;
-							bSlope = true;
-						}
-						else
-						{
-							//끝점 설정후 계산
-							slopBox.z = brushPos.x;
-							slopBox.w = brushPos.z;
-							RaiseHeightSlope();
-						}
-				}
-				else
-					bSlope = false;
-				bRaise = true;
-
-			}
-		}
-		
-		//브러시가 이동하면서 올린 장소들을 커버할 영역 설정
-		if (bRaise == true || bSlope )
-		{
-			BrushedArea.x = raiseDesc.Box.x < BrushedArea.x ? raiseDesc.Box.x : BrushedArea.x;
-			BrushedArea.y = raiseDesc.Box.y > BrushedArea.y ? raiseDesc.Box.y : BrushedArea.y;
-			BrushedArea.z = raiseDesc.Box.z < BrushedArea.z ? raiseDesc.Box.z : BrushedArea.z;
-			BrushedArea.w = raiseDesc.Box.w > BrushedArea.w ? raiseDesc.Box.w : BrushedArea.w;
-		}
-
-		if (Keyboard::Get()->Up(VK_SHIFT))
-		{
-			if (bSlope == true)
-			{
-				slopBox = Vector4(+FLT_MAX, -FLT_MAX, +FLT_MAX, -FLT_MAX);
-				bSlope = false;
-			}
-			UpdateQuadHeight();
-			BrushedArea = Vector4(+FLT_MAX, -0, +FLT_MAX, -0);
-		}
-		else if (Mouse::Get()->Up(0))
-		{
-			if (bSlope == false)
-			{
-				UpdateQuadHeight();
-				BrushedArea = Vector4(+FLT_MAX, -0, +FLT_MAX, -0);
-			}
-		}
-		
-	}
-
+{	
 	Super::Update();
 	   	 
 }
@@ -261,47 +167,32 @@ void TerrainLod::Render()
 {
 	Super::Render();
 	
-	if (raiseDesc.RaiseType == 3)
-		perlinGen->GeneratorNoise2D();
-
-
+	
 	if (baseTexture != NULL)
 		sBaseTexture->SetResource(baseTexture->SRV());
 	if (normalTexture != NULL)
 		sNormalTexture->SetResource(normalTexture->SRV());
 
 	sLayerTexture->SetResourceArray(layerViews,0,3);
-
-	if (sBrushBuffer != NULL)
-	{
-		brushBuffer->Apply();
-		sBrushBuffer->SetConstantBuffer(brushBuffer->Buffer());
-	}
-
-	if (sLineColorBuffer != NULL)
-	{
-		lineColorBuffer->Apply();
-		sLineColorBuffer->SetConstantBuffer(lineColorBuffer->Buffer());
-	}
-	
+		
 	texelBuffer->Apply();
 	sTexelBuffer->SetConstantBuffer(texelBuffer->Buffer());
 	shader->DrawIndexed(Tech() , Pass(), indexCount);
 
-	if (bQuadFrame)
-	{
-		quadTree->Update();
-		quadTree->Render();
-	}
 	//TODO: 나중 삭제
 	//TestCol->Render(Color(1, 1, 0, 1));
 	//render2D->Render();
 }
 
+void TerrainLod::QuadTreeRender()
+{
+	quadTree->Render();
+}
+
+#pragma region Texture
 ////////////////////////////////////
 // Textures
 ////////////////////////////////////
-#pragma region Texture
 
 void TerrainLod::BaseTexture(wstring file)
 {
@@ -318,29 +209,11 @@ void TerrainLod::AlphaTexture(wstring file, bool bUseAlpha)
 	alphaTexture = new Texture(file);
 
 	HMapSrv = alphaTexture->SRV();
-	//사이즈 변동
-	width = this->alphaTexture->GetWidth() - 1;
-	height = this->alphaTexture->GetHeight() - 1;
-	raiseDesc.Res = Vector2(width + 1, height + 1);
-	raiseCT[0]->Resize(width + 1, height + 1);
-	raiseCT[1]->Resize(width + 1, height + 1);
 	
-	if(bUseAlpha == true)
-	{
-		UpdateAlphaMap(0, 3);
-	}
-	else
-	{
-		UpdateAlphaMap(1, 3);		
-	}
-	ID3D11Texture2D* srcTexture;
-	HMapSrv->GetResource((ID3D11Resource **)&srcTexture);
-	Texture::ReadPixels(srcTexture, DXGI_FORMAT_R8G8B8A8_UNORM, &AlphaMapPixel);
-
-	//SafeDelete(quadTree);
-	QuadTreeNode* root = CreateQuadTreeData(NULL, Vector2(0, 0), Vector2(width, height));
-	//quadTree = new QuadTree();
-	quadTree->SetRootNode(root);
+	bChangeAlpha = true;
+	this->bUseAlpha = bUseAlpha;
+	
+	Initialize();
 }
 
 void TerrainLod::LayerTextures(wstring layer, UINT layerIndex)
@@ -360,18 +233,13 @@ void TerrainLod::NDTexture(wstring normal)
 	sNormalTexture->SetResource(normalTexture->SRV());
 }
 
-void TerrainLod::SetLayer(UINT layerIndex)
-{
-	this->layerIndex = layerIndex;
-	raiseDesc.SplattingLayer = layerIndex;
-}
-
 #pragma endregion
 
 ////////////////////////////////////
 // Lod Creaters
 ////////////////////////////////////
 #pragma region Lod 생성관련
+
 
 bool TerrainLod::InBounds(UINT row, UINT col)
 {
@@ -480,18 +348,14 @@ void TerrainLod::CreateIndexData()
 	);
 }
 
-void TerrainLod::LoadPerlinMap()
-{
-	perlinGen = new Perlin();	
-	raiseCS->AsSRV("PerlinMap")->SetResource(perlinGen->GetPerlinSrv());
-}
 
 #pragma endregion
 
+#pragma region Pick
+
 ////////////////////////////////////
-// Brush
+// Pick
 ////////////////////////////////////
-#pragma region Brush
 
 Vector3 TerrainLod::GetPickedPosition()
 {
@@ -504,10 +368,12 @@ Vector3 TerrainLod::GetPickedPosition()
 	Vector3 mouse = Mouse::Get()->GetPosition();
 	//브러시 좌표의 시작점을 계산하기 위함
 	Vector3 result = Vector3(-0.5f*width,0.0f, -0.5f*height);
-	raiseCS->AsVector("MousePos")->SetFloatVector((float*)&mouse);
-	raiseCS->AsSRV("Terrain")->SetResource(preTerrainSrv);
-	raiseCS->AsUAV("OutputPickColor")->SetUnorderedAccessView(computeBuffer->UAV());
-	raiseCS->Dispatch(3, 2, 1, 1, 1);
+	//터레인 내부에서 따로 CS 만들어서 적용해주기.
+	uvPickShader->AsVector("MousePos")->SetFloatVector((float*)&mouse);
+	uvPickShader->AsSRV("Terrain")->SetResource(preTerrainSrv);
+	uvPickShader->AsUAV("OutputPickColor")->SetUnorderedAccessView(computeBuffer->UAV());
+	uvPickShader->Dispatch(3, 2, 1, 1, 1);
+	
 	computeBuffer->Copy(PickColor, sizeof(Color));
 	result.x += PickColor.r*width;
 	result.z += PickColor.g*height;
@@ -537,10 +403,10 @@ float TerrainLod::GetPickedHeight(const Vector3& position)
 	{
 		if (index[i] >= AlphaMapPixel.size()) return -1.0f;
 	}
-	p[0] = Vector3(x, AlphaMapPixel[index[0]].a*bufferDesc.HeightRatio, z);
-	p[1] = Vector3(x, AlphaMapPixel[index[1]].a*bufferDesc.HeightRatio, z+1);
-	p[2] = Vector3(x+1, AlphaMapPixel[index[2]].a*bufferDesc.HeightRatio, z);
-	p[3] = Vector3(x+1, AlphaMapPixel[index[3]].a*bufferDesc.HeightRatio, z+1);
+	p[0] = Vector3(x, AlphaMapPixel[index[0]].a, z);
+	p[1] = Vector3(x, AlphaMapPixel[index[1]].a, z+1);
+	p[2] = Vector3(x+1, AlphaMapPixel[index[2]].a, z);
+	p[3] = Vector3(x+1, AlphaMapPixel[index[3]].a, z+1);
 	float u, v, distance;
 
 	//빛의 시작점
@@ -550,167 +416,20 @@ float TerrainLod::GetPickedHeight(const Vector3& position)
 
 	//충돌 결과, 없으면 초기값
 	Vector3 result(-1, -1, -1);
-
+	
 	if (D3DXIntersectTri(&p[0], &p[1], &p[2], &start, &direction, &u, &v, &distance) == TRUE)
 		result = p[0] + (p[1] - p[0]) * u + (p[2] - p[0]) * v;
 
 	if (D3DXIntersectTri(&p[3], &p[1], &p[2], &start, &direction, &u, &v, &distance) == TRUE)
 		result = p[3] + (p[1] - p[3]) * u + (p[2] - p[3]) * v;
-
+	if (result.y > 0)
+		result.y *= bufferDesc.HeightRatio;
 	return result.y;
 }
 
-void TerrainLod::BrushUpdater(Vector3& position)
-{
-	int w = (int)(width+1)*0.5f;
-	int h = (int)(height+1)*0.5f;
+#pragma endregion
 
-	raiseDesc.Position.x = position.x + w;
-	raiseDesc.Position.y = -position.z + h;
-
-	raiseDesc.Box.x = (int)position.x - (int)brushDesc.Range + w;//L
-	raiseDesc.Box.y = (int)position.x + (int)brushDesc.Range + w;//R
-	raiseDesc.Box.z = -(int)position.z - (int)brushDesc.Range + h;//B
-	raiseDesc.Box.w = -(int)position.z + (int)brushDesc.Range + h;//T
-
-	if (raiseDesc.Position.x < 0) raiseDesc.Position.x = 0;
-	if (raiseDesc.Position.x >= w * 2.0f) raiseDesc.Position.x = w * 2.0f;
-	if (raiseDesc.Position.y >= h * 2.0f) raiseDesc.Position.y = h * 2.0f;
-	if (raiseDesc.Position.y < 0) raiseDesc.Position.y = 0;
-
-	if (raiseDesc.Box.x < 0) raiseDesc.Box.x = 0;
-	if (raiseDesc.Box.y >= w * 2.0f) raiseDesc.Box.y = w * 2.0f;
-	if (raiseDesc.Box.z < 0) raiseDesc.Box.z = 0;
-	if (raiseDesc.Box.w >= h * 2.0f) raiseDesc.Box.w = h * 2.0f;
-
-}
-
-void TerrainLod::RaiseHeightQuad()
-{
-	UpdateAlphaMap(0);
-}
-
-void TerrainLod::RaiseHeightCircle()
-{
-	UpdateAlphaMap(1);
-}
-
-void TerrainLod::RaiseHeightSlope()
-{
-	//reverse 초기화
-	bool bReverse = false;
-	raiseDesc.SlopRev = 0;
-	bool slopX = raiseDesc.SlopDir;
-
-	int w = (int)(width + 1)*0.5f;
-	int h = (int)(height + 1)*0.5f;
-	//박스 만들기 위해 위치 조정
-	raiseDesc.Box.x = (int)slopBox.x + w;
-	raiseDesc.Box.y = (int)slopBox.z + w;
-	raiseDesc.Box.z = -(int)slopBox.y + h;
-	raiseDesc.Box.w = -(int)slopBox.w + h;
-
-	if (raiseDesc.Box.x > raiseDesc.Box.y)
-	{
-		swap(raiseDesc.Box.x, raiseDesc.Box.y);
-		if (slopX==true)
-			bReverse = true;
-	}
-	if (raiseDesc.Box.z > raiseDesc.Box.w)
-	{
-		swap(raiseDesc.Box.z, raiseDesc.Box.w);
-		if (slopX==false)
-			bReverse = true;
-	}
-
-	if (raiseDesc.Box.x < 0) raiseDesc.Box.x = 0;
-	if (raiseDesc.Box.y >= w * 2.0f) raiseDesc.Box.y = w * 2.0f;
-	if (raiseDesc.Box.z < 0) raiseDesc.Box.z = 0;
-	if (raiseDesc.Box.w >= h * 2.0f) raiseDesc.Box.w = h * 2.0f;
-	if (bReverse) raiseDesc.SlopRev = 1;
-	
-	UpdateAlphaMap(2);
-}
-
-void TerrainLod::HeightNoise()
-{
-	if (perlinGen->CanUsing() == false)
-		return;
-	UpdateAlphaMap(1, 2);
-}
-
-void TerrainLod::HeightSmoothing()
-{
-	UpdateAlphaMap(0, 2);
-}
-
-void TerrainLod::UpdateAlphaMap(UINT pass, UINT tech)
-{
-	raiseBuffer->Apply();
-	sRaiseBuffer->SetConstantBuffer(raiseBuffer->Buffer());
-	
-	static bool bMethodInodd = false;
-	raiseCS->AsSRV("AlphaMap")->SetResource(HMapSrv);
-	raiseCS->AsUAV("OutputMap")->SetUnorderedAccessView(raiseCT[bMethodInodd ? 0 : 1]->UAV());
-	raiseCS->Dispatch(tech, pass, (int)(AlphaMapPixel.size()) / 1024, 1, 1);
-	HMapSrv = raiseCT[bMethodInodd?0:1]->SRV();
-	bMethodInodd = !bMethodInodd;
-	sAlphaTexture->SetResource(HMapSrv);
-
-
-	// 업데이트 영역의 높이 픽셀의 정리
-	ID3D11Texture2D* srcTexture;
-	HMapSrv->GetResource((ID3D11Resource **)&srcTexture);
-
-	D3D11_TEXTURE2D_DESC srcDesc;
-	srcTexture->GetDesc(&srcDesc);
-
-
-	D3D11_TEXTURE2D_DESC desc;
-	ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
-	desc.Width = srcDesc.Width;
-	desc.Height = srcDesc.Height;
-	desc.MipLevels = 1;
-	desc.ArraySize = 1;
-	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.SampleDesc = srcDesc.SampleDesc;
-	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	desc.Usage = D3D11_USAGE_STAGING;
-
-
-	ID3D11Texture2D* texture;
-	Check(D3D::GetDevice()->CreateTexture2D(&desc, NULL, &texture));
-	Check(D3DX11LoadTextureFromTexture(D3D::GetDC(), srcTexture, NULL, texture));
-
-	UINT* colors = new UINT[desc.Width * desc.Height];
-	D3D11_MAPPED_SUBRESOURCE subResource;
-	D3D::GetDC()->Map(texture, 0, D3D11_MAP_READ, NULL, &subResource);
-	{
-		memcpy(colors, subResource.pData, sizeof(UINT) * desc.Width * desc.Height);
-	}
-	D3D::GetDC()->Unmap(texture, 0);
-
-
-	for (int z = raiseDesc.Box.z; z < raiseDesc.Box.w; z++)
-	{
-		for (int x = raiseDesc.Box.x; x < raiseDesc.Box.y; x++)
-		{
-			UINT index = desc.Width * z + x;
-
-			CONST FLOAT f = 1.0f / 255.0f;
-
-			float r = (float)((0xFF000000 & colors[index]) >> 24);
-			float g = (float)((0x00FF0000 & colors[index]) >> 16);
-			float b = (float)((0x0000FF00 & colors[index]) >> 8);
-			float a = (float)((0x000000FF & colors[index]) >> 0);
-
-			AlphaMapPixel[index] = (D3DXCOLOR(a, b, g, r)*f);
-		}
-	}
-
-	SafeDeleteArray(colors);
-	SafeRelease(texture);
-}
+#pragma region QuadTree
 
 void TerrainLod::CheckQuadCollider(QuadTreeNode* node, vector< QuadTreeNode*>& updateNode)
 {
@@ -731,7 +450,7 @@ void TerrainLod::CheckQuadCollider(QuadTreeNode* node, vector< QuadTreeNode*>& u
 
 }
 
-void TerrainLod::UpdateQuadHeight()
+void TerrainLod::UpdateQuadHeight(const Vector4& BrushedArea)
 {
 
 	float TileSize = bufferDesc.TexScale * 2;
@@ -777,9 +496,10 @@ void TerrainLod::UpdateQuadHeight()
 
 		Vector2 minMaxY = GetMinMaxY(TopLeft, BottomRight);
 		minMaxY.x = min(minMaxY.x, 0);
+		minMaxY.y = max(minMaxY.y, 0);
+		minMaxY *= bufferDesc.HeightRatio;
 		minMaxY.x -= 0.05f;
 		minMaxY.y += 0.05f;
-		minMaxY *= bufferDesc.HeightRatio;
 		Vector3 pos, scale;
 		col->GetTransform(inst)->Position(&pos);
 		col->GetTransform(inst)->Scale(&scale);
@@ -789,15 +509,8 @@ void TerrainLod::UpdateQuadHeight()
 		col->GetTransform(inst)->Position(pos);
 		col->GetTransform(inst)->Scale(scale);
 	}
+	quadTree->Update();
 }
-
-
-#pragma endregion
-
-////////////////////////////////////
-// QuadTree
-////////////////////////////////////
-#pragma region QuadTree
 
 Vector2 TerrainLod::GetMinMaxY(Vector2& TopLeft, Vector2& BottomRight)
 {
@@ -825,9 +538,11 @@ QuadTreeNode* TerrainLod::CreateQuadTreeData(QuadTreeNode* parent, Vector2& TopL
 {
 	const float tolerance = 0.01f;
 	Vector2 minMaxY = GetMinMaxY(TopLeft, BottomRight);
+	minMaxY *= bufferDesc.HeightRatio;
+	minMaxY.x = min(minMaxY.x, -1.0f);
+	minMaxY.y = max(minMaxY.y, 1.0f);
 	minMaxY.x -= 0.05f;
 	minMaxY.y += 0.05f;
-	minMaxY *= bufferDesc.HeightRatio;
 	float minX = TopLeft.x * info.CellSpacing - width * 0.5f;
 	float maxX = BottomRight.x * info.CellSpacing - width * 0.5f;
 	float minZ = -TopLeft.y * info.CellSpacing + height * 0.5f;
@@ -859,9 +574,10 @@ QuadTreeNode* TerrainLod::CreateQuadTreeData(QuadTreeNode* parent, Vector2& TopL
 	float narrow = (BottomRight.x - TopLeft.x)*0.5f;
 	float depth = (BottomRight.y - TopLeft.y) *0.5f;
 
-	float TileSize = bufferDesc.TexScale;
+	float TileSize = info.CellsPerPatch;
 	if (narrow >= TileSize && depth >= TileSize) {
-		quadTree->GetCollider()->SetColliderTestOff(colinst);
+		//자식쪽만 키게하려고
+		//quadTree->GetCollider()->SetdCollisionOff(colinst);
 		quadNode->AddChild(CreateQuadTreeData(quadNode, TopLeft, Vector2(TopLeft.x + narrow, TopLeft.y + depth)));
 		quadNode->AddChild(CreateQuadTreeData(quadNode, Vector2(TopLeft.x + narrow, TopLeft.y), Vector2(BottomRight.x, TopLeft.y + depth)));
 		quadNode->AddChild(CreateQuadTreeData(quadNode, Vector2(TopLeft.x, TopLeft.y + depth), Vector2(TopLeft.x + depth, BottomRight.y)));
@@ -874,228 +590,6 @@ QuadTreeNode* TerrainLod::CreateQuadTreeData(QuadTreeNode* parent, Vector2& TopL
 
 
 #pragma region ETC
-
-void TerrainLod::TerrainController()
-{
-	bool bDocking = true;
-	ImGui::Begin("Terrain_Controller", &bDocking);
-	{
-		/*Brush*/
-		ImGui::Text("BrushPosition : %.2f,%.2f,%.2f", brushPos.x, brushPos.y, brushPos.z);
-
-		static bool bLod = false;
-		static bool bWire = false;
-		ImGui::Checkbox("QuadFrame", &bQuadFrame);
-		ImGui::SameLine();
-		ImGui::Checkbox("LOD", &bLod);
-		ImGui::Checkbox("WireFrame", &bWire);
-		Pass(bWire ? 1 : 0);
-		
-		shader->AsScalar("UseLOD")->SetInt(bLod ? 1 : 0);
-		ImGui::Separator();
-		ImGui::ImageButton(HMapSrv, ImVec2(120, 120));
-		{
-			if (ImGui::Button("SaveXml", ImVec2(60, 25)))
-			{
-				SaveTerrainToXml();
-			}
-			ImGui::SameLine(80);
-			if (ImGui::Button("LoadXml", ImVec2(60, 25)))
-			{
-				LoadTerrainFromXml();
-			}
-		}
-		ImGui::Separator();
-		///////////////////////////////////////////////////////////////////////////
-		if (ImGui::CollapsingHeader("LineParts"))
-		{
-			ImGui::ColorEdit3("LineColor", (float*)& lineColorDesc.Color);
-			ImGui::SliderInt("VisibleLine", (int*)&lineColorDesc.Visible, 0, 1);
-			int size = lineColorDesc.Size;
-			int max = info.CellsPerPatch*2;
-			int i = 0;
-			while (max > 1)
-			{
-				max=max >> 1;
-				i++;
-			}
-			max = i;
-			i = 0;
-			while (size > 1)
-			{
-				size=size >> 1;
-				i++;
-			}
-			size = i;
-			ImGui::SliderInt("LineSize(Powered)", &size, 0, max);
-			lineColorDesc.Size = 1<<(size);
-			ImGui::Text("LineSize : %d", (int)lineColorDesc.Size);
-			ImGui::SliderFloat("LineThickness", &lineColorDesc.Thickness, 0.01f, 1.0f);
-		}
-		ImGui::Separator();
-		///////////////////////////////////////////////////////////////////////////
-		if (ImGui::CollapsingHeader("BrushParts", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			//콤보박스 브러시 타입
-			const char* brushItems[] = { "None", "Quad", "Circle", "Slope" };
-			static const char* current_item = "None";
-
-			if (ImGui::BeginCombo("##BrushType", current_item))
-			{
-				//스플래팅인 경우 사이즈 줄여서 목록에서 경사 없애기
-				int size = IM_ARRAYSIZE(brushItems);
-				if (bSplat) size--;
-				for (int n = 0; n < size; n++)
-				{
-					bool is_selected = (current_item == brushItems[n]);
-					if (ImGui::Selectable(brushItems[n], is_selected))
-					{
-						current_item = brushItems[n];
-						brushDesc.Type = n;
-					}
-					if (is_selected)
-						ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
-
-			raiseDesc.BrushType = brushDesc.Type;
-
-
-			if (brushDesc.Type == 0)
-			{
-			}
-			else if (brushDesc.Type < 3)
-			{
-				ImGui::ColorEdit3("BrushColor", (float*)& brushDesc.Color);
-				bool bRangeChanged=ImGui::InputInt("BrushRange", (int*)& brushDesc.Range);
-				raiseDesc.Radius = brushDesc.Range;
-
-				if (bSplat == false)
-				{
-					//상승 타입 콤보박스
-					const char* raiseTypes[] = { "Increase", "Decrease", "Flatting", "Noise","Smoothing" };
-					static const char* current_item = "Increase";
-
-					if (ImGui::BeginCombo("##RaiseType", current_item))
-					{
-						for (int n = 0; n < IM_ARRAYSIZE(raiseTypes); n++)
-						{
-							bool is_selected = (current_item == raiseTypes[n]);
-							if (ImGui::Selectable(raiseTypes[n], is_selected))
-							{
-								current_item = raiseTypes[n];
-								raiseDesc.RaiseType = n;
-							}
-							if (is_selected)
-								ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-
-					
-					if (raiseDesc.RaiseType == 3 && bRangeChanged == true)
-					{
-						perlinGen->Resize((UINT)raiseDesc.Radius);
-						raiseCS->AsSRV("PerlinMap")->SetResource(perlinGen->GetPerlinSrv());
-					}
-					
-					float MaxHeightRate = 3.0f*info.HeightRatio;
-					ImGui::SliderFloat("RaiseRate", &raiseRate, MaxHeightRate*0.01f, MaxHeightRate);
-					raiseDesc.Rate = raiseRate * Time::Delta();
-
-					if (brushDesc.Type == 2)
-					{
-						ImGui::SliderFloat("BrushFactor", &rfactor, 0.1f, 10.0f);
-						raiseDesc.Factor = rfactor;
-					}
-				}
-				else if (bSplat)
-				{
-					ImGui::SliderFloat("BrushGrad", &gfactor, 0.0f, 100.0f);
-					raiseDesc.Factor = gfactor;
-				}
-			}
-			else if (brushDesc.Type == 3)
-			{
-				bool bSlopX = raiseDesc.SlopDir == 1 ? true : false;
-
-				ImGui::Checkbox("SlopX", &bSlopX);
-				raiseDesc.SlopDir = bSlopX ? 1 : 0;
-				ImGui::SliderFloat("SlopeAngle", &sAngle, 0.0f, Math::ToRadian(80));
-				raiseDesc.Factor = sAngle;
-			}
-		}
-
-		ImGui::Separator();
-		///////////////////////////////////////////////////////////////////////////
-		// Splatting Layer
-		if (ImGui::CollapsingHeader("Layers"))
-		{
-			ImGui::Checkbox("Splatting", &bSplat);
-			ID3D11ShaderResourceView* srv = { 0 };
-			if (alphaTexture != NULL)
-			{
-				srv = alphaTexture->SRV();
-			}
-			else
-				srv = HMapSrv;
-			ImGui::PushID("AlphaTexture");
-			if (ImGui::ImageButton(srv, ImVec2(50, 50)))
-			{
-				OpenTextureLayer(TextureLayerType::Alpha);
-			}
-			ImGui::PopID();
-			ImGui::SameLine(100);
-			ImGui::Text("AlphaTexture"); 
-
-			//위쪽하고 같이 널값이면 id 같아서 실행 안됨;
-			srv = NULL;
-			ImGui::PushID("BaseTexture");
-			if (baseTexture != NULL)
-				srv = baseTexture->SRV();
-			if (ImGui::ImageButton(srv, ImVec2(50, 50)))
-			{
-				OpenTextureLayer(TextureLayerType::Base);
-			}
-			ImGui::PopID();
-			ImGui::SameLine(100);
-			ImGui::Text("BaseTexture");
-			/*if (normalTexture != NULL)
-				srv = normalTexture->SRV();
-			if (ImGui::ImageButton(srv, ImVec2(50, 50)))
-			{
-			}
-			ImGui::SameLine(100);
-			ImGui::Text("BaseNormalTexture");*/
-			for (int i = 0; i < 3; i++)
-			{
-				ID3D11ShaderResourceView* srv = { 0 };
-				string label = "Layer" + to_string(i + 1) + "Texture";
-				ImGui::PushID(label.c_str());
-
-				if (layerTexture[i] != NULL)
-					srv = layerTexture[i]->SRV();
-				if (ImGui::ImageButton(srv, ImVec2(50, 50)))
-				{
-					OpenTextureLayer(TextureLayerType(TextureLayerType::Layer_1 + i));
-				}
-				ImGui::PopID();
-				ImGui::SameLine(100);
-				ImGui::RadioButton(label.c_str(), &raiseDesc.SplattingLayer, i);
-			}
-		}
-		///////////////////////////////////////////////////////////////////////////
-	}
-	
-	ImGui::End();
-
-	if (raiseDesc.RaiseType == 3)
-	{
-		perlinGen->PerlinController();
-		PerlinPixel = perlinGen->GetPixels();
-	}
-}
 
 void TerrainLod::OpenTextureLayer(TextureLayerType type, const wstring & filePath)
 {
@@ -1170,6 +664,7 @@ void TerrainLod::SaveAlphaLayer(wstring* savePath, const wstring & filePath)
 		dstDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 		dstDesc.Usage = D3D11_USAGE_STAGING;
 		dstDesc.BindFlags = 0;
+		//저장은 16짜리로 할 필요 없음.
 		dstDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		//DXGI_FORMAT_B8G8R8A8_UNORM_SRGB; 얘로 바뀌길래 포멧 고정
 		//
@@ -1311,5 +806,59 @@ void TerrainLod::LoadTerrainFromXml(const wstring & filePath)
 		}
 	}
 }
+
+void TerrainLod::TerrainLayerProperty(bool* bChangeAlpha, bool* bUseAlpha)
+{
+	///////////////////////////////////////////////////////////////////////////
+		// Splatting Layer
+	if (ImGui::CollapsingHeader("Layers"))
+	{
+		ID3D11ShaderResourceView* srv = { 0 };
+
+		//알파맵은 기본생성을 함.
+		srv = HMapSrv;
+
+		ImGui::PushID("AlphaTexture");
+		if (ImGui::ImageButton(srv, ImVec2(50, 50)))
+		{
+			OpenTextureLayer(TextureLayerType::Alpha);
+			*bChangeAlpha = this->bChangeAlpha;
+			*bUseAlpha = this->bUseAlpha;
+		}
+		ImGui::PopID();
+		ImGui::SameLine(100);
+		ImGui::Text("AlphaTexture");
+
+		//위쪽하고 같이 널값이면 id 같아서 실행 안됨;
+		srv = NULL;
+		ImGui::PushID("BaseTexture");
+		if (baseTexture != NULL)
+			srv = baseTexture->SRV();
+		if (ImGui::ImageButton(srv, ImVec2(50, 50)))
+		{
+			OpenTextureLayer(TextureLayerType::Base);
+		}
+		ImGui::PopID();
+		ImGui::SameLine(100);
+		ImGui::Text("BaseTexture");
+
+		for (int i = 0; i < 3; i++)
+		{
+			ID3D11ShaderResourceView* srv = { 0 };
+			string label = "Layer" + to_string(i + 1) + "Texture";
+			ImGui::PushID(label.c_str());
+
+			if (layerTexture[i] != NULL)
+				srv = layerTexture[i]->SRV();
+			if (ImGui::ImageButton(srv, ImVec2(50, 50)))
+			{
+				OpenTextureLayer(TextureLayerType(TextureLayerType::Layer_1 + i));
+			}
+			ImGui::PopID();
+			//ImGui::SameLine(100);
+		}
+	}
+}
+
 
 #pragma endregion

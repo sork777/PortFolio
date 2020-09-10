@@ -66,9 +66,9 @@ void InstanceColliderDemo::Update()
 		Matrix world = kachujin->GetModel()->GetTransform(i)->World();
 		attach *= world;
 		sword->GetModel()->GetTransform(i)->Parent(attach);
-		colliders[i].Collider->GetTransform()->Parent(attach);
-		colliders[i].Collider->Update();
+		collider->GetTransform(i)->Parent(attach);
 	}	
+	collider->Update();
 	if (illusion != NULL)
 	{
 		illusion->Update(kachujin->GetCurrTween(0),0.3f);
@@ -121,10 +121,8 @@ void InstanceColliderDemo::Render()
 		trail->Property();
 		ImGui::End();
 	}
-	for (int i = 0; i < model->GetInstSize(); i++)
-	{
-		colliders[i].Collider->Render(Color(1,1,0,1));
-	}
+
+	collider->Render(Color(1,1,0,1));
 }
 
 void InstanceColliderDemo::Pass(UINT mesh, UINT model, UINT anim)
@@ -240,6 +238,7 @@ void InstanceColliderDemo::ModelLoad()
 
 
 
+	collider = new OBBCollider();
 	for (UINT i = 0; i < 3; i++)
 	{
 		colliders[i].Init = new Transform();
@@ -247,7 +246,7 @@ void InstanceColliderDemo::ModelLoad()
 		colliders[i].Init->Position(10, -5, -65);
 		
 		colliders[i].Transform = new Transform();
-		colliders[i].Collider = new OBBCollider(colliders[i].Transform, colliders[i].Init);
+		collider->AddInstance(colliders[i].Transform, colliders[i].Init);
 	}
 }
 
@@ -446,7 +445,7 @@ void InstanceColliderDemo::AnimationController()
 
 			if (ImGui::Button("Clonning"))
 			{
-				Model* newmodel = new Model(testModels[selectmodel]);
+				Model* newmodel = new Model(*testModels[selectmodel]);
 				newmodel->AddInstance();
 				testModels.emplace_back(newmodel);
 			}

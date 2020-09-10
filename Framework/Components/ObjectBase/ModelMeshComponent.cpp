@@ -8,7 +8,6 @@ ModelMeshComponent::ModelMeshComponent(Model* model)
 {
 	componentName = L"ModelMeshComp";
 	
-	std::wcout << componentName << " 생성" << endl;
 	type = ObjectBaseComponentType::ModelMesh;
 
 	//컴포넌트 마다 가지고있는 모델이 달라야 모델 바꿀때 다른게 안변함
@@ -18,16 +17,12 @@ ModelMeshComponent::ModelMeshComponent(Model* model)
 	{
 		animation = new ModelAnimator(skeletonMesh);
 	}
-	//std::cout << "모델 주소 : " << skeletonMesh << endl;
-	//std::cout << "Render 주소 : " << meshRender << endl;
-	//std::cout << "Anim 주소 : " << animation << endl;
 }
 
 ModelMeshComponent::ModelMeshComponent(const ModelMeshComponent&  modelComp)
 	:ObjectBaseComponent(modelComp)
 	, meshRender(NULL), animation(NULL)
 {
-	std::wcout << componentName << " 복사생성" << endl;
 
 	componentName = L"ModelMeshComp";
 	type = ObjectBaseComponentType::ModelMesh;
@@ -46,10 +41,6 @@ ModelMeshComponent::~ModelMeshComponent()
 
 void ModelMeshComponent::ClonningComp(const ModelMeshComponent & oComp)
 {
-
-	//std::wcout << componentName << "-Clonning Comp 함수진입 " << endl;
-	//std::cout << "원본 컴포넌트 주소 : " << &oComp << endl;
-	//std::cout << "현재 컴포넌트 주소 : " << this << endl;
 	meshRender = new ModelRender(skeletonMesh);
 	if (skeletonMesh->IsAnimationModel() == true)
 	{
@@ -60,7 +51,6 @@ void ModelMeshComponent::ClonningComp(const ModelMeshComponent & oComp)
 			animation->CloneClips(oAnim->Clips());
 	}
 	Super::ClonningChildren(oComp.children);
-	//std::wcout << componentName << "-Clonning Comp 함수탈출 " << endl;
 }
 
 void ModelMeshComponent::CompileComponent(const ModelMeshComponent & OBComp)
@@ -81,8 +71,6 @@ void ModelMeshComponent::Update()
 	{
 		animation->Update();
 
-		//TODO: 플레이 선택에 따라 변경해야함.
-		//if (!bEditMode)
 		{
 			int loop = GetInstSize();
 			for (int i = 0; i < loop; i++)
@@ -93,8 +81,10 @@ void ModelMeshComponent::Update()
 	{
 		meshRender->Update();
 	}
+	skeletonMesh->Update();
 	
 	Super::Update();
+
 }
 
 void ModelMeshComponent::Render()
@@ -107,14 +97,18 @@ void ModelMeshComponent::Render()
 	{
 		meshRender->Render();
 	}
+	skeletonMesh->Render();
 	
 	Super::Render();
 }
 
-bool ModelMeshComponent::Property(const UINT& instance)
+bool ModelMeshComponent::Property(const int& instance)
 {
-	if (GetInstSize() <= instance)
-		return false;
+	//인스턴스가 없으면 false
+	if (0 >= GetInstSize())		return false;
+	//인스턴스 번호가 갯수보다 크면 false
+	if (0 >= GetInstSize()- instance)		return false;
+
 	bool bChange = false;
 	if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -127,19 +121,36 @@ bool ModelMeshComponent::Property(const UINT& instance)
 	ImGui::Separator();
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		if (GetTransform(instance)->Property())
+
+		if (instance < 0)
 		{
-			chageTrans[instance] = true;
-			bChange = true;
+			if (baseTransform->Property())
+			{
+				bChange = true;
+				GetTransform()->Local(baseTransform);
+			}
+			if (ImGui::Button("Reset"))
+			{
+				baseTransform->Local(baseInitTransform);
+				GetTransform()->Local(baseTransform);
+			}
 		}
-		if (ImGui::Button("Reset"))
+		else
 		{
-			GetTransform(instance)->Local(baseTransform);
-			chageTrans[instance] = false;
+			if (GetTransform(instance)->Property())
+			{
+				chageTrans[instance] = true;
+				bChange = true;
+			}
+			if (ImGui::Button("Reset"))
+			{
+				GetTransform(instance)->Local(baseTransform);
+				chageTrans[instance] = false;
+			}
 		}
 	}
 
-	bChange |= Super::Property();
+	bChange |= Super::Property(instance);
 	return bChange;
 }
 

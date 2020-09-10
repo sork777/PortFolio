@@ -20,6 +20,7 @@ private:
 	
 private:
 	Shader* shader;
+	Shadow* shadow;
 	UINT tech = 1;
 	UINT pass = 0;
 	class Sky*	sky;
@@ -36,5 +37,6 @@ private:
 	Fixity* camera;
 	Perspective* perspective;
 
+	class BillBoard* billTest;
 };
 

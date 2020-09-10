@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Objects\Manager\ActorManager.cpp" />
     <ClCompile Include="Assets\ContentsAsset.cpp" />
     <ClCompile Include="Assets\AssetManager.cpp" />
     <ClCompile Include="Assets\ContentsAsset\TextureAsset.cpp" />
@@ -30,6 +31,9 @@
     <ClCompile Include="Components\ObjectBase\ModelMeshComponent.cpp" />
     <ClCompile Include="Components\ObjectBase\FigureMeshComponent.cpp" />
     <ClCompile Include="Editor\ActorEditor.cpp" />
+    <ClCompile Include="Editor\TerrainEditor.cpp" />
+    <ClCompile Include="Environment\Terrain\TerrainBrush.cpp" />
+    <ClCompile Include="Objects\Etc\BillBoardObj.cpp" />
     <ClCompile Include="Objects\ObjectPicker.cpp" />
     <ClCompile Include="Objects\Actor\Actor.cpp" />
     <ClCompile Include="Components\Common\MaterialPBR.cpp" />
@@ -49,7 +53,7 @@
     <ClCompile Include="Environment\Sky\Scattering.cpp" />
     <ClCompile Include="Environment\Sky.cpp" />
     <ClCompile Include="Environment\Snow.cpp" />
-    <ClCompile Include="Environment\TerrainLod.cpp" />
+    <ClCompile Include="Environment\Terrain\TerrainLod.cpp" />
     <ClCompile Include="Environment\Ocean\FFTOceanSimulator.cpp" />
     <ClCompile Include="Meshes\Mesh.cpp" />
     <ClCompile Include="Meshes\MeshCube.cpp" />
@@ -110,7 +114,7 @@
     <ClCompile Include="Systems\Mouse.cpp" />
     <ClCompile Include="Systems\Time.cpp" />
     <ClCompile Include="Systems\Window.cpp" />
-    <ClCompile Include="Environment\Terrain.cpp" />
+    <ClCompile Include="Environment\Terrain\Terrain.cpp" />
     <ClCompile Include="Components\Common\Transform.cpp" />
     <ClCompile Include="Utilities\BinaryFile.cpp" />
     <ClCompile Include="Utilities\Math.cpp" />
@@ -131,6 +135,7 @@
     <ClCompile Include="Viewer\Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Objects\Manager\ActorManager.h" />
     <ClInclude Include="Assets\AssetManager.h" />
     <ClInclude Include="Assets\ContentsAsset\TextureAsset.h" />
     <ClInclude Include="Collision\Collider.h" />
@@ -142,7 +147,11 @@
     <ClInclude Include="Components\ObjectBase\ModelMeshComponent.h" />
     <ClInclude Include="Components\ObjectBase\FigureMeshComponent.h" />
     <ClInclude Include="Editor\ActorEditor.h" />
+    <ClInclude Include="Editor\TerrainEditor.h" />
+    <ClInclude Include="Environment\Terrain\TerrainBrush.h" />
     <ClInclude Include="Model\AnimData.h" />
+    <ClInclude Include="Objects\Etc\BillBoardObj.h" />
+    <ClInclude Include="Objects\Manager\IObjectManager.h" />
     <ClInclude Include="Objects\ObjectPicker.h" />
     <ClInclude Include="Objects\Actor\Actor.h" />
     <ClInclude Include="Components\Common\MaterialPBR.h" />
@@ -167,7 +176,7 @@
     <ClInclude Include="Environment\Sky\Scattering.h" />
     <ClInclude Include="Environment\Sky.h" />
     <ClInclude Include="Environment\Snow.h" />
-    <ClInclude Include="Environment\TerrainLod.h" />
+    <ClInclude Include="Environment\Terrain\TerrainLod.h" />
     <ClInclude Include="Environment\Ocean\FFTOceanSimulator.h" />
     <ClInclude Include="Framework.h" />
     <ClInclude Include="Meshes\Mesh.h" />
@@ -235,7 +244,7 @@
     <ClInclude Include="Systems\Mouse.h" />
     <ClInclude Include="Systems\Time.h" />
     <ClInclude Include="Systems\Window.h" />
-    <ClInclude Include="Environment\Terrain.h" />
+    <ClInclude Include="Environment\Terrain\Terrain.h" />
     <ClInclude Include="Components\Common\Transform.h" />
     <ClInclude Include="Utilities\BinaryFile.h" />
     <ClInclude Include="Utilities\Math.h" />

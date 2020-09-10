@@ -6,6 +6,8 @@ public:
 	Sky(wstring cubeMapFile);
 	~Sky();
 
+	void Initialize();
+
 	void Update();
 	void Render();
 
@@ -21,6 +23,8 @@ private:
 	}desc;
 private:
 	Shader * shader;
+	//얘를 통해 전역광원 업뎃해도 왜 sky에 영향이 없지..?
+	//PerFrame* perframe;
 	MeshRender* sphere;
 
 	ConstantBuffer* buffer;

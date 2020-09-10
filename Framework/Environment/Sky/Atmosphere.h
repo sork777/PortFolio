@@ -11,6 +11,7 @@ public:
 	void Render(bool bRTV=true);
 	void PostRender();
 
+	void Property();
 private:
 	struct ScatterDesc
 	{
@@ -32,6 +33,9 @@ private:
 		float Speed = 0.05f;
 	} cloudDesc;
 private:
+	Vector3 cloudS=Vector3(20.0f, 16.0f, 20.0f);
+	Vector3 cloudP=Vector3(0.0f, 0.50f, 0.0f);
+
 	bool realTime;
 	float timeFactor;
 

@@ -166,12 +166,6 @@
     <ClCompile Include="Viewer\DepthStencil.cpp">
       <Filter>Renders</Filter>
     </ClCompile>
-    <ClCompile Include="Environment\Terrain.cpp">
-      <Filter>Environment</Filter>
-    </ClCompile>
-    <ClCompile Include="Environment\TerrainLod.cpp">
-      <Filter>Environment</Filter>
-    </ClCompile>
     <ClCompile Include="PostEffects\HDR_Tone.cpp">
       <Filter>PostEffects</Filter>
     </ClCompile>
@@ -279,6 +273,16 @@
     <ClCompile Include="Objects\ObjectPicker.cpp" />
     <ClCompile Include="Collision\Collider.cpp" />
     <ClCompile Include="Collision\OBBCollider.cpp" />
+    <ClCompile Include="Environment\Terrain\Terrain.cpp">
+      <Filter>Environment</Filter>
+    </ClCompile>
+    <ClCompile Include="Environment\Terrain\TerrainLod.cpp">
+      <Filter>Environment</Filter>
+    </ClCompile>
+    <ClCompile Include="Environment\Terrain\TerrainBrush.cpp" />
+    <ClCompile Include="Editor\TerrainEditor.cpp" />
+    <ClCompile Include="Objects\Etc\BillBoardObj.cpp" />
+    <ClCompile Include="Objects\Manager\ActorManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -497,12 +501,6 @@
     <ClInclude Include="Viewer\DepthStencil.h">
       <Filter>Renders</Filter>
     </ClInclude>
-    <ClInclude Include="Environment\Terrain.h">
-      <Filter>Environment</Filter>
-    </ClInclude>
-    <ClInclude Include="Environment\TerrainLod.h">
-      <Filter>Environment</Filter>
-    </ClInclude>
     <ClInclude Include="PostEffects\HDR_Tone.h">
       <Filter>PostEffects</Filter>
     </ClInclude>
@@ -628,5 +626,16 @@
     <ClInclude Include="Model\AnimData.h" />
     <ClInclude Include="Collision\Collider.h" />
     <ClInclude Include="Collision\OBBCollider.h" />
+    <ClInclude Include="Environment\Terrain\TerrainLod.h">
+      <Filter>Environment</Filter>
+    </ClInclude>
+    <ClInclude Include="Environment\Terrain\Terrain.h">
+      <Filter>Environment</Filter>
+    </ClInclude>
+    <ClInclude Include="Environment\Terrain\TerrainBrush.h" />
+    <ClInclude Include="Editor\TerrainEditor.h" />
+    <ClInclude Include="Objects\Etc\BillBoardObj.h" />
+    <ClInclude Include="Objects\Manager\ActorManager.h" />
+    <ClInclude Include="Objects\Manager\IObjectManager.h" />
   </ItemGroup>
 </Project>

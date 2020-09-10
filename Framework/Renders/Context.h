@@ -27,6 +27,7 @@ public:
 	//미리 컴파일된 헤더의순서 상관 안하려고 전방선언
 	inline class Camera* GetCamera() { return camera; }
 	inline class Camera* GetSubCamera() { return subCamera; }
+	const bool& HasSubCam() { return (subCamera != NULL); }
 
 	//외부에서 수정하는 경우도 많아서...
 	Color& LightAmbient() { return lightAmbient; }
@@ -62,4 +63,8 @@ public:
 
 	void SetFree();
 	void SetObit();
+
+public:
+	void ShowContextInfo();
+	
 };

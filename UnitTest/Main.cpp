@@ -3,15 +3,16 @@
 #include "Systems/Window.h"
 
 //#include "Practice/DeferredPrac.h"
-#include "Demo/CSDemo.h"
+//#include "Demo/CSDemo.h"
 //#include "Demo/FogDemo.h"
 #include "Demo/TerrainLodDemo.h"
+#include "Demo/LevelEditorDemo.h"
 #include "Demo/ColliderTestDemo.h"
 
 void Main::Initialize()
 {
 	AssetManager::Create();
-	Push(new TerrainLodDemo());
+	Push(new LevelEditorDemo());
 	//Push(new DeferredPrac());
 }
 
@@ -73,7 +74,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR param, int 
 	desc.AppName = L"D3D Game";
 	desc.Instance = instance;		//프로그램 식별점, 시작주소
 	desc.bFullScreen = false;
-	desc.bVsync = true;
+	desc.bVsync = false;
+	//desc.bVsync = true;
 	desc.Handle = NULL;				//윈도우
 	desc.Width = 1280;
 	desc.Height = 720;

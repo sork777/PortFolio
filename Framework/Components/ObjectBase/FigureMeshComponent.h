@@ -31,7 +31,7 @@ public:
 	// ObjectBaseComponent을(를) 통해 상속됨
 	virtual void Update() override;
 	virtual void Render() override;
-	bool Property(const UINT& instance = 0) ;
+	virtual bool Property(const int& instance = -1) override;
 
 	void Tech(const UINT& mesh, const UINT& model, const UINT& anim) ;
 	void Pass(const UINT& mesh, const UINT& model, const UINT& anim) ;

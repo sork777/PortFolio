@@ -87,9 +87,9 @@ private:
 	{
 		Transform* Init;
 		Transform* Transform;
-		OBBCollider* Collider;
 	} colliders[4];
 	
+	OBBCollider* collider;
 private:
 	vector<MeshRender *> meshes;
 	vector<ModelRender *> models;

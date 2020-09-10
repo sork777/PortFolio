@@ -4,18 +4,27 @@
 #include <algorithm>
 #include <numeric>
 
-Perlin::Perlin()
+Perlin::Perlin(UINT width , UINT height,DXGI_FORMAT format)
+	:format(format)
 {
+	UINT w = width;
+	UINT h = height;
+	if (width < 1)
+		w = 512;
+	if (height < 1)
+		h = 512;
+
 	shader = SETSHADER(L"HW00_Perlin.fx");
 	cbuffer = new ConstantBuffer(&perlinDesc, sizeof(PerlinDesc));
-	NoiseCs = new CsTexture();
+	NoiseCs = new CsTexture(w,h,format);
 
 	perlinDesc.BottomColor = Color(0, 0, 0, 0);
 	perlinDesc.TopColor = Color(1, 1, 1, 1);
 	perlinDesc.Octave = 5;
 	perlinDesc.Persistence = 0.4f;
 	perlinDesc.SmoothedN = 0;
-	perlinDesc.Res = Vector2(512,512);
+
+	perlinDesc.Res = Vector2(w,h);
 	perlinDesc.GridSize = 2.5f;
 	perlinDesc.Seed = 0;
 }
@@ -57,7 +66,7 @@ void Perlin::PerlinController()
 		{
 			ID3D11Texture2D* srcTexture;
 			NoiseCs->SRV()->GetResource((ID3D11Resource **)&srcTexture);
-			Texture::ReadPixels(srcTexture, DXGI_FORMAT_R8G8B8A8_UNORM, &PerlinPixel);
+			Texture::ReadPixels(srcTexture, DXGI_FORMAT(format+1), &PerlinPixel);
 			bPerlinUse = true;
 		}
 	}

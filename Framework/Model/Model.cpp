@@ -5,34 +5,16 @@
 #include "Utilities/BinaryFile.h"
 
 Model::Model(Shader* shader)
-	:shader(shader)
-	,name(L"")
-	,materialFilePath(L""), materialDirPath(L"")
-	,meshFilePath(L""), meshDirPath(L"")
 {
-	for (UINT i = 0; i < MAX_MODEL_INSTANCE; i++)
-		D3DXMatrixIdentity(&worlds[i]);
-	instanceBuffer = new VertexBuffer(worlds, MAX_MODEL_INSTANCE, sizeof(Matrix), 1, true);
-
-	sBoneTransformsSRV = shader->AsSRV("BoneTransformsMap");
-	sAnimEditSRV = shader->AsSRV("AnimEditTransformMap");
+	Initialize();
+	SetShader(shader);
 }
 
 Model::Model(const Model& model)
-	: name(L"")
-	, materialFilePath(L""), materialDirPath(L"")
-	, meshFilePath(L""), meshDirPath(L"")
 {
-	for (UINT i = 0; i < MAX_MODEL_INSTANCE; i++)
-		D3DXMatrixIdentity(&worlds[i]);
-	instanceBuffer = new VertexBuffer(worlds, MAX_MODEL_INSTANCE, sizeof(Matrix), 1, true);
-
+	Initialize();
 	//쉐이더는 같은애를 공유하는 거임. 깊은 복사때도 그냥 같은 주소
 	SetShader(model.shader);
-	/*shader				= model.shader;
-	sBoneTransformsSRV	= shader->AsSRV("BoneTransformsMap");
-	sAnimEditSRV		= shader->AsSRV("AnimEditTransformMap");
-*/
 	materialFilePath = model.materialFilePath;
 	materialDirPath  = model.materialDirPath;
 	meshFilePath	= model.meshFilePath;
@@ -95,6 +77,7 @@ void Model::ModelMeshChanger(const Model& model)
 	SafeRelease(boneSrv);
 
 	bAnimated = false;
+	bCalcVolume = false;
 
 	materialFilePath = model.materialFilePath;
 	materialDirPath = model.materialDirPath;
@@ -114,10 +97,34 @@ void Model::SetShader(Shader * shader)
 		mesh->SetShader(shader);
 }
 
+void Model::Initialize()
+{
+	name = L"";
+	materialFilePath = L"";
+	materialDirPath = L"";
+	meshFilePath = L"";
+	meshDirPath = L"";
+
+	for (UINT i = 0; i < MAX_MODEL_INSTANCE; i++)
+		D3DXMatrixIdentity(&worlds[i]);
+	instanceBuffer = new VertexBuffer(worlds, MAX_MODEL_INSTANCE, sizeof(Matrix), 1, true);
+}
+
 #pragma region 메시 출력 관련
 
 void Model::Update()
 {
+	if (bonebuffer == NULL)
+	{
+		CreateBoneBuffer();
+	}
+	if (editTexture == NULL)
+	{
+		CreateAnimEditTexture();
+	}
+
+	if(false == bCalcVolume)
+		CalcMeshVolume();
 	for (ModelMesh* mesh : meshes)
 		mesh->Update();
 	UpdateTransforms();
@@ -125,13 +132,8 @@ void Model::Update()
 
 void Model::Render()
 {
-	if (bonebuffer == NULL)
-		CreateBoneBuffer();
-	if (editTexture == NULL)
-	{
-		CreateAnimEditTexture();
-	}
-
+	//일단 메시 연결하면 자동 생성되긴함.
+	
 	if (editSrv != NULL)
 		sAnimEditSRV->SetResource(editSrv);
 
@@ -139,7 +141,7 @@ void Model::Render()
 	
 	if (boneSrv != NULL)
 		sBoneTransformsSRV->SetResource(boneSrv);
-
+	
 	int draw = transforms.size();
 	for (ModelMesh* mesh : meshes)
 		mesh->Render(draw);
@@ -517,7 +519,7 @@ void Model::CreateBoneBuffer()
 	{
 		D3D11_TEXTURE1D_DESC desc;
 		ZeroMemory(&desc, sizeof(D3D11_TEXTURE1D_DESC));
-		desc.Width = MAX_MODEL_TRANSFORMS * 4;
+		desc.Width = MAX_BONE_TRANSFORMS * 4;
 		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -526,8 +528,8 @@ void Model::CreateBoneBuffer()
 
 		D3D11_SUBRESOURCE_DATA subResource;
 		subResource.pSysMem = boneTrans;
-		subResource.SysMemPitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix);
-		subResource.SysMemSlicePitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix);
+		subResource.SysMemPitch = MAX_BONE_TRANSFORMS * sizeof(Matrix);
+		subResource.SysMemSlicePitch = MAX_BONE_TRANSFORMS * sizeof(Matrix);
 
 		Check(D3D::GetDevice()->CreateTexture1D(&desc, &subResource, &bonebuffer));
 	}
@@ -565,7 +567,7 @@ void Model::CreateAnimEditTexture()
 	{
 		D3D11_TEXTURE2D_DESC desc;
 		ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
-		desc.Width = MAX_MODEL_TRANSFORMS * 4;
+		desc.Width = MAX_BONE_TRANSFORMS * 4;
 		desc.Height = MAX_ANIMATION_CLIPS;
 		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		desc.Usage = D3D11_USAGE_DEFAULT;
@@ -576,8 +578,8 @@ void Model::CreateAnimEditTexture()
 
 		D3D11_SUBRESOURCE_DATA subResource;
 		subResource.pSysMem = animEditTrans;
-		subResource.SysMemPitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix);
-		subResource.SysMemSlicePitch = MAX_MODEL_TRANSFORMS * sizeof(Matrix)*MAX_ANIMATION_CLIPS;
+		subResource.SysMemPitch = MAX_BONE_TRANSFORMS * sizeof(Matrix);
+		subResource.SysMemSlicePitch = MAX_BONE_TRANSFORMS * sizeof(Matrix)*MAX_ANIMATION_CLIPS;
 
 		Check(D3D::GetDevice()->CreateTexture2D(&desc, &subResource, &editTexture));
 	}
@@ -596,15 +598,15 @@ void Model::CreateAnimEditTexture()
 		Check(D3D::GetDevice()->CreateShaderResourceView(editTexture, &srvDesc, &editSrv));
 	}
 
-	//for (ModelMesh* mesh : model->Meshes())
-	//	mesh->AnimEditSrv(editSrv);
 }
+
+#pragma region BoneEdit영역
 
 void Model::UpdateBoneTransform(const UINT& part, const UINT& clipID, Transform* transform)
 {
 	if (editTexture == NULL)
 		return;
-
+	bChangedEditTex = true;
 	ModelBone* bone = BoneByIndex(part);
 
 	Matrix trans = transform->World();
@@ -620,7 +622,7 @@ void Model::UpdateBoneTransform(const UINT& part, const UINT& clipID, Transform*
 	D3D11_BOX destRegion;
 	/* 행 하나의 크기 */
 	destRegion.left = 0;
-	destRegion.right = 4 * MAX_MODEL_TRANSFORMS;
+	destRegion.right = 4 * MAX_BONE_TRANSFORMS;
 	/* 빼올 인스턴스 행의 위치 */
 	destRegion.top = clipID;
 	destRegion.bottom = clipID + 1;
@@ -634,7 +636,7 @@ void Model::UpdateBoneTransform(const UINT& part, const UINT& clipID, Transform*
 		0,
 		&destRegion,
 		animEditTrans[clipID],
-		sizeof(Matrix)*MAX_MODEL_TRANSFORMS,
+		sizeof(Matrix)*MAX_BONE_TRANSFORMS,
 		0
 	);
 }
@@ -652,6 +654,8 @@ void Model::UpdateChildBones(const UINT& parentID, const UINT& childID, const UI
 	}
 }
 
+#pragma endregion
+
 void Model::AddSocketEditData(const UINT& boneID, const UINT& clipCount)
 {
 	ModelBone* bone = BoneByIndex(boneID);
@@ -663,7 +667,7 @@ void Model::AddSocketEditData(const UINT& boneID, const UINT& clipCount)
 		D3D11_BOX destRegion;
 		/* 행 하나의 크기 */
 		destRegion.left = 0;
-		destRegion.right = 4 * MAX_MODEL_TRANSFORMS;
+		destRegion.right = 4 * MAX_BONE_TRANSFORMS;
 		/* 빼올 인스턴스 행의 위치 */
 		destRegion.top = x;
 		destRegion.bottom = x + 1;
@@ -677,7 +681,7 @@ void Model::AddSocketEditData(const UINT& boneID, const UINT& clipCount)
 			0,
 			&destRegion,
 			animEditTrans[x],
-			sizeof(Matrix)*MAX_MODEL_TRANSFORMS,
+			sizeof(Matrix)*MAX_BONE_TRANSFORMS,
 			0
 		);
 	}
@@ -735,4 +739,63 @@ void Model::ChildBones(ModelBone * bone, int* click)
 		ImGui::TreePop();
 	}
 	ImGui::PopStyleVar();
+}
+
+void Model::CalcMeshVolume()
+{
+	bCalcVolume = true;
+	bool bFirst = true;
+	//ModelClip* clip = model->ClipByIndex(index);
+
+	for (ModelMesh* mesh : meshes)
+	{
+		ModelBone* bone = mesh->Bone();
+
+		UINT vCount = mesh->GetVertexCount();
+		Model::ModelVertex* vertices = mesh->GetVertices();
+
+		for (UINT i = 0; i < vCount; i++)
+		{
+			/* 전부 0인 행렬 */
+			Vector3 vTemp = vertices[i].Position;
+			if (true == bAnimated)
+			{
+				Matrix trans;
+				D3DXMatrixIdentity(&trans);
+				trans._11 = 0.0f;
+				trans._22 = 0.0f;
+				trans._33 = 0.0f;
+				trans._44 = 0.0f;
+				/* 각 버텍스가 가진 boneindex와 weight로
+				해당 버텍스의 최종 변환 행렬 구하기 */
+				for (UINT j = 0; j < 4; j++)
+				{
+					UINT index = vertices[i].BlendIndices[j];
+					float weight = vertices[i].BlendWeights[j];
+					Matrix matrix = boneTrans[index];
+					trans += weight * matrix;
+				}
+				/* 해당 본의 Transform 행렬을 통해 정점의 위치를 이동 해야함 */
+				D3DXVec3TransformCoord(&vTemp, &vTemp, &trans);
+			}
+			if (bFirst)
+			{
+				minV = vTemp;
+				maxV = vTemp;
+				bFirst = false;
+			}
+			else
+			{
+				minV.x = minV.x > vTemp.x ? vTemp.x : minV.x;
+				minV.y = minV.y > vTemp.y ? vTemp.y : minV.y;
+				minV.z = minV.z > vTemp.z ? vTemp.z : minV.z;
+
+				maxV.x = maxV.x < vTemp.x ? vTemp.x : maxV.x;
+				maxV.y = maxV.y < vTemp.y ? vTemp.y : maxV.y;
+				maxV.z = maxV.z < vTemp.z ? vTemp.z : maxV.z;
+			}
+		}
+	}
+
+
 }

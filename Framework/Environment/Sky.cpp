@@ -5,23 +5,12 @@
 Sky::Sky()
 	:cubeSRV(NULL)
 {
-	shader = SETSHADER(L"022_Sky.fx");
-	buffer = new ConstantBuffer(&desc, sizeof(Desc));
-	sBuffer = shader->AsConstantBuffer("CB_Sky");
-
-	sphere = new MeshRender(shader, new MeshSphere(0.5f));
-	sphere->AddInstance();
-
+	Initialize();
 }
 
 Sky::Sky(wstring cubeMapFile)
 {
-	shader = SETSHADER(L"022_Sky.fx");
-	buffer = new ConstantBuffer(&desc, sizeof(Desc));
-	sBuffer = shader->AsConstantBuffer("CB_Sky");
-
-	sphere = new MeshRender(shader,new MeshSphere( 0.5f));
-	sphere->AddInstance();
+	Initialize();	
 
 	wstring temp = L"../../_Textures/" + cubeMapFile;
 	Check(D3DX11CreateShaderResourceViewFromFile
@@ -43,6 +32,18 @@ Sky::~Sky()
 	
 }
 
+void Sky::Initialize()
+{
+	shader = SETSHADER(L"022_Sky.fx");
+	//perframe = new PerFrame(shader);
+
+	buffer = new ConstantBuffer(&desc, sizeof(Desc));
+	sBuffer = shader->AsConstantBuffer("CB_Sky");
+
+	sphere = new MeshRender(shader, new MeshSphere(0.5f));
+	sphere->AddInstance();
+}
+
 void Sky::Update()
 {
 	//ImGui::ColorEdit3("Sky Center", (float*)&desc.Center);
@@ -52,8 +53,13 @@ void Sky::Update()
 
 
 	Vector3 pos;
-	Context::Get()->GetCamera()->Position(&pos);
+	
+	if(false == Context::Get()->HasSubCam())
+		Context::Get()->GetCamera()->Position(&pos);
+	else
+		Context::Get()->GetSubCamera()->Position(&pos);
 
+	//perframe->Update();
 	sphere->GetTransform(0)->Position(pos);
 	sphere->UpdateTransforms();
 
@@ -62,9 +68,13 @@ void Sky::Update()
 
 void Sky::Render()
 {
+//	perframe->Render();
 	buffer->Apply();
 	sBuffer->SetConstantBuffer(buffer->Buffer());
 
+	Vector3 glDir = Context::Get()->LightDirection();
+
+	shader->AsVector("glDir")->SetFloatVector(glDir);
 	sCubeSRV->SetResource(cubeSRV);
 	sphere->Pass(2);
 	sphere->Render();

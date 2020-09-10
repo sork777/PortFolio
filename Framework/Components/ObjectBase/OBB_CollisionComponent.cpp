@@ -7,14 +7,18 @@ OBB_CollisionComponent::OBB_CollisionComponent()
 {
 	componentName = L"OBB_CollisionComp";
 	type = ObjectBaseComponentType::OBB_Collision;
-	//colliders = new OBBCollider();
+	colliders = new OBBCollider();
+	//테스트용
+	colliders->SetDebugMode(true);
 }
 OBB_CollisionComponent::OBB_CollisionComponent(const OBB_CollisionComponent & obbComp)
 	:ObjectBaseComponent(obbComp)
 {
 	componentName = L"OBB_CollisionComp";
 	type = ObjectBaseComponentType::OBB_Collision;
-	//colliders = new OBBCollider();
+	colliders = new OBBCollider();
+	//테스트용
+	colliders->SetDebugMode(true);
 	Super::ClonningChildren(obbComp.children);
 }
 
@@ -38,31 +42,45 @@ void OBB_CollisionComponent::Render()
 	Super::Render();
 }
 
-bool OBB_CollisionComponent::Property(const UINT& instance)
+bool OBB_CollisionComponent::Property(const int& instance)
 {
-	if (GetInstSize() <= instance)
-		return false;
+	if (0 >= GetInstSize())		return false;
+	if (0 >= GetInstSize() - instance)		return false;
+
 	bool bChange = false;
 	ImGui::ColorEdit3("LineColor", (float*)lineColor);
 
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		if (GetTransform(instance)->Property())
+		if (instance < 0)
 		{
-			chageTrans[instance] = true;
-			bChange = true;
+			if (baseTransform->Property())
+			{
+				bChange = true;
+				GetTransform()->Local(baseTransform);
+			}
+			if (ImGui::Button("Reset"))
+			{
+				baseTransform->Local(baseInitTransform);
+				GetTransform()->Local(baseTransform);
+			}
 		}
-		if (ImGui::Button("Reset"))
+		else
 		{
-			GetTransform(instance)->Local(baseTransform);
-			chageTrans[instance] = false;
+			if (GetTransform(instance)->Property())
+			{
+				chageTrans[instance] = true;
+				bChange = true;
+			}
+			if (ImGui::Button("Reset"))
+			{
+				GetTransform(instance)->Local(baseTransform);
+				chageTrans[instance] = false;
+			}
 		}
-		ImGui::Separator();
-		ImGui::Text("Base");
-		baseTransform->Property();
 	}
 
-	bChange |= Super::Property();
+	bChange |= Super::Property(instance);
 	return bChange;
 }
 
@@ -73,7 +91,7 @@ void OBB_CollisionComponent::AddInstanceData()
 	trans->Local(baseTransform);
 
 	colliders->AddInstance(trans);
-		//emplace_back(new OBBCollider(trans));
+	colliders->Update();
 	Super::AddInstanceData();
 }
 
@@ -81,8 +99,8 @@ void OBB_CollisionComponent::DelInstanceData(const UINT & instance)
 {
 	if (instance >= colliders->GetSize())
 		return;
-	//colliders.erase(colliders.begin() + instance);
 	colliders->DelInstance(instance);
+	colliders->Update();
 
 	Super::DelInstanceData(instance);
 }

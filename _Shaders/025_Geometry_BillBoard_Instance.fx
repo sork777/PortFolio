@@ -67,10 +67,10 @@ void GS(point VertexOutput input[1],inout TriangleStream<GeometryOutput2>stream)
     float2 size = input[0].Scale * 0.5f;
 
     float3 position[4];
-    position[0] = float3(input[0].Position.xyz - size.x * right - size.y * up);
-    position[1] = float3(input[0].Position.xyz - size.x * right + size.y * up);
-    position[2] = float3(input[0].Position.xyz + size.x * right - size.y * up);
-    position[3] = float3(input[0].Position.xyz + size.x * right + size.y * up);
+    position[0] = float3(input[0].Position.xyz - size.x * right - size.y * up); //¢×
+    position[1] = float3(input[0].Position.xyz - size.x * right + size.y * up); //¢Ø
+    position[2] = float3(input[0].Position.xyz + size.x * right - size.y * up); //¢Ù
+    position[3] = float3(input[0].Position.xyz + size.x * right + size.y * up); //¢Ö
 
     float2 uvs[4] =
     {

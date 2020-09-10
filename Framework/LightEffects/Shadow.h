@@ -3,7 +3,7 @@
 class Shadow
 {
 public:
-	Shadow(Shader* shader, Vector3& position, float radius, UINT width = 512, UINT height = 512);
+	Shadow(Shader* shader, Vector3& position = Vector3(0,0,0), float radius=500.0f, UINT width = 512, UINT height = 512);
 	~Shadow();
 
 	void Set();

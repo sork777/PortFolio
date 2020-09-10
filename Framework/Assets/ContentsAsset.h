@@ -15,6 +15,8 @@ enum class ContentsAssetType : UINT
 	> 컨텐츠 브라우저용
 	2. 에셋 파일로 저장/불러오기
 	3. 에셋 매니저에 등록하기	
+
+	TODO: 에셋 저장/불러오기, 에셋 탐색 및 중복등록 방지
 */
 class ContentsAsset
 {

@@ -34,25 +34,26 @@ void OBBCollider::Initalize()
 
 void OBBCollider::Update()
 {	
+	Super::Update();
+
 	for (int inst = 0; inst < colInfos.size(); inst++)
 	{
 		//콜라이더 안쓸때만 업뎃 안함
-		if (false == colInfos[inst]->bColliderOn) continue;
-		
+		if (false == colInfos[inst]->bCollisionOn) continue;
+		colInfos[inst]->transform->Update();
 		csInput[inst].data = colInfos[inst]->transform->World();
 	}
 }
 
 void OBBCollider::Render(const int& draw)
 {
-	if (false == bDebugMode)
-		return;
 	int loop = draw > 0 ? draw : colInfos.size();
+	if (true == bDebugMode)
 	for (int inst = 0; inst < loop; inst++)
 	{
 		//콜라이더 사용 off면 다음것
 		if (NULL != frustum && false == csOutput[inst].Frustum) continue;
-		if (false == colInfos[inst]->bColliderOn)	continue;
+		if (false == colInfos[inst]->bCollisionOn)	continue;
 
 		Vector3 dest[8];
 		Matrix world = csInput[inst].data;
@@ -112,7 +113,7 @@ const Vector3 & OBBCollider::GetMinRound(const UINT & inst)
 		Vector3 pos, scale;
 		colInfos[inst]->transform->Position(&pos);
 		colInfos[inst]->transform->Scale(&scale);
-		return pos - scale;
+		return pos - scale*0.5f;
 	}
 	return Vector3();
 }
@@ -123,7 +124,7 @@ const Vector3 & OBBCollider::GetMaxRound(const UINT & inst)
 		Vector3 pos, scale;
 		colInfos[inst]->transform->Position(&pos);
 		colInfos[inst]->transform->Scale(&scale);
-		return pos + scale;
+		return pos + scale * 0.5f;
 	}
 	return Vector3();
 }

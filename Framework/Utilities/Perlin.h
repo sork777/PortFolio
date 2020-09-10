@@ -4,7 +4,7 @@
 class Perlin
 {
 public:
-	Perlin();
+	Perlin(UINT width = 0, UINT height = 0,DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_TYPELESS);
 	~Perlin();
 	
 	void PerlinController();
@@ -36,7 +36,7 @@ private:
 
 private:
 	Shader* shader;
-
+	DXGI_FORMAT format;
 
 	vector<int> p;
 	ConstantBuffer* cbuffer;

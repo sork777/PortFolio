@@ -5,15 +5,10 @@
 #include "./ImGui_New/imgui.h"
 #include "Utilities/ImGuizmo.h"
 
-ActorEditor::ActorEditor(Actor* actor)	
-	:actor(actor)
+ActorEditor::ActorEditor()	
 {
-	// 받아온 액터를 통해 에딧용 액터 복사 생성
-	shader = actor->GetRootMeshData()->GetMesh()->GetShader();
-	e_Actor = new Actor(*actor);	
-	e_Actor->GetTransform()->Position(Vector3(0, 0, 0));
-	e_Actor->GetTransform()->Rotation(Vector3(0, 0, 0));
-	Initialize();
+	//생성자에서는 환경 설정만
+	Env_Init();	
 }
 
 
@@ -22,24 +17,22 @@ ActorEditor::~ActorEditor()
 	Destroy();
 }
 
-void ActorEditor::Initialize()
+// 환경설정?
+void ActorEditor::Env_Init()
 {
-	// 에디터 모드 활성화
-	bEdit = true;
-	
-	curModel = e_Actor->GetRootMeshData()->GetMesh();
-	curAnimator = e_Actor->GetRootMeshData()->GetAnimation();
-	bAnimate = curAnimator ? true : false;
-	if (bAnimate)
-	{
-		clips = curAnimator->Clips();
-		curAnimator->SetAnimState();
-	}
-	sky = new Sky(L"Environment/GrassCube1024.dds");	
+	// 에딧용에서는 그냥 포워드 랜더로
+	shader = SETSHADER(L"027_Animation.fx");
+	sky = new Sky(L"Environment/GrassCube1024.dds");
+	shader->AsSRV("SkyCubeMap")->SetResource(sky->CubeSRV());
+	Texture* brdfLut = new Texture(L"MaterialPBR/ibl_brdf_lut.png");
+	shader->AsSRV("BRDFLUT")->SetResource(brdfLut->SRV());
 	//Create Material
 	{
 		floor = new Material(shader);
 		floor->LoadDiffuseMap("Floor.png");
+		floor->LoadNormalMap("Floor_Normal.png");
+		floor->LoadSpecularMap("Floor_Specular.png");
+		floor->LoadHeightMap("Floor_Displacement.png");
 	}
 
 	//Create Mesh
@@ -47,6 +40,7 @@ void ActorEditor::Initialize()
 		Transform* transform = NULL;
 
 		grid = new MeshRender(shader, new MeshGrid(5, 5));
+		grid->SetMaterial(floor);
 		grid->AddInstance();
 		transform = grid->GetTransform(0);
 		transform->Position(0, 0, 0);
@@ -59,7 +53,31 @@ void ActorEditor::Initialize()
 	renderTarget = new RenderTarget((UINT)width, (UINT)height);
 	depthStencil = new DepthStencil(width, height);
 
-	orbitCam = new Orbit(80.0f, 30.0f, 150.0f);
+	orbitCam = new Orbit(50.0f, 30.0f, 80.0f);	
+}
+
+void ActorEditor::Initialize()
+{
+	// 에디터 모드 활성화
+	bEdit = true;
+	bPlay = false;
+
+	mouseVal = Vector3(2.5f, 1.0f, 0);
+	TargetPos = Vector3(0, 5.0f, 0);
+	
+	selectedFrame = 0;
+	selectedClip = 0;
+	selecedComp = NULL;
+	takeTime = 1.0f;
+	
+	curModel = e_Actor->GetRootMeshData()->GetMesh();
+	curAnimator = e_Actor->GetRootMeshData()->GetAnimation();
+	bAnimate = curAnimator ? true : false;
+	if (bAnimate)
+	{
+		clips = curAnimator->Clips();
+		curAnimator->SetAnimState();
+	}
 	orbitCam->SetObjPos(TargetPos);
 	orbitCam->CameraMove(mouseVal);
 	orbitCam->Update();
@@ -81,8 +99,6 @@ void ActorEditor::Update()
 {
 	if (false == bEdit)		return;
 	//액터의 에딧모드 활성화
-	//sky->Update();
-	grid->Update();
 
 	e_Actor->Update();
 	
@@ -100,18 +116,20 @@ void ActorEditor::PreRender()
 	renderTarget->Set(depthStencil->DSV());
 	//renderTarget->Set(NULL);
 	{
-		//sky->Render();
+		sky->Update();
+		grid->Update();
+		sky->Render();
 
+		grid->Tech(1);
 		floor->Render();
 		grid->Render();
 
-		e_Actor->Tech(0, 0, 0);
+		e_Actor->Tech(1, 1, 1);
 		e_Actor->Pass(0, 1, 2);
 		e_Actor->Render();
 
 	}
 	editSrv = renderTarget->SRV();
-
 	// 컨텍스트의 서브카메라 삭제
 	Context::Get()->SetMainCamera();
 
@@ -136,10 +154,9 @@ void ActorEditor::Render()
 			{
 				EditActorReset();
 			}
-			imguiWinChild_CompHeirarchy(size);
+			imguiWinChild_CompHeirarchy(ImVec2(size.x*0.2f, size.y*0.35f));
 			//ImGui::Separator();
-			ImguiWinChild_AnimCon(size);
-			ImGui::BeginChild("Cam_Property", ImVec2(size.x*0.3f, size.y*0.3f), true);
+			ImGui::BeginChild("Cam_Property", ImVec2(size.x*0.2f, size.y*0.3f), true);
 			ImGui::Text("mouse <%.2f,%.2f,%.2f>", mouseVal.x, mouseVal.y, mouseVal.z);
 			orbitCam->Property();
 			ImGui::EndChild();
@@ -147,11 +164,18 @@ void ActorEditor::Render()
 		}
 		ImGui::EndGroup();
 		ImGui::SameLine();
-		ImGui::Image
-		(
-			editSrv? editSrv : nullptr, ImVec2(size.x*0.4f, size.y)
-		);
-		if (ImGui::IsMouseHoveringWindow())
+
+		ImGui::BeginChild("EditorRender", ImVec2(size.x*0.5f, size.y), true, ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+		{
+
+			ImGui::Image
+			(
+				editSrv ? editSrv : nullptr, ImVec2(size.x*0.5f, size.y*0.8f)
+			);
+			ImgOffset = ImGui::GetItemRectMin();
+			ImgSize = ImGui::GetItemRectSize();
+
+			if (ImGui::IsMouseHoveringWindow())
 		{
 			ImVec2 mousXY = ImGui::GetMouseDragDelta(1);
 			if (ImGui::IsKeyPressed(VK_SHIFT))
@@ -175,24 +199,25 @@ void ActorEditor::Render()
 			if (ImGui::IsMouseDown(1) == true)
 			{
 				mouseVal.x += mousXY.x * 0.1f*Time::Delta();
-				mouseVal.y += mousXY.y * 0.1f*Time::Delta();
+				mouseVal.y -= mousXY.y * 0.1f*Time::Delta();
 			}
 
 			orbitCam->CameraMove(mouseVal);
 		}
+			if (NULL != selecedComp)
+				RenderGizmo(selecedComp->GetTransform(0));
+
+			ImguiWinChild_AnimCon(ImVec2(size.x*0.5f, size.y*0.2f));
+			ImGui::EndChild();
+		}
 
 
 		//랜더될 RTV 위치및 크기
-		ImgOffset = ImGui::GetItemRectMin();
-		ImgSize = ImGui::GetItemRectSize();
+
 		ImGui::SameLine();
-
-		if (NULL != selecedComp)
-			RenderGizmo(selecedComp->GetTransform(0));
-
 		ImGui::BeginGroup();
 		{
-			imguiWinChild_CompProperty(size);
+			imguiWinChild_CompProperty(ImVec2(size.x*0.3f, size.y));
 		}
 		ImGui::EndGroup();
 	}
@@ -203,18 +228,32 @@ void ActorEditor::PostRender()
 {
 }
 
+void ActorEditor::SetActor(Actor * actor)
+{
+	actor->ActorSyncBaseTransform();
+	this->actor = actor;
+	e_Actor = new Actor(*actor);
+	e_Actor->EditModeOn();
+	e_Actor->SetShader(shader);
+	e_Actor->GetTransform()->Position(Vector3(0, 0, 0));
+	e_Actor->GetTransform()->Rotation(Vector3(0, 0, 0));
+	Initialize();
+}
+
 void ActorEditor::ImguiWindow_Begin()
 {
-	ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+	ImGui::SetWindowSize(ImVec2(800, 640), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSizeConstraints
 	(
-		ImVec2(800, 600),
-		ImVec2(1280, 720)
+		ImVec2(800, 640),
+		ImVec2(1280, 768)
 	);
 
 	ImGuiWindowFlags windowFlags =
-		ImGuiWindowFlags_NoResize
-		|ImGuiWindowFlags_NoMove;
+		//ImGuiWindowFlags_NoResize
+		ImGuiWindowFlags_NoMove	|
+		ImGuiWindowFlags_AlwaysVerticalScrollbar |
+		ImGuiWindowFlags_AlwaysHorizontalScrollbar;
 	ImGui::Begin("Editor", &bEdit, windowFlags);
 
 }
@@ -226,7 +265,7 @@ void ActorEditor::ImguiWindow_End()
 
 void ActorEditor::imguiWinChild_CompHeirarchy(const ImVec2 & size)
 {
-	ImGui::BeginChild("Component_Heirarchy", ImVec2(size.x*0.3f, size.y*0.35f), true);
+	ImGui::BeginChild("Component_Heirarchy", size, true);
 	{
 		e_Actor->ShowCompHeirarchy(&selecedComp);
 	}
@@ -235,7 +274,7 @@ void ActorEditor::imguiWinChild_CompHeirarchy(const ImVec2 & size)
 
 void ActorEditor::imguiWinChild_CompProperty(const ImVec2 & size)
 {
-	ImGui::BeginChild("Component_Property", ImVec2(size.x*0.3f, size.y), true);
+	ImGui::BeginChild("Component_Property", size, true);
 	{
 		if (selecedComp != NULL)
 			selecedComp->Property();
@@ -245,7 +284,8 @@ void ActorEditor::imguiWinChild_CompProperty(const ImVec2 & size)
 
 void ActorEditor::ImguiWinChild_AnimCon(const ImVec2 & size)
 {	
-	ImGui::BeginChild("Animation",ImVec2(size.x*0.3f, size.y*0.35f),true);
+	//TODO: 현재 선택한 comp가 animator를 가지고 있으면 클립선택하게. 0902
+	ImGui::BeginChild("Animation", size,true);
 	{
 		if (curAnimator->ClipCount() > 0)
 		{
@@ -273,17 +313,23 @@ void ActorEditor::ImguiWinChild_AnimCon(const ImVec2 & size)
 void ActorEditor::ActorCompile()
 {
 	//원본 액터를 에딧용 액터를 통해 재컴파일
+	// 루트는 남으므로 굳이 삭제 필요 없음
 	actor->ActorCompile(*e_Actor);
+	actor->SetShader(actor->GetShader());
+	actor->Update();
+	actor->ToReMakeIcon(true);
+	//actor->ActorSyncBaseTransform();
 }
 
 void ActorEditor::EditActorReset()
 {
 	//기존 에딧액터를 삭제후 다시 만들기
-	SafeDelete(e_Actor);
-	e_Actor = new Actor(*actor);
+	e_Actor->ActorCompile(*actor);
+	e_Actor->SetShader(shader);
 
 	curModel = e_Actor->GetRootMeshData()->GetMesh();
 	curAnimator = e_Actor->GetRootMeshData()->GetAnimation();
+	bAnimate = curAnimator ? true : false;
 	if (bAnimate)
 	{
 		clips = curAnimator->Clips();

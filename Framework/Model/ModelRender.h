@@ -27,10 +27,10 @@ private:
 	Shader* shader;
 
 	ID3D11Texture2D* texture = NULL;
-	ID3D11ShaderResourceView* srv;
+	ID3D11ShaderResourceView* srv = NULL;
 	ID3DX11EffectShaderResourceVariable* sTransformsSRV;
 
 private:
-	Matrix bones[MAX_MODEL_TRANSFORMS];
-	Matrix boneTransforms[MAX_MODEL_INSTANCE][MAX_MODEL_TRANSFORMS];
+	Matrix bones[MAX_BONE_TRANSFORMS];
+	Matrix boneTransforms[MAX_MODEL_INSTANCE][MAX_BONE_TRANSFORMS];
 };

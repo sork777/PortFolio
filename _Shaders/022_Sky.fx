@@ -17,10 +17,15 @@ float4 PS(MeshOutput input) : SV_Target0
     //높이 보정
     return lerp(Center, Apex, input.oPosition.y * Height);
 }
-
+//왠지 Global쪽은 인식 안됨
+float3 glDir;
 float4 PS_CubeMap(MeshOutput input) : SV_Target0
 {
-    return SkyCubeMap.Sample(LinearSampler, input.oPosition);
+    float4 color = SkyCubeMap.Sample(LinearSampler, input.oPosition);
+    float U = saturate(dot(-(glDir), float3(0, 1, 0)));
+    U = clamp(U, 0.3f, 1.0f);
+    
+    return color*U;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

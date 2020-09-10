@@ -66,15 +66,15 @@ private:
 
 		ClipTransform()
 		{
-			Transform = new Matrix*[MAX_MODEL_KEYFRAMES];
+			Transform = new Matrix*[MAX_ANIM_KEYFRAMES];
 
-			for(UINT i = 0; i < MAX_MODEL_KEYFRAMES; i++)
-				Transform[i] = new Matrix[MAX_MODEL_TRANSFORMS];
+			for(UINT i = 0; i < MAX_ANIM_KEYFRAMES; i++)
+				Transform[i] = new Matrix[MAX_BONE_TRANSFORMS];
 		}
 
 		~ClipTransform()
 		{
-			for(UINT i = 0; i < MAX_MODEL_KEYFRAMES; i++)
+			for(UINT i = 0; i < MAX_ANIM_KEYFRAMES; i++)
 				SafeDeleteArray(Transform[i]);
 
 			SafeDeleteArray(Transform);
@@ -85,7 +85,7 @@ private:
 	vector<ModelClip *> clips;
 private:
 	TweenDesc tweenDesc[MAX_MODEL_INSTANCE];
-	ConstantBuffer* frameBuffer;
+	ConstantBuffer* frameBuffer = NULL;
 	ID3DX11EffectConstantBuffer* sFrameBuffer;
 
 private:
@@ -93,7 +93,7 @@ private:
 	Model* model;
 
 	ID3D11Texture2D* clipTextureArray = NULL;
-	ID3D11ShaderResourceView* clipSrv;
+	ID3D11ShaderResourceView* clipSrv = NULL;
 	ID3DX11EffectShaderResourceVariable* sTransformsSRV;
 
 	float time = 0.0f;

@@ -110,9 +110,6 @@ typedef D3DXPLANE Plane;
 #include "Components/Common/PerFrame.h"
 #include "Components/Common/Transform.h"
 
-//#include "Objects/BaseObject.h"
-#include "Objects/Actor/Actor.h"
-
 #include "Utilities/DebugLine.h"
 #include "Utilities/Math.h"
 #include "Utilities/String.h"
@@ -140,6 +137,10 @@ typedef D3DXPLANE Plane;
 
 #include "Model/Loader/Types.h"
 #include "Model/Loader/Converter.h"
+
+#include "Objects/BaseObject.h"
+#include "Objects/Actor/Actor.h"
+#include "Objects/Etc/BillBoardObj.h"
 
 #include "LightEffects/Shadow.h"
 #include "LightEffects/Light.h"

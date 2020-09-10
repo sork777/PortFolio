@@ -1,5 +1,5 @@
+#include "Framework.h"
 #include "Actor.h"
-#include "Environment/TerrainLod.h"
 
 Actor::Actor()	
 	:root(NULL)
@@ -15,7 +15,6 @@ Actor::Actor(Model & model)
 
 Actor::Actor(const Actor& actor)
 {
-	bEditMode = true;
 	root = new ModelMeshComponent(*(actor.root));
 	root->AddInstanceData();
 
@@ -30,12 +29,7 @@ Actor::~Actor()
 
 void Actor::Initailize()
 {
-	/*std::cout << (!bEditMode ? "메인액터" : "에디터 액터") << "생성" << endl;
-	std::cout << "루트 메시 주소 : " << root << endl;
-*/
-	bSpawningObject = false;
-	spawnInstance = -1;
-	spawnPos = Vector3(-1, -1, -1);
+	Object_Name = L"Actor_";
 }
 
 void Actor::Destroy()
@@ -49,28 +43,7 @@ void Actor::Update()
 
 	root->Update();
 
-	if (NULL != CurTerrain)
-	{
-		int loop = root->GetInstSize();
-		for (int inst = 0; inst < loop; inst++)
-		{
-			Vector3 pos;
-			root->GetTransform(inst)->Position(&pos);
-			pos.y=CurTerrain->GetPickedHeight(pos);
-			root->GetTransform(inst)->Position(pos);
-		}
-	}
-	//밖으로 빼도 될것같은데...?
-	//생성해서 옮기는 도중임
-	if (true == bSpawningObject)
-	{
-		if (true == bEditMode) return;
-		//스폰한 인스턴스를 갱신하고 있는 스폰 좌표로 이동중
-		root->GetTransform(spawnInstance)->Position(spawnPos);
-		//놓으면 끝
-		if(Mouse::Get()->Down(0))
-			bSpawningObject = false;
-	}
+	
 }
 
 void Actor::PreRender()
@@ -83,8 +56,21 @@ void Actor::Render()
 	root->Render();
 }
 
-void Actor::PostRender()
+const bool& Actor::ObjectProperty()
 {
+	return false;
+}
+
+void Actor::ObjectArrangementAtTerrain(TerrainLod * CurrentTerrain)
+{
+	int loop = root->GetInstSize();
+	for (int inst = 0; inst < loop; inst++)
+	{
+		Vector3 pos;
+		root->GetTransform(inst)->Position(&pos);
+		pos.y = CurrentTerrain->GetPickedHeight(pos);
+		root->GetTransform(inst)->Position(pos);
+	}	
 }
 
 void Actor::Tech(const UINT & mesh, const UINT & model, const UINT & anim)
@@ -106,12 +92,6 @@ void Actor::ShowCompHeirarchy(OUT ObjectBaseComponent** selectedComp)
 	root->ComponentHeirarchy(selectedComp);
 }
 
-void Actor::SetSpawnPosition(const Vector3 & position)
-{
-	if (true == bEditMode) return;
-	if (true == bSpawningObject)
-		spawnPos = position;
-}
 
 Transform * Actor::GetTransform(const UINT & instance)
 {
@@ -120,23 +100,27 @@ Transform * Actor::GetTransform(const UINT & instance)
 	return root ? root->GetTransform(instance) : NULL;
 }
 
-void Actor::AddInstanceData()
+const bool& Actor::AddInstanceData()
 {
 	//에딧일때 안씀
-	if (true == bEditMode) return;
-	if (NULL == root) return;
-	//스폰 관련은 나중에 밖으로 빼도 될것 같다.
-	spawnInstance = root->GetInstSize();
-	root->AddInstanceData();
-	bSpawningObject = true;
+	if (true == bEditMode)  return false;
+	if (NULL == root)  return false;
 
+	//TODO: 나중에 모델쪽으로 빼서 Add/Del관련 전부 bool 리턴으로
+	if (MAX_MODEL_INSTANCE <= root->GetInstSize() + 1)
+		return false;
+	root->AddInstanceData();
+	return true;
 }
 
-void Actor::DelInstanceData(const UINT & instance)
+const bool& Actor::DelInstanceData(const UINT & instance)
 {
-	if (true == bEditMode) return;
-	if (NULL == root) return;
+	if (true == bEditMode) return false;
+	if (NULL == root)  return false;
+	if (instance >= root->GetInstSize()) return false;
+
 	root->DelInstanceData(instance);
+	return true;
 }
 
 void Actor::ActorCompile(const Actor& editActor)
@@ -149,4 +133,6 @@ void Actor::SetRootComponent(ModelMeshComponent * actorRoot)
 	//에딧 모드인 액터는 이미 루트가 정해져있는애임.
 	if (true == bEditMode) return;
 	root = actorRoot;
+
+	Object_Name += root->GetMesh()->Name();
 }

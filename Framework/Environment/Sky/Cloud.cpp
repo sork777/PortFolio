@@ -58,8 +58,6 @@ void Cloud::Render(bool bGlow)
 	D3D::GetDC()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//shader->Draw(0, 2, 6);
-	static bool bwire=false;
-	ImGui::Checkbox("WireCloud", &bwire);
 	if(bwire)
 		shader->DrawIndexed(0, 5, domeIndexCount);
 	else

@@ -80,8 +80,11 @@ void FigureMeshComponent::Render()
 	Super::Render();
 }
 
-bool FigureMeshComponent::Property(const UINT& instance)
+bool FigureMeshComponent::Property(const int& instance)
 {
+	if (0 >= GetInstSize())		return false;
+	if (0 >= GetInstSize() - instance)		return false;
+
 	bool bChange = false;
 	if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -90,18 +93,35 @@ bool FigureMeshComponent::Property(const UINT& instance)
 	ImGui::Separator();
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		if (GetTransform(instance)->Property())
+		if (instance < 0)
 		{
-			chageTrans[instance] = true;
-			bChange = true;
+			if (baseInitTransform->Property())
+			{
+				bChange = true;
+				GetTransform()->Local(baseInitTransform);
+			}
+			if (ImGui::Button("Reset"))
+			{
+				baseInitTransform->Local(baseTransform);
+				GetTransform()->Local(baseTransform);
+			}
 		}
-		if (ImGui::Button("Reset"))
+		else
 		{
-			GetTransform(instance)->Local(baseTransform);
-			chageTrans[instance] = false;
+			if (GetTransform(instance)->Property())
+			{
+				chageTrans[instance] = true;
+				bChange = true;
+			}
+			if (ImGui::Button("Reset"))
+			{
+				GetTransform(instance)->Local(baseTransform);
+				chageTrans[instance] = false;
+			}
 		}
 	}
-	bChange |= Super::Property();
+
+	bChange |= Super::Property(instance);
 	return bChange;
 }
 

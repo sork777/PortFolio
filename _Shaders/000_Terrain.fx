@@ -46,7 +46,8 @@ struct TerrainLODDesc
     float WorldCellSpace;
     float TerrainHeightRatio;
 
-    float2 TexScale;
+    float TexScale;
+    int UseLOD;
     float CB_Terrain_Padding2[2];
 
     //float4 WorldFrustumPlanes[6];

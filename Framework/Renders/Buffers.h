@@ -174,9 +174,9 @@ private:
 class CsTexture
 {
 public:
-	CsTexture(UINT width=0, UINT height=0, 
-		bool bCpuWrite = false,		bool bGpuWrite = true,
-		DXGI_FORMAT format= DXGI_FORMAT_R8G8B8A8_TYPELESS);
+	CsTexture(UINT width=0, UINT height=0,
+		DXGI_FORMAT format= DXGI_FORMAT_R8G8B8A8_TYPELESS,
+		bool bCpuWrite = false, bool bGpuWrite = true);
 	virtual ~CsTexture();
 
 	void Resize(UINT width = 0, UINT height = 0);
