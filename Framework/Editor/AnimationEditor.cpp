@@ -68,7 +68,8 @@ void AnimationEditor::Update()
 		for (Attach* att : attaches)
 		{
 			UINT bone = att->bone;
-			Matrix attach = curAnimator->GetboneWorld(0, bone);
+			curAnimator->ReadyforGetBoneworld(bone);
+			Matrix attach = curAnimator->GetboneWorld(0);
 			attach *= world;
 			if (att->collider != NULL)
 			{
@@ -205,7 +206,8 @@ void AnimationEditor::ModelController()
 				Transform* transform = new Transform();
 				Transform* boneTransform = curBoneNames[selectedBone]->GetBoneTransform();
 				//Matrix mat = curModel->BoneByIndex(selectedBone + 1)->BoneWorld();
-				Matrix mat = curAnimator->GetboneWorld(0, selectedBone + 1);
+				curAnimator->ReadyforGetBoneworld(selectedBone + 1);
+				Matrix mat = curAnimator->GetboneWorld(0);
 				//boneTransform->Local(mat);
 				//boneTransform->Update();
 				transform->World(mat);
@@ -355,7 +357,8 @@ void AnimationEditor::SelectedBoneViewer()
 	P = Context::Get()->Projection();
 	Vector3 textPos, pos;
 
-	Matrix mat = curAnimator->GetboneWorld(0, selectedBone + 1);
+	curAnimator->ReadyforGetBoneworld(selectedBone + 1);
+	Matrix mat = curAnimator->GetboneWorld(0);
 	Matrix world = curModel->GetTransform(0)->World();
 	Transform sTransform;
 	mat*=world;

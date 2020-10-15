@@ -70,14 +70,15 @@ public:
 	void AttachSocket(const wstring& wstr) { parentSocketName = wstr; }
 	const int& GetSocket()				{ return parentSocket; }
 	wstring& ComponentName()			{ return componentName; }
+	Transform* GetBaseTransform()		{ return baseTransform; }
 	Transform* GetBaseInitTransform()	{ return baseInitTransform; }
 	ObjectBaseComponentType& GetType()	{ return type; }
 
 protected:
 	Shader*		shader;
-	//컴포넌트 인스턴싱의 초기 트랜스폼
+	// 에딧에서 변경될 녀석 컴파일할때 baseinit에 적용해줄거임
 	Transform*	baseTransform;
-	// base의 초기값을 지닐 트랜스폼, 컴파일할때 base를 적용해줄거임
+	//컴포넌트 인스턴싱의 초기 트랜스폼
 	Transform*	baseInitTransform;
 	vector<bool> chageTrans;
 

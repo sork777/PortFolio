@@ -124,10 +124,11 @@ bool ModelMeshComponent::Property(const int& instance)
 
 		if (instance < 0)
 		{
-			if (baseTransform->Property())
+			if (GetTransform()->Property())
 			{
 				bChange = true;
-				GetTransform()->Local(baseTransform);
+				//로컬을 수정하는거니까 로컬만 받아야함.
+				baseTransform->Local(GetTransform()->Local());
 			}
 			if (ImGui::Button("Reset"))
 			{
@@ -144,7 +145,7 @@ bool ModelMeshComponent::Property(const int& instance)
 			}
 			if (ImGui::Button("Reset"))
 			{
-				GetTransform(instance)->Local(baseTransform);
+				GetTransform(instance)->Local(baseInitTransform);
 				chageTrans[instance] = false;
 			}
 		}
@@ -157,17 +158,20 @@ bool ModelMeshComponent::Property(const int& instance)
 void ModelMeshComponent::Tech(const UINT & mesh, const UINT & model, const UINT & anim)
 {
 	if (animation != NULL)
+	{
 		skeletonMesh->Tech(anim);
+	}
 	else
 		skeletonMesh->Tech(model);
-
 	Super::Tech(mesh, model, anim);
 }
 
 void ModelMeshComponent::Pass(const UINT & mesh, const UINT & model, const UINT & anim)
 {
 	if (animation != NULL)
+	{
 		skeletonMesh->Pass(anim);
+	}
 	else
 		skeletonMesh->Pass(model);
 
@@ -191,7 +195,7 @@ void ModelMeshComponent::AddInstanceData()
 {
 	int index = skeletonMesh->GetInstSize();
 	skeletonMesh->AddInstance();
-	skeletonMesh->GetTransform(index)->Local(baseTransform);	
+	skeletonMesh->GetTransform(index)->Local(baseInitTransform);	
 	Super::AddInstanceData();
 	skeletonMesh->UpdateTransforms();
 }

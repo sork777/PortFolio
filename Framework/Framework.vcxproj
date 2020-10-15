@@ -34,6 +34,7 @@
     <ClCompile Include="Editor\TerrainEditor.cpp" />
     <ClCompile Include="Environment\Terrain\TerrainBrush.cpp" />
     <ClCompile Include="Objects\Etc\BillBoardObj.cpp" />
+    <ClCompile Include="Objects\Manager\BillBoardManager.cpp" />
     <ClCompile Include="Objects\ObjectPicker.cpp" />
     <ClCompile Include="Objects\Actor\Actor.cpp" />
     <ClCompile Include="Components\Common\MaterialPBR.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="Environment\Terrain\TerrainBrush.h" />
     <ClInclude Include="Model\AnimData.h" />
     <ClInclude Include="Objects\Etc\BillBoardObj.h" />
+    <ClInclude Include="Objects\Manager\BillBoardManager.h" />
     <ClInclude Include="Objects\Manager\IObjectManager.h" />
     <ClInclude Include="Objects\ObjectPicker.h" />
     <ClInclude Include="Objects\Actor\Actor.h" />

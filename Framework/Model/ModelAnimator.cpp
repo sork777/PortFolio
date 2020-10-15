@@ -2,7 +2,6 @@
 #include "ModelAnimator.h"
 #include "ModelMesh.h"
 
-
 ModelAnimator::ModelAnimator(const ModelAnimator & animator)
 {
 	// 복사생성 한다는 소리는 원본과 다른 모델로 바꿀수 있으므로 모델을 따로 갖음?
@@ -15,7 +14,7 @@ ModelAnimator::ModelAnimator(const ModelAnimator & animator)
 ModelAnimator::ModelAnimator(Model * model)
 	: model(model)
 {
-	shader = model->GetShader();	
+	shader = model->GetShader();
 
 	Initialize();
 }
@@ -40,7 +39,6 @@ ModelAnimator::~ModelAnimator()
 	SafeDeleteArray(clipTransforms);
 	//컴포넌트쪽에서 삭제할것
 	//SafeDelete(model);
-
 }
 
 void ModelAnimator::Initialize()
@@ -56,6 +54,8 @@ void ModelAnimator::Initialize()
 	sComputeFrameBuffer = computeShader->AsConstantBuffer("CB_AnimationFrame");
 
 	clipTransforms = new ClipTransform[MAX_ANIMATION_CLIPS];
+
+	testCSTex = new CsTexture(model->BoneCount()*4,1, DXGI_FORMAT_R32G32B32A32_TYPELESS);
 }
 
 void ModelAnimator::Update()
@@ -64,17 +64,47 @@ void ModelAnimator::Update()
 	{
 		CreateComputeDesc();
 	}
+	
+	
 	//model->Update();	
 }
 
 void ModelAnimator::Render()
 {
-	if (clipSrv != NULL)
-		sTransformsSRV->SetResource(clipSrv);
-
-	frameBuffer->Apply();
-	sFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
 	//주의, 버퍼 다 올리고 랜더하지 않으면 다른 애니메이터랑 꼬일수 있음.
+	frameBuffer->Apply();
+	if (model->GetPass() == 2)
+	{
+		if (clipSrv != NULL)
+			sTransformsSRV->SetResource(clipSrv);
+		sFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
+
+	}
+	else
+	{
+		//TODO: 1006 CS 계산후 랜더방식 해결해야할 점
+		// 1. 애니메이션 꼬임 정확히는 본과 clip데이터가 엉켜서 실행
+		// 2. 왠지 메인쪽에만 랜더 안됨 디퍼드에서 안되는건가.
+		// 3. 1012 actor 매니저쪽에 이상있음을 확인
+		sComputeFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
+
+		if (model->IsAdded())
+		{
+			testCSTex->Resize(model->BoneCount() * 4, model->GetInstSize());
+		}
+
+		Vector2 size = testCSTex->GetSize();
+		UINT dispatchX = ceil((size.x / 4 * size.y) / 1024);
+		computeShader->AsScalar("TexWidth")->SetInt(size.x);
+
+		computeShader->AsSRV("TransformsMap")->SetResource(clipSrv);
+		computeShader->AsSRV("AnimEditTransformMap")->SetResource(model->GetEditSrv());
+		computeShader->AsUAV("OutputMap")->SetUnorderedAccessView(testCSTex->UAV());
+
+		computeShader->Dispatch(0, 1, dispatchX, 1, 1);
+		shader->AsSRV("AnimTransformTestMap")->SetResource(testCSTex->SRV());
+	}
+	
 	//model->Render();	
 }
 
@@ -89,7 +119,7 @@ void ModelAnimator::SetShader(Shader * shader)
 void ModelAnimator::CloneClips(const vector<ModelClip*>& oClips)
 {
 	//기존 객체의 클립데이터 삭제
-	
+
 	int size = clips.size();
 	if (size > 0)
 	{
@@ -105,23 +135,15 @@ void ModelAnimator::CloneClips(const vector<ModelClip*>& oClips)
 		ModelClip* clip = new ModelClip(*oClip);
 		////클립 추가후 텍스쳐 업데이트
 		clips.emplace_back(clip);
+		maxAnimFrame = maxAnimFrame > clip->frameCount ? maxAnimFrame : clip->frameCount;
 		UpdateTextureArray();
 	}
 }
 
-Matrix ModelAnimator::GetboneWorld(const UINT& instance, const UINT& boneIndex)
+void ModelAnimator::ReadyforGetBoneworld(const UINT & boneIndex)
 {
-
-	if (csOutput == NULL)
+	if (computeBuffer != NULL)
 	{
-		Matrix temp;
-		D3DXMatrixIdentity(&temp);
-
-		return temp;
-	}
-	if (computeBuffer != NULL && model->IsEditTexChanged())
-	{
-		model->AdaptEditTex();
 		sComputeFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
 
 		// 본인덱스를 통해 모델의 트랜스폼 맵에서 필요한 부분만 빼옴.
@@ -132,6 +154,16 @@ Matrix ModelAnimator::GetboneWorld(const UINT& instance, const UINT& boneIndex)
 
 		computeShader->Dispatch(0, 0, 1, 1, 1);
 		computeBuffer->Copy(csOutput, sizeof(CS_OutputDesc) * MAX_MODEL_INSTANCE);
+	}
+}
+Matrix ModelAnimator::GetboneWorld(const UINT& instance)
+{
+	if (csOutput == NULL)
+	{
+		Matrix temp;
+		D3DXMatrixIdentity(&temp);
+
+		return temp;
 	}
 
 	return csOutput[instance].Result;
@@ -152,7 +184,7 @@ void ModelAnimator::ReadClip(const wstring& file, const wstring& directoryPath)
 
 
 	ModelClip* clip = new ModelClip();
-	
+
 	clip->name = String::ToWString(r->String());
 	clip->fileName = noextfile;
 	//clip->filePath = file;
@@ -167,7 +199,7 @@ void ModelAnimator::ReadClip(const wstring& file, const wstring& directoryPath)
 	{
 		ModelKeyframe* keyframe = new ModelKeyframe();
 		keyframe->BoneName = String::ToWString(r->String());
-		
+
 		UINT size = r->UInt();
 		if (size > 0)
 		{
@@ -185,6 +217,8 @@ void ModelAnimator::ReadClip(const wstring& file, const wstring& directoryPath)
 
 	clips.push_back(clip);
 
+	maxAnimFrame = maxAnimFrame > clip->frameCount ? maxAnimFrame : clip->frameCount;
+
 	UpdateTextureArray();
 }
 
@@ -201,19 +235,19 @@ void ModelAnimator::SaveChangedClip(const UINT& clip, const wstring& file, const
 		if (Path::ExistFile(savePath) == true)
 			return;
 	}
-	
+
 	Path::CreateFolders(Path::GetDirectoryName(savePath));
 
-	ModelClip* saveclip=clips[clip];
+	ModelClip* saveclip = clips[clip];
 
 	BinaryWriter* w = new BinaryWriter();
 	w->Open(savePath);
 
-	w->String(String::ToString( saveclip->name));
+	w->String(String::ToString(saveclip->name));
 	w->Float(saveclip->duration);
 	w->Float(saveclip->frameRate);
 	w->UInt(saveclip->frameCount);
-	
+
 	UINT keyframesCount = saveclip->keyframeMap.size();
 	w->UInt(keyframesCount);
 
@@ -227,9 +261,9 @@ void ModelAnimator::SaveChangedClip(const UINT& clip, const wstring& file, const
 		w->UInt(size);
 		vector<ModelKeyframeData> datas;
 		ModelBone* bone = model->BoneByName(boneName);
-		
+
 		Matrix edit = bone->GetEditTransform()->Local();
-		for(UINT f = 0; f < size; f++)
+		for (UINT f = 0; f < size; f++)
 		{
 			ModelKeyframeData& data = keyframe->Transforms[f];
 			ModelKeyframeData editedData;
@@ -238,9 +272,9 @@ void ModelAnimator::SaveChangedClip(const UINT& clip, const wstring& file, const
 			D3DXMatrixScaling(&S, data.Scale.x, data.Scale.y, data.Scale.z);
 			D3DXMatrixRotationQuaternion(&R, &data.Rotation);
 			D3DXMatrixTranslation(&T, data.Translation.x, data.Translation.y, data.Translation.z);
-				
+
 			if (bone != NULL)
-			{				
+			{
 				W = S * R * T * edit;
 			}
 			else
@@ -248,7 +282,7 @@ void ModelAnimator::SaveChangedClip(const UINT& clip, const wstring& file, const
 				W = S * R * T;
 			}
 			D3DXMatrixDecompose(&editedData.Scale, &editedData.Rotation, &editedData.Translation, &W);
-			editedData.Time	= data.Time;
+			editedData.Time = data.Time;
 			datas.emplace_back(editedData);
 		}
 		if (size > 0)
@@ -268,26 +302,26 @@ void ModelAnimator::AddClip(const wstring& file, const wstring& directoryPath)
 	int addClipIndex = ClipCount() - 1;
 	CreateClipTransform(addClipIndex);
 
-	ModelClip* clip = ClipByIndex(addClipIndex);	
+	ModelClip* clip = ClipByIndex(addClipIndex);
 }
 
 void ModelAnimator::AddSocket(const int& parentBoneIndex, const wstring& bonename)
 {
 	UINT index = model->BoneCount();
-	
+
 	//모델에서 소켓 생성
 	model->AddSocket(parentBoneIndex, bonename);
-	
+
 	UINT clipcount = ClipCount();
-	
+
 	//각 클립에서 추가된 소켓 데이터를 갱신
 	D3D11_BOX destRegion;
 	destRegion.left = 0;
-	destRegion.right = 4 * MAX_BONE_TRANSFORMS;
+	destRegion.right = 4 * model->BoneCount();
 	//왠지 CS에서 터짐
 	//destRegion.left = 4 * (index);
 	//destRegion.right = 4 * (index+1);
-	for(UINT x = 0; x < clipcount; x++)
+	for (UINT x = 0; x < clipcount; x++)
 	{
 
 		ModelClip* clip = ClipByIndex(x);
@@ -295,7 +329,7 @@ void ModelAnimator::AddSocket(const int& parentBoneIndex, const wstring& bonenam
 		destRegion.front = x;
 		destRegion.back = x + 1;
 
-		for(UINT y = 0; y < clip->FrameCount(); y++)
+		for (UINT y = 0; y < clip->FrameCount(); y++)
 		{
 			memcpy(clipTransforms[x].Transform[y][index], clipTransforms[x].Transform[y][parentBoneIndex], sizeof(Matrix)); //복사
 			destRegion.top = y;
@@ -308,7 +342,7 @@ void ModelAnimator::AddSocket(const int& parentBoneIndex, const wstring& bonenam
 				0,
 				&destRegion,
 				clipTransforms[x].Transform[y],
-				sizeof(Matrix)*MAX_BONE_TRANSFORMS,
+				sizeof(Matrix)*model->BoneCount(),
 				0
 			);
 		}
@@ -321,18 +355,18 @@ void ModelAnimator::AddSocket(const int& parentBoneIndex, const wstring& bonenam
 
 #pragma region AnimationData
 
-void ModelAnimator::SetAnimState(const AnimationState& state,const UINT & instance)
+void ModelAnimator::SetAnimState(const AnimationState& state, const UINT & instance)
 {
 	tweenDesc[instance].state = state;
 
-	if(AnimationState::Stop == state)
+	if (AnimationState::Stop == state)
 		SetFrame(instance, 0);
 }
 
 void ModelAnimator::PlayAnim(const UINT& instance)
 {
 	TweenDesc& desc = tweenDesc[instance];
-	if(desc.state == AnimationState::Play)
+	if (desc.state == AnimationState::Play)
 	{
 
 		ModelClip* clip = ClipByIndex(desc.Curr.Clip);
@@ -387,7 +421,7 @@ void ModelAnimator::PlayAnim(const UINT& instance)
 	}//for(i)
 
 	frameBuffer->Apply();
-	
+
 
 }
 
@@ -400,7 +434,7 @@ void ModelAnimator::PlayClip(const UINT& instance, const UINT& clip, float speed
 
 UINT ModelAnimator::GetCurrClip(const UINT& instance)
 {
-	return tweenDesc[instance].Next.Clip>-1? tweenDesc[instance].Next.Clip: tweenDesc[instance].Curr.Clip;
+	return tweenDesc[instance].Next.Clip > -1 ? tweenDesc[instance].Next.Clip : tweenDesc[instance].Curr.Clip;
 }
 
 void ModelAnimator::SetFrame(const UINT& instance, int frameNum)
@@ -413,7 +447,7 @@ void ModelAnimator::SetFrame(const UINT& instance, int frameNum)
 UINT ModelAnimator::GetFrameCount(const UINT& instance)
 {
 	ModelClip* resultClip = ClipByIndex(tweenDesc[instance].Curr.Clip);
-	if(tweenDesc[instance].Next.Clip>-1)
+	if (tweenDesc[instance].Next.Clip > -1)
 		resultClip = ClipByIndex(tweenDesc[instance].Next.Clip);
 	return resultClip->FrameCount();
 }
@@ -433,7 +467,7 @@ ModelClip * ModelAnimator::ClipByName(const wstring& name)
 }
 
 #pragma region CreateDataRegion
-/* 
+/*
 	1. 이 함수가 만드는 텍스쳐는 오로지 애니메이션의 트랜스 폼만 갖게 할거임
 	2. 클립이 추가 될때마다 재생성 할거임
 */
@@ -448,37 +482,37 @@ void ModelAnimator::UpdateTextureArray()
 	{
 		D3D11_TEXTURE2D_DESC desc;
 		ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
-		desc.Width = MAX_BONE_TRANSFORMS * 4;
-		desc.Height = MAX_ANIM_KEYFRAMES;
+		desc.Width = model->BoneCount() * 4;
+		desc.Height = maxAnimFrame;
 		desc.ArraySize = clips.size();
 		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		desc.MipLevels = 1;
 		desc.SampleDesc.Count = 1;
-		UINT pageSize = MAX_BONE_TRANSFORMS * 4 * 16 * MAX_ANIM_KEYFRAMES;
-		
+		UINT pageSize = model->BoneCount() * 4 * 16 * maxAnimFrame;
+
 		void* p = VirtualAlloc(NULL, pageSize*clips.size(), MEM_RESERVE, PAGE_READWRITE); //예약
 
-		for(UINT c = 0; c < clips.size(); c++)
+		for (UINT c = 0; c < clips.size(); c++)
 		{
-			for(UINT y = 0; y < MAX_ANIM_KEYFRAMES; y++)
+			for (UINT y = 0; y < maxAnimFrame; y++)
 			{
 				UINT start = c * pageSize;
-				void* temp = (BYTE *)p + MAX_BONE_TRANSFORMS * y * sizeof(Matrix) + start;
+				void* temp = (BYTE *)p + model->BoneCount() * y * sizeof(Matrix) + start;
 
-				VirtualAlloc(temp, MAX_BONE_TRANSFORMS * sizeof(Matrix), MEM_COMMIT, PAGE_READWRITE); //공간 할당
-				memcpy(temp, clipTransforms[c].Transform[y], MAX_BONE_TRANSFORMS * sizeof(Matrix)); //복사
+				VirtualAlloc(temp, model->BoneCount() * sizeof(Matrix), MEM_COMMIT, PAGE_READWRITE); //공간 할당
+				memcpy(temp, clipTransforms[c].Transform[y], model->BoneCount() * sizeof(Matrix)); //복사
 			}
 		}
 
 		D3D11_SUBRESOURCE_DATA* subResource = new D3D11_SUBRESOURCE_DATA[clips.size()];
-		for(UINT c = 0; c < clips.size(); c++)
+		for (UINT c = 0; c < clips.size(); c++)
 		{
 			void* temp = (BYTE *)p + c * pageSize;
 
 			subResource[c].pSysMem = temp;
-			subResource[c].SysMemPitch = MAX_BONE_TRANSFORMS * sizeof(Matrix);
+			subResource[c].SysMemPitch = model->BoneCount() * sizeof(Matrix);
 			subResource[c].SysMemSlicePitch = pageSize;
 		}
 		Check(D3D::GetDevice()->CreateTexture2D(&desc, subResource, &clipTextureArray));
@@ -508,18 +542,18 @@ void ModelAnimator::UpdateTextureArray()
 
 void ModelAnimator::CreateClipTransform(const UINT& index)
 {
-	Matrix* bones = new Matrix[MAX_BONE_TRANSFORMS];
-	
+	Matrix* bones = new Matrix[model->BoneCount()];
+
 	ModelClip* clip = ClipByIndex(index);
-	for(UINT f = 0; f < clip->FrameCount(); f++)
+	for (UINT f = 0; f < clip->FrameCount(); f++)
 	{
-		for(UINT b = 0; b < model->BoneCount(); b++)
+		for (UINT b = 0; b < model->BoneCount(); b++)
 		{
 			ModelBone* bone = model->BoneByIndex(b);
 
 			Matrix parent;
-			/* 
-				1. 애니메이션에서 역행렬로 들어옴 
+			/*
+				1. 애니메이션에서 역행렬로 들어옴
 				2. 키프레임 데이터는 로컬임. 그래서 부모 본을 곱해주려는것
 			*/
 
@@ -547,7 +581,7 @@ void ModelAnimator::CreateClipTransform(const UINT& index)
 			else
 			{
 				bones[b] = parent;
-			}		
+			}
 
 			clipTransforms[index].Transform[f][b] = bones[b];
 		}//for(b)
@@ -556,14 +590,14 @@ void ModelAnimator::CreateClipTransform(const UINT& index)
 
 void ModelAnimator::CreateNoClipTransform(const UINT& index)
 {
-	for(UINT y = 0; y < MAX_ANIM_KEYFRAMES; y++)
-		memcpy(clipTransforms[index].Transform[y], clipTransforms[0].Transform[0], MAX_BONE_TRANSFORMS * sizeof(Matrix)); //복사
+	for (UINT y = 0; y < maxAnimFrame; y++)
+		memcpy(clipTransforms[index].Transform[y], clipTransforms[0].Transform[0], model->BoneCount() * sizeof(Matrix)); //복사
 }
 
 void ModelAnimator::CreateComputeDesc()
 {
 	UINT outSize = MAX_MODEL_INSTANCE;
-	
+
 	computeBuffer = new StructuredBuffer
 	(
 		NULL,
@@ -576,8 +610,9 @@ void ModelAnimator::CreateComputeDesc()
 	{
 		csOutput = new CS_OutputDesc[outSize];
 
-		for(UINT i = 0; i < outSize; i++)
+		for (UINT i = 0; i < outSize; i++)
 			D3DXMatrixIdentity(&csOutput[i].Result);
 	}
 }
+
 #pragma endregion

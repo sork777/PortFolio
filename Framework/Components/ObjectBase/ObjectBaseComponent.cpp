@@ -20,13 +20,10 @@ ObjectBaseComponent::ObjectBaseComponent(const ObjectBaseComponent& OBComp)
 	parentSocket = OBComp.parentSocket;
 
 	baseTransform = new Transform();
-	baseTransform->Local(OBComp.baseTransform->Local());
-	//베이스는 부모에 트랜스폼을 얹지 않는다.
-	baseTransform->Parent(OBComp.baseTransform->Parent());
+	baseTransform->Local(OBComp.baseTransform);
 
 	baseInitTransform = new Transform();
-	baseInitTransform->Local(OBComp.baseInitTransform->Local());
-	baseInitTransform->Parent(OBComp.baseInitTransform->Parent());
+	baseInitTransform->Local(OBComp.baseInitTransform);
 
 }
 
@@ -89,14 +86,10 @@ void ObjectBaseComponent::CompileComponent(const ObjectBaseComponent & OBComp)
 		parentSocket = OBComp.parentSocket;
 
 		//baseTransform = new Transform();
-		OBComp.baseInitTransform->Local(OBComp.baseTransform->Local());
-		OBComp.baseInitTransform->Parent(OBComp.baseTransform->Parent());
-
-		baseTransform->Local(OBComp.baseTransform->Local());
-		baseTransform->Parent(OBComp.baseTransform->Parent());
-
-		baseInitTransform->Local(OBComp.baseInitTransform->Local());
-		baseInitTransform->Parent(OBComp.baseInitTransform->Parent());
+		OBComp.baseInitTransform->Local(OBComp.baseTransform);
+		
+		baseTransform->Local(OBComp.baseTransform);
+		baseInitTransform->Local(OBComp.baseInitTransform);
 	}
 }
 
@@ -156,11 +149,12 @@ void ObjectBaseComponent::Update()
 		{
 			// 인스턴스만큼 위치 업뎃.
 			// 에딧중이면 첫번째 인스턴스만.
+			animator->ReadyforGetBoneworld(parentSocket);
 			UINT instCount = modelMesh->GetInstSize();
 			for (UINT i = 0; i < instCount; i++)
 			{
 				Matrix world = modelMesh->GetTransform(i)->World();
-				Matrix attach = animator->GetboneWorld(i, parentSocket);
+				Matrix attach = animator->GetboneWorld(i);
 				attach *= world;
 
 				this->GetTransform(i)->Parent(attach);
@@ -197,7 +191,7 @@ bool ObjectBaseComponent::Property(const int & instance)
 	{
 		ModelMeshComponent* modelMesh = dynamic_cast<ModelMeshComponent*>(parent);
 		Model* model = modelMesh->GetMesh();
-		
+		model->SetSelectedBoneNum(parentSocket);
 		int click = -1;
 		if (ImGui::CollapsingHeader("SelectBone"))
 		{
@@ -261,7 +255,7 @@ void ObjectBaseComponent::DelInstanceData(const UINT & instance)
 
 void ObjectBaseComponent::SyncBaseTransform()
 {
-	baseTransform->Local(baseInitTransform);
+	baseInitTransform->Local(baseTransform);
 	for (ObjectBaseComponent* child : children)
 		child->SyncBaseTransform();
 }

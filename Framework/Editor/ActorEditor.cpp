@@ -112,7 +112,6 @@ void ActorEditor::PreRender()
 	Context::Get()->SetSubCamera(orbitCam);
 
 	// 오빗카메라 업데이트
-
 	renderTarget->Set(depthStencil->DSV());
 	//renderTarget->Set(NULL);
 	{
@@ -125,7 +124,7 @@ void ActorEditor::PreRender()
 		grid->Render();
 
 		e_Actor->Tech(1, 1, 1);
-		e_Actor->Pass(0, 1, 2);
+		e_Actor->Pass(0, 1, 3);
 		e_Actor->Render();
 
 	}
@@ -205,7 +204,7 @@ void ActorEditor::Render()
 			orbitCam->CameraMove(mouseVal);
 		}
 			if (NULL != selecedComp)
-				RenderGizmo(selecedComp->GetTransform(0));
+				RenderGizmo(selecedComp->GetTransform());
 
 			ImguiWinChild_AnimCon(ImVec2(size.x*0.5f, size.y*0.2f));
 			ImGui::EndChild();
@@ -230,13 +229,13 @@ void ActorEditor::PostRender()
 
 void ActorEditor::SetActor(Actor * actor)
 {
-	actor->ActorSyncBaseTransform();
 	this->actor = actor;
 	e_Actor = new Actor(*actor);
 	e_Actor->EditModeOn();
 	e_Actor->SetShader(shader);
 	e_Actor->GetTransform()->Position(Vector3(0, 0, 0));
 	e_Actor->GetTransform()->Rotation(Vector3(0, 0, 0));
+	e_Actor->ActorSyncBaseTransform();
 	Initialize();
 }
 
@@ -314,11 +313,12 @@ void ActorEditor::ActorCompile()
 {
 	//원본 액터를 에딧용 액터를 통해 재컴파일
 	// 루트는 남으므로 굳이 삭제 필요 없음
+	e_Actor->ActorSyncBaseTransform();
+	actor->ActorSyncBaseTransform();
 	actor->ActorCompile(*e_Actor);
 	actor->SetShader(actor->GetShader());
 	actor->Update();
 	actor->ToReMakeIcon(true);
-	//actor->ActorSyncBaseTransform();
 }
 
 void ActorEditor::EditActorReset()

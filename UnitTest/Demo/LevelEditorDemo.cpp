@@ -83,6 +83,8 @@ void LevelEditorDemo::Update()
 
 	actorMgr->SetSpawnPosition(terrain->GetPickedPosition());
 	actorMgr->Update();
+	if (true == bActorSpwan)
+		actorMgr->ObjectSpawn();
 }
 
 void LevelEditorDemo::PreRender()
@@ -97,7 +99,9 @@ void LevelEditorDemo::PreRender()
 	{
 
 	}
-	
+	bOpenActorEditor = actorMgr->IsEditorOpened();
+	bActorSpwan = actorMgr->IsObjectSpawn();
+
 	if (true == bEditMode)
 		EditModePreRender();
 	else
@@ -137,11 +141,16 @@ void LevelEditorDemo::CreateBaseActor()
 {
 	//Kachujin
 	Model* model = new Model(shader);
-	model->ReadMaterial(L"Kachujin/Mesh", L"../../_Textures/Model/");
-	model->ReadMesh(L"Kachujin/Mesh", L"../../_Models/");
+	model->ReadMaterial(L"Mutant/Mesh", L"../../_Textures/Model/");
+	model->ReadMesh(L"Mutant/Mesh", L"../../_Models/"); 
 	
 	ModelAsset* modelasset = new ModelAsset(model);
+	if (modelasset->HasAnim() != NULL)
+	{
 
+		modelasset->SetClip(L"Mutant/Mutant_Roaring", L"../../_Models/");
+		modelasset->SetClip(L"Mutant/Mutant_Idle", L"../../_Models/");
+	}
 	ModelMeshComponent* modelMesh = modelasset->GetModelMeshCompFromModelAsset();
 
 	Transform* transform = modelMesh->GetBaseInitTransform();
@@ -154,11 +163,17 @@ void LevelEditorDemo::CreateBaseActor()
 
 	//Mutant
 	model = new Model(shader);
-	model->ReadMaterial(L"Mutant/Mesh", L"../../_Textures/Model/");
-	model->ReadMesh(L"Mutant/Mesh", L"../../_Models/");
+	model->ReadMaterial(L"Kachujin/Mesh", L"../../_Textures/Model/");
+	model->ReadMesh(L"Kachujin/Mesh", L"../../_Models/");
 
 	modelasset = new ModelAsset(model);
-
+	if (modelasset->HasAnim() != NULL)
+	{
+		modelasset->SetClip(L"Kachujin/S_M_H_Attack", L"../../_Models/");
+		modelasset->SetClip(L"Kachujin/Idle", L"../../_Models/");
+		modelasset->SetClip(L"Kachujin/Running", L"../../_Models/");
+		modelasset->SetClip(L"Kachujin/Jump", L"../../_Models/");
+	}
 	modelMesh = modelasset->GetModelMeshCompFromModelAsset();
 
 	transform = modelMesh->GetBaseInitTransform();
@@ -169,6 +184,18 @@ void LevelEditorDemo::CreateBaseActor()
 	actor->SetRootComponent(modelMesh);
 	actor->SetShader(shader);
 
+
+	//Sword
+	model = new Model(shader);
+	model->ReadMaterial(L"Weapon/Sword", L"../../_Textures/Model/");
+	model->ReadMesh(L"Weapon/Sword", L"../../_Models/");
+
+	modelasset = new ModelAsset(model);
+	modelMesh = modelasset->GetModelMeshCompFromModelAsset();
+	
+	transform = modelMesh->GetBaseInitTransform();
+	transform->RotationDegree(0, 0, 90);
+	transform->Position(-10, -5, -15);
 }
 
 void LevelEditorDemo::SetObjectTech(const UINT & mesh, const UINT & model, const UINT & anim)
@@ -223,6 +250,8 @@ void LevelEditorDemo::EditModeUpdate()
 		ssao->SetParameters(SSAOSampleRadius, radius);
 		ImGui::End();
 	}
+	if (true == bOpenActorEditor)
+		actorMgr->UpdateActorEditor();
 
 }
 
@@ -244,7 +273,9 @@ void LevelEditorDemo::PlayModePreRender()
 
 void LevelEditorDemo::EditModePreRender()
 {
-	
+	if (true == bOpenActorEditor)
+		actorMgr->PreRenderActorEditor();
+
 	//GBuffer
 	{
 		gBuffer->SetRTVs();
@@ -254,7 +285,7 @@ void LevelEditorDemo::EditModePreRender()
 		terrainEditor->Render();
 
 		SetObjectTech(0, 0, 0);
-		SetObjectPass(0, 1, 2);
+		SetObjectPass(0, 1, 3);
 		SceneRender();
 	}
 }
@@ -267,6 +298,8 @@ void LevelEditorDemo::PlayModeRender()
 
 void LevelEditorDemo::EditModeRender()
 {
+	if (true == bOpenActorEditor)
+		actorMgr->RenderActorEditor();
 	
 	actorMgr->ObjectIcon();
 

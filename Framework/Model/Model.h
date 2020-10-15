@@ -8,7 +8,8 @@ class ModelBone;
 class ModelMesh;
 /*
 	TODO: 0904 Animator랑 Render의 텍스쳐맵에서 INSTANCE관련 부분 배제하기
-	동적으로 메모리 재설정 시키기
+	위에 define한 4종을 동적으로 메모리 재설정 시키기
+	메모리 차지하는게 커서 여러 모델 못함...
 */
 class Model
 {
@@ -93,9 +94,22 @@ private:
 	vector<ModelBone *>		bones;
 	vector<ModelMesh *>		meshes;
 
-protected:
+public:
+	void SetAnimClip(const UINT& animClipCount = 0) { 
+		this->animClipCount = animClipCount; 
+		if (animClipCount < 1) this->animClipCount = 1;
+		editTexture = NULL;
+	}
+
+	const UINT& GetTech() { return tech; }
+	const UINT& GetPass() { return pass; }
+private:
 	Shader* shader;
+	UINT tech = 0;
+	UINT pass = 0;
 	bool	bAnimated = false;
+	UINT	prevBoneCount = 0;
+	UINT	animClipCount = 1;
 
 	//인스턴싱 정보
 	Matrix				worlds[MAX_MODEL_INSTANCE];
@@ -116,15 +130,11 @@ public:
 	void AddSocketEditData(const UINT& boneID, const UINT& clipCount);
 
 	inline ID3D11ShaderResourceView* GetEditSrv() { return editSrv; }
-	//애니메이터에서 CSCopy를 최소화 하기위한것
-	const bool& IsEditTexChanged() { return bChangedEditTex; }
-	void AdaptEditTex() { bChangedEditTex = false; }
 
 private:
 	void CreateAnimEditTexture();
 
 private:
-	bool bChangedEditTex = true;
 	// 애니메이션의 글로벌 변화
 	// 최종적으로 클립 저장시 곱해서 변화된 애를 저장할 것.
 	ID3D11Texture2D*						editTexture = NULL;
@@ -137,7 +147,8 @@ private:
 public:
 	const int& BoneHierarchy(int* click);
 	void ChildBones(ModelBone * bone,int* click);
-
+	//다른 자식comp에서도 같은 본이 자동선택되는걸 방지하기 위함
+	void SetSelectedBoneNum(const int& bone = -1) { selectedBoneNum = bone; }
 private:
 	int selectedBoneNum = -1;
 
@@ -147,7 +158,11 @@ public:
 
 private:
 	void CalcMeshVolume();
+	
+public:
+	const bool& IsAdded() { return bAdded; }
 private:
 	bool bCalcVolume = false;
+	bool bAdded = false;
 	Vector3 minV, maxV;
 };

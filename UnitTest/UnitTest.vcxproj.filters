@@ -11,6 +11,7 @@
     <ClInclude Include="Demo\FogDemo.h" />
     <ClInclude Include="Demo\ColliderTestDemo.h" />
     <ClInclude Include="Demo\LevelEditorDemo.h" />
+    <ClInclude Include="Demo\ModelPreCsRenderDemo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -22,6 +23,7 @@
     <ClCompile Include="Demo\FogDemo.cpp" />
     <ClCompile Include="Demo\ColliderTestDemo.cpp" />
     <ClCompile Include="Demo\LevelEditorDemo.cpp" />
+    <ClCompile Include="Demo\ModelPreCsRenderDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Editors">

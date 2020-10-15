@@ -491,13 +491,12 @@ void CsTexture::Resize(UINT width, UINT height)
 	SafeRelease(Tex);
 	SafeRelease(srv);
 	SafeRelease(uav);
-	this->width = width;
-	this->height = height;
 
-	if (width < 1)
-		this->width = 512;
-	if (height < 1)
-		this->height = 512;
+	// 의미있는 값일때만 크기 변화하고 아니면 고정하기
+	if (width > 0)
+		this->width = width;
+	if (height > 0)
+		this->height = height;
 
 	CreateTex();
 	CreateSRV();

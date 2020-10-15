@@ -8,6 +8,37 @@ ModelRender::ModelRender(Model* model)
 	texture = NULL;
 	srv = NULL;
 	SetShader(model->GetShader());
+	UINT boneCount = model->BoneCount();
+	for (UINT b = 0; b < MAX_BONE_TRANSFORMS; b++)
+	{
+		if (b < boneCount)
+		{
+			ModelBone* bone = model->BoneByIndex(b);
+
+			Matrix parent;
+			int parentIndex = bone->ParentIndex();
+
+			if (parentIndex < 0)
+				D3DXMatrixIdentity(&parent);
+			else
+				parent = bones[parentIndex];
+
+			Matrix matrix = bone->BoneWorld();
+			bones[b] = parent;
+			for (UINT i = 0; i < MAX_MODEL_INSTANCE; i++)
+			{
+				boneTransforms[i][b] = matrix * bones[b];
+			}//for(i)			
+		}
+		else
+		{
+			D3DXMatrixIdentity(&bones[b]);
+			for (UINT i = 0; i < MAX_MODEL_INSTANCE; i++)
+				D3DXMatrixIdentity(&boneTransforms[i][b]);
+		}
+	}//for(b)
+
+
 }
 
 ModelRender::~ModelRender()
@@ -76,10 +107,12 @@ Matrix ModelRender::GetboneWorld(UINT instance, UINT boneIndex)
 
 void ModelRender::CreateTexture()
 {
+	//BoneCount로 잡으면 첫 인스턴스 이후로 뒤짚혀있다...
 	//CreateTexture
 	{
 		D3D11_TEXTURE2D_DESC desc;
 		ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
+		//desc.Width = model->BoneCount() * 4;
 		desc.Width = MAX_BONE_TRANSFORMS * 4;
 		desc.Height = MAX_MODEL_INSTANCE;
 		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -90,31 +123,12 @@ void ModelRender::CreateTexture()
 		desc.ArraySize = 1;
 		desc.SampleDesc.Count = 1;
 
-		for (UINT i = 0; i < MAX_MODEL_INSTANCE; i++)
-		{
-			for (UINT b = 0; b < model->BoneCount(); b++)
-			{
-				ModelBone* bone = model->BoneByIndex(b);
-
-				Matrix parent;
-				int parentIndex = bone->ParentIndex();
-
-				if (parentIndex < 0)
-					D3DXMatrixIdentity(&parent);
-				else
-					parent = bones[parentIndex];
-
-				Matrix matrix = bone->BoneWorld();
-				bones[b] = parent;
-				boneTransforms[i][b] = matrix * bones[b];
-			}//for(b)
-		}//for(i)
-
-		
 		D3D11_SUBRESOURCE_DATA subResource;
 		subResource.pSysMem = boneTransforms;
+		//subResource.SysMemPitch = model->BoneCount() * sizeof(Matrix);
+		//subResource.SysMemSlicePitch = model->BoneCount() * sizeof(Matrix)*MAX_MODEL_INSTANCE;
 		subResource.SysMemPitch = MAX_BONE_TRANSFORMS * sizeof(Matrix);
-		subResource.SysMemSlicePitch = MAX_BONE_TRANSFORMS * sizeof(Matrix) * MAX_MODEL_INSTANCE;
+		subResource.SysMemSlicePitch = MAX_BONE_TRANSFORMS * sizeof(Matrix)*MAX_MODEL_INSTANCE;
 
 		Check(D3D::GetDevice()->CreateTexture2D(&desc, &subResource, &texture));
 	}
@@ -133,8 +147,5 @@ void ModelRender::CreateTexture()
 
 		Check(D3D::GetDevice()->CreateShaderResourceView(texture, &srvDesc, &srv));
 	}
-
-	//for (ModelMesh* mesh : model->Meshes())
-	//	mesh->TransformsSRV(srv);
 }
 

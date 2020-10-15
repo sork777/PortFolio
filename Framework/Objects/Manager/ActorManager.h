@@ -34,7 +34,13 @@ public:
 
 
 public:
-	void OpenActorEditor();
+	const bool& IsEditorOpened() { return actorEditor->IsOpenedEditor(); }
+	void PreRenderActorEditor();
+	void UpdateActorEditor();
+	void RenderActorEditor();
+
+
+	const bool& IsObjectSpawn() { return bSpawningObject; }
 	virtual void ObjectSpawn() override;
 	virtual const bool & ObjectIcon() override;
 	

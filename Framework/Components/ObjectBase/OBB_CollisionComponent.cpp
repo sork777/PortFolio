@@ -54,10 +54,11 @@ bool OBB_CollisionComponent::Property(const int& instance)
 	{
 		if (instance < 0)
 		{
-			if (baseTransform->Property())
+			if (GetTransform()->Property())
 			{
 				bChange = true;
-				GetTransform()->Local(baseTransform);
+				baseTransform->Local(GetTransform()->Local());
+				
 			}
 			if (ImGui::Button("Reset"))
 			{
@@ -74,7 +75,7 @@ bool OBB_CollisionComponent::Property(const int& instance)
 			}
 			if (ImGui::Button("Reset"))
 			{
-				GetTransform(instance)->Local(baseTransform);
+				GetTransform(instance)->Local(baseInitTransform);
 				chageTrans[instance] = false;
 			}
 		}
@@ -88,7 +89,7 @@ bool OBB_CollisionComponent::Property(const int& instance)
 void OBB_CollisionComponent::AddInstanceData()
 {
 	Transform* trans = new Transform();
-	trans->Local(baseTransform);
+	trans->Local(baseInitTransform);
 
 	colliders->AddInstance(trans);
 	colliders->Update();

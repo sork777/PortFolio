@@ -16,6 +16,14 @@ ModelAsset::ModelAsset(Model* model)
 	//버튼 이미지를 위한 준비
 	this->model = new Model(*model);
 	this->model->SetShader(shader);
+	modelRender = new ModelRender(this->model);
+	bHasAnim = this->model->IsAnimationModel();
+	if (bHasAnim == true)
+	{
+		modelAnimation = new ModelAnimator(this->model);
+		//T-pose를 자동 배정해주기 위함
+		modelAnimation->ReadClip(model->MeshPath(), model->MeshDir());
+	}
 	//모델 기본 크기에 맞춰서 자동 스케일링
 	this->model->Update();
 	Vector3 autoCalVolume = this->model->GetMax() - this->model->GetMin();
@@ -38,14 +46,7 @@ ModelAsset::ModelAsset(Model* model)
 	this->model->GetTransform()->RotationDegree(Vector3(0, bZRot?90:0, 0));
 	this->model->UpdateTransforms();
 	
-	modelRender = new ModelRender(this->model);
-	bHasAnim = this->model->IsAnimationModel();
-	if (bHasAnim == true)
-	{
-		modelAnimation = new ModelAnimator(this->model);
-		//T-pose를 자동 배정해주기 위함
-		modelAnimation->ReadClip(model->MeshPath(), model->MeshDir());
-	}
+	
 	
 	//버튼이미지를 위한 랜더타겟 관련
 	{

@@ -59,5 +59,6 @@ private:
 
 	float time = 0.0f;
 	UINT count = 0;
+
 };
 

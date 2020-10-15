@@ -26,6 +26,7 @@
     <ClInclude Include="Demo\TerrainLodDemo.h" />
     <ClInclude Include="Demo\FogDemo.h" />
     <ClInclude Include="Main.h" />
+    <ClInclude Include="Demo\ModelPreCsRenderDemo.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -36,6 +37,7 @@
     <ClCompile Include="Demo\TerrainLodDemo.cpp" />
     <ClCompile Include="Demo\FogDemo.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Demo\ModelPreCsRenderDemo.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

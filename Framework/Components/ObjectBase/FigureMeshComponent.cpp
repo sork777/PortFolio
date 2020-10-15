@@ -95,14 +95,14 @@ bool FigureMeshComponent::Property(const int& instance)
 	{
 		if (instance < 0)
 		{
-			if (baseInitTransform->Property())
+			if (GetTransform()->Property())
 			{
 				bChange = true;
-				GetTransform()->Local(baseInitTransform);
+				baseTransform->Local(GetTransform()->Local());
 			}
 			if (ImGui::Button("Reset"))
 			{
-				baseInitTransform->Local(baseTransform);
+				baseTransform->Local(baseInitTransform);
 				GetTransform()->Local(baseTransform);
 			}
 		}
@@ -115,7 +115,7 @@ bool FigureMeshComponent::Property(const int& instance)
 			}
 			if (ImGui::Button("Reset"))
 			{
-				GetTransform(instance)->Local(baseTransform);
+				GetTransform(instance)->Local(baseInitTransform);
 				chageTrans[instance] = false;
 			}
 		}
@@ -148,7 +148,7 @@ void FigureMeshComponent::AddInstanceData()
 	int index = meshRender->GetInstSize();
 
 	meshRender->AddInstance();
-	meshRender->GetTransform(index)->Local(baseTransform);
+	meshRender->GetTransform(index)->Local(baseInitTransform);
 	Super::AddInstanceData();
 	meshRender->UpdateTransforms();
 }

@@ -123,6 +123,13 @@ const bool& Actor::DelInstanceData(const UINT & instance)
 	return true;
 }
 
+void Actor::SetMainClip(const UINT & clip)
+{
+	int size = root->GetInstSize();
+	for(int i=0;i<size;i++)
+		root->GetAnimation()->PlayClip(i, clip);
+}
+
 void Actor::ActorCompile(const Actor& editActor)
 {
 	root->CompileComponent(*editActor.root);

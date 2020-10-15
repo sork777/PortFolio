@@ -7,6 +7,18 @@ RenderTarget::RenderTarget(UINT width, UINT height, DXGI_FORMAT format)
 	this->width = (width < 1) ? (UINT)D3D::Width() : width;
 	this->height = (height < 1) ? (UINT)D3D::Height() : height;
 
+	Initialize();
+}
+
+RenderTarget::~RenderTarget()
+{
+	SafeRelease(backBuffer);
+	SafeRelease(rtv);
+	SafeRelease(srv);
+}
+
+void RenderTarget::Initialize()
+{
 	D3D11_TEXTURE2D_DESC textureDesc;
 	{
 		ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
@@ -42,13 +54,6 @@ RenderTarget::RenderTarget(UINT width, UINT height, DXGI_FORMAT format)
 	}
 }
 
-RenderTarget::~RenderTarget()
-{
-	SafeRelease(backBuffer);
-	SafeRelease(rtv);
-	SafeRelease(srv);
-}
-
 void RenderTarget::SaveTexture(wstring file)
 {
 	Check(D3DX11SaveTextureToFile(D3D::GetDC(), backBuffer, D3DX11_IFF_PNG, file.c_str()));
@@ -71,15 +76,3 @@ void RenderTarget::Sets(vector<RenderTarget*>& rtvs, ID3D11DepthStencilView * ds
 	for (UINT i = 0; i < rtvs.size(); i++)
 		D3D::Get()->Clear(Color(0, 0, 0, 0),views[i],dsv);
 }
-//
-//void RenderTarget::UseOuterSrv(ID3D11ShaderResourceView * oSrv)
-//{
-//	srv = oSrv;
-//	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-//	ZeroMemory(&srvDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
-//	srvDesc.Format = format;
-//	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-//	srvDesc.Texture2D.MipLevels = 1;
-//
-//	D3D::GetDevice()->CreateShaderResourceView(backBuffer, &srvDesc, oSrv?&oSrv:&srv);
-//}

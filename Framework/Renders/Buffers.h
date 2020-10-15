@@ -179,7 +179,9 @@ public:
 		bool bCpuWrite = false, bool bGpuWrite = true);
 	virtual ~CsTexture();
 
+	const Vector2& GetSize() { return Vector2(width, height); }
 	void Resize(UINT width = 0, UINT height = 0);
+
 	ID3D11ShaderResourceView* SRV() { return srv; }
 	ID3D11UnorderedAccessView* UAV() { return uav; }
 private:

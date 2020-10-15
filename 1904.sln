@@ -88,7 +88,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HW_", "HW_", "{33EE8730-BD5
 		_Shaders\HW00_Light.fx = _Shaders\HW00_Light.fx
 		_Shaders\HW00_Perlin.fx = _Shaders\HW00_Perlin.fx
 		_Shaders\HW00_SSAO.fx = _Shaders\HW00_SSAO.fx
-		_Shaders\HW00_TerrainLod.fx = _Shaders\HW00_TerrainLod.fx
 		_Shaders\HW02_Deferred.fx = _Shaders\HW02_Deferred.fx
 		_Shaders\HW03_Tesse_Point.fx = _Shaders\HW03_Tesse_Point.fx
 		_Shaders\HW041_Mirror.fx = _Shaders\HW041_Mirror.fx

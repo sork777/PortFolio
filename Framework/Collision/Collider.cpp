@@ -5,6 +5,7 @@ Collider::Collider()
 {		
 	shader = SETSHADER(L"027_DebugLine.fx");
 	csShader = SETSHADER(L"Collider/Collision.fx");
+	Initalize();
 }
 
 
@@ -22,6 +23,7 @@ void Collider::Initalize()
 {
 	bDebugMode = false;
 	bChangeCount = true;
+	bDefferedMode = false;
 	drawCount = 0;
 	vertices = NULL;
 	vertexBuffer = NULL;
@@ -44,6 +46,7 @@ void Collider::Update()
 {
 	if (bChangeCount)
 	{
+		if (colInfos.size() < 1) return;
 		SafeDeleteArray(vertices);
 		SafeDelete(vertexBuffer);
 		//UINT size = ceil(colInfos.size() / 8192.0f) * 8192;
@@ -60,6 +63,7 @@ void Collider::Update()
 
 void Collider::Render(const int& draw)
 {
+	if (colInfos.size() < 1) return;
 	// 디버그라인은 기본 랜더방식과 달리 모아서 하기때문에 얘만 따로.
 	perFrame->Update();
 	ctransform->Update();

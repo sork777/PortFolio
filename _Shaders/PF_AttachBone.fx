@@ -171,6 +171,140 @@ void CS(uint GroupIndex : SV_GroupIndex)
     Output[index].Result = currAnim;
 }
 
+
+RWTexture2D<float4> OutputMap;
+uint TexWidth;
+// 1006 원하는 값 자체는 원하는대로 뽑았음
+[numthreads(1024, 1, 1)]
+void CSAnimTest(uint3 DispatchThreadID : SV_DispatchThreadID)
+{
+    // 들어올 데이터를 잘라줄 너비
+    // TexWidth는 본의 갯수의 4배라 이렇게 저장함.
+    uint width = TexWidth / 4;
+    // 인스턴싱 번호
+    uint index = DispatchThreadID.x / width;
+    // 본 번호 
+    uint boneIndex = DispatchThreadID.x % width;
+
+    matrix result = 0;
+    matrix curr = 0, currAnim = 0;
+    matrix next = 0, nextAnim = 0;
+    
+    uint clip[2];
+    uint currFrame[2];
+    uint nextFrame[2];
+    float time[2];
+
+    clip[0] = Tweenframes[index].Curr.Clip;
+    currFrame[0] = Tweenframes[index].Curr.CurrFrame;
+    nextFrame[0] = Tweenframes[index].Curr.NextFrame;
+    time[0] = Tweenframes[index].Curr.Time;
+
+    clip[1] = Tweenframes[index].Next.Clip;
+    currFrame[1] = Tweenframes[index].Next.CurrFrame;
+    nextFrame[1] = Tweenframes[index].Next.NextFrame;
+    time[1] = Tweenframes[index].Next.Time;
+    
+    float4 c0, c1, c2, c3;
+    float4 n0, n1, n2, n3;
+    
+    float4 b0, b1, b2, b3;
+    matrix cedit = 0;
+    matrix nedit = 0;
+    matrix cS, cR, cT, nS, nR, nT;
+    float4 cQ, nQ;
+    
+    //[unroll(4)]
+    //for (int i = 0; i < 4; i++)
+    {
+        c0 = TransformsMap.Load(int4(boneIndex * 4 + 0, currFrame[0], clip[0], 0));
+        c1 = TransformsMap.Load(int4(boneIndex * 4 + 1, currFrame[0], clip[0], 0));
+        c2 = TransformsMap.Load(int4(boneIndex * 4 + 2, currFrame[0], clip[0], 0));
+        c3 = TransformsMap.Load(int4(boneIndex * 4 + 3, currFrame[0], clip[0], 0));
+        curr = matrix(c0, c1, c2, c3);
+
+        n0 = TransformsMap.Load(int4(boneIndex * 4 + 0, nextFrame[0], clip[0], 0));
+        n1 = TransformsMap.Load(int4(boneIndex * 4 + 1, nextFrame[0], clip[0], 0));
+        n2 = TransformsMap.Load(int4(boneIndex * 4 + 2, nextFrame[0], clip[0], 0));
+        n3 = TransformsMap.Load(int4(boneIndex * 4 + 3, nextFrame[0], clip[0], 0));
+        next = matrix(n0, n1, n2, n3);
+
+        currAnim = lerp(curr, next, time[0]);
+               
+        /* 애니메이션 변화 부분 */        
+        b0 = AnimEditTransformMap.Load(int3(boneIndex * 4 + 0, clip[0], 0));
+        b1 = AnimEditTransformMap.Load(int3(boneIndex * 4 + 1, clip[0], 0));
+        b2 = AnimEditTransformMap.Load(int3(boneIndex * 4 + 2, clip[0], 0));
+        b3 = AnimEditTransformMap.Load(int3(boneIndex * 4 + 3, clip[0], 0));
+        
+        cedit = matrix(b0, b1, b2, b3);
+        
+        [flatten]
+        if (clip[1] >= 0)
+        {
+            c0 = TransformsMap.Load(int4(boneIndex * 4 + 0, currFrame[1], clip[1], 0));
+            c1 = TransformsMap.Load(int4(boneIndex * 4 + 1, currFrame[1], clip[1], 0));
+            c2 = TransformsMap.Load(int4(boneIndex * 4 + 2, currFrame[1], clip[1], 0));
+            c3 = TransformsMap.Load(int4(boneIndex * 4 + 3, currFrame[1], clip[1], 0));
+            curr = matrix(c0, c1, c2, c3);
+
+            n0 = TransformsMap.Load(int4(boneIndex * 4 + 0, nextFrame[1], clip[1], 0));
+            n1 = TransformsMap.Load(int4(boneIndex * 4 + 1, nextFrame[1], clip[1], 0));
+            n2 = TransformsMap.Load(int4(boneIndex * 4 + 2, nextFrame[1], clip[1], 0));
+            n3 = TransformsMap.Load(int4(boneIndex * 4 + 3, nextFrame[1], clip[1], 0));
+            next = matrix(n0, n1, n2, n3);
+
+            nextAnim = lerp(curr, next, time[1]);
+            
+            /* 애니메이션 변화 부분 */
+            b0 = AnimEditTransformMap.Load(int3(boneIndex * 4 + 0, clip[1], 0));
+            b1 = AnimEditTransformMap.Load(int3(boneIndex * 4 + 1, clip[1], 0));
+            b2 = AnimEditTransformMap.Load(int3(boneIndex * 4 + 2, clip[1], 0));
+            b3 = AnimEditTransformMap.Load(int3(boneIndex * 4 + 3, clip[1], 0));
+        
+            nedit = matrix(b0, b1, b2, b3);
+            
+        }
+         //클립간 보간
+        {
+            MatrixDecompose(cS, cQ, cT, currAnim);
+            MatrixDecompose(nS, nQ, nT, nextAnim);
+            cS = lerp(cS, nS, Tweenframes[index].TweenTime);
+            cQ = normalize(lerp(cQ, nQ, Tweenframes[index].TweenTime));
+            cR = QuattoMat(cQ);
+            cT = lerp(cT, nT, Tweenframes[index].TweenTime);
+            
+            currAnim = mul(cS, cR);
+            currAnim = mul(currAnim, cT);
+        
+            
+            MatrixDecompose(cS, cQ, cT, cedit);
+            MatrixDecompose(nS, nQ, nT, nedit);
+            cS = lerp(cS, nS, Tweenframes[index].TweenTime);
+            cQ = normalize(lerp(cQ, nQ, Tweenframes[index].TweenTime));
+            cR = QuattoMat(cQ);
+            cT = lerp(cT, nT, Tweenframes[index].TweenTime);
+            
+            cedit = mul(cS, cR);
+            cedit = mul(cedit, cT);
+            currAnim = mul(currAnim, cedit);
+        }
+    }
+   
+    //저장할 텍스쳐의 Pixel 위치
+    uint2 CurPixel = uint2(boneIndex * 4 + 0, index);
+    
+    OutputMap[CurPixel] = currAnim._11_12_13_14;    
+    CurPixel = uint2(boneIndex * 4 + 1, index);
+    OutputMap[CurPixel] = currAnim._21_22_23_24;
+    CurPixel = uint2(boneIndex * 4 + 2, index);
+    OutputMap[CurPixel] = currAnim._31_32_33_34;
+    CurPixel = uint2(boneIndex * 4 + 3, index);
+    OutputMap[CurPixel] = currAnim._41_42_43_44;
+    //Output[index].Result = currAnim;
+}
+
+
 technique11 T0
 {
     pass P0
@@ -179,5 +313,13 @@ technique11 T0
         SetPixelShader(NULL);
 
         SetComputeShader(CompileShader(cs_5_0, CS()));
+    }
+
+    pass P1
+    {
+        SetVertexShader(NULL);
+        SetPixelShader(NULL);
+
+        SetComputeShader(CompileShader(cs_5_0, CSAnimTest()));
     }
 }

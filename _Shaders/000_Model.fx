@@ -414,3 +414,62 @@ DepthOutput VS_Depth_Animation(VertexModel input)
 
     return output;
 }
+
+
+Texture2D AnimTransformTestMap;
+
+void SetAnimationWorldTest(inout matrix world, VertexModel input)
+{
+    matrix transform=0;
+    matrix curr = 0, currAnim = 0;
+    float4 c0, c1, c2, c3;
+    
+    float4 b0, b1, b2, b3;
+    matrix bone = 0;
+    float indices[4] = { input.BlendIndices.x, input.BlendIndices.y, input.BlendIndices.z, input.BlendIndices.w };
+    float weights[4] = { input.BlendWeights.x, input.BlendWeights.y, input.BlendWeights.z, input.BlendWeights.w };
+   
+    [unroll(4)]
+    for (int i = 0; i < 4; i++)
+    {
+        c0 = AnimTransformTestMap.Load(int3(indices[i] * 4 + 0, input.InstID, 0));
+        c1 = AnimTransformTestMap.Load(int3(indices[i] * 4 + 1, input.InstID, 0));
+        c2 = AnimTransformTestMap.Load(int3(indices[i] * 4 + 2, input.InstID, 0));
+        c3 = AnimTransformTestMap.Load(int3(indices[i] * 4 + 3, input.InstID, 0));
+        currAnim = matrix(c0, c1, c2, c3);
+        
+        /* º»ÀÇ world */
+        b0 = BoneTransformsMap.Load(int2(indices[i] * 4 + 0, 0));
+        b1 = BoneTransformsMap.Load(int2(indices[i] * 4 + 1, 0));
+        b2 = BoneTransformsMap.Load(int2(indices[i] * 4 + 2, 0));
+        b3 = BoneTransformsMap.Load(int2(indices[i] * 4 + 3, 0));
+        bone = matrix(b0, b1, b2, b3);        
+        
+        currAnim = mul(bone, currAnim);
+        
+        transform += mul(weights[i], currAnim);
+    }
+
+    //world = transform;
+    world = mul(transform, input.Transform);
+}
+
+
+MeshOutput VS_AnimationTest(VertexModel input)
+{
+    MeshOutput output;
+
+    matrix mat;
+    SetAnimationWorldTest(World, input);
+    //World = mul(mat, input.Transform);
+    VS_GENERATE
+        
+    output.sPosition = WorldPosition(input.Position);
+    output.sPosition = mul(output.sPosition, ShadowView);
+    output.sPosition = mul(output.sPosition, ShadowProjection);
+    
+    output.ID = input.InstID;
+    output.Clip = 0;
+
+    return output;
+}

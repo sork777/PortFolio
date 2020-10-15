@@ -58,6 +58,7 @@ void ActorManager::Destroy()
 
 void ActorManager::Update()
 {
+	
 	for (Actor* actor : actorList)
 	{
 		actor->Update();
@@ -74,8 +75,6 @@ void ActorManager::Update()
 				actor->ObjectArrangementAtTerrain(terrain);
 		}
 	}
-	ObjectSpawn();
-	OpenActorEditor();
 }
 
 void ActorManager::PreRender()
@@ -114,22 +113,26 @@ void ActorManager::Pass(const UINT & mesh, const UINT & model, const UINT & anim
 		actor->Pass(mesh, model, anim);
 }
 
-void ActorManager::OpenActorEditor()
+void ActorManager::PreRenderActorEditor()
 {
-	if (true == bSpawningObject) return;
-	if (false == bOpenActorEditor) return;
 	if (NULL == selectedActor) return;
-	
-	bOpenActorEditor = actorEditor->IsOpenedEditor();
 	actorEditor->PreRender();
+}
+
+void ActorManager::UpdateActorEditor()
+{
+	if (NULL == selectedActor) return;
 	actorEditor->Update();
+}
+
+void ActorManager::RenderActorEditor()
+{
+	if (NULL == selectedActor) return;
 	actorEditor->Render();
 }
 
 void ActorManager::ObjectSpawn()
 {
-	if (true == bOpenActorEditor) return;
-	if (false == bSpawningObject) return;
 	if (NULL == selectedActor) return;
 
 	//스폰한 인스턴스를 갱신하고 있는 스폰 좌표로 이동중
@@ -178,30 +181,31 @@ const bool& ActorManager::DelInstanceData(const UINT & instance)
 	return selectedActor->DelInstanceData(instance);
 }
 
-
-//TODO : 0910 마지막 액터의 RTV가 덮어씌우는 상황 배제해야함
 void ActorManager::CreatActorButtonImage(Actor* actor)
 {
-	actor->ActorSyncBaseTransform();
+	//actor->ActorSyncBaseTransform();
 	if (actorSrvMap.count(actor) < 1)
 		RegistActor(actor);
 	Actor* tempActor = new Actor(*actor);
 	tempActor->SetShader(SETSHADER(L"027_Animation.fx"));
 	tempActor->GetTransform()->Position(Vector3(0, 0, 0));
 	tempActor->GetTransform()->Rotation(Vector3(0, 0, 0));
-	// 액터별 위치 조정을 위한 부분
+	// 액터별 위치 자동 조정을 위한 부분
 	{
 		Model* model = tempActor->GetRootMeshData()->GetMesh();
 		model->Update();
 		Vector3 autoCalVolume = model->GetMax() - model->GetMin();
 		Vector3 scale;
 		model->GetTransform()->Scale(&scale);
-		Vector3 TargetPos = Vector3(0, autoCalVolume.y*scale.y*0.5f, 0);
+		Vector3 TargetPos = Vector3(0, autoCalVolume.y*scale.y*0.75f, 0);
 		orbitCam->SetObjPos(TargetPos);
 		orbitCam->Update();
 	}
 	//서브에 오빗 등록
 	Context::Get()->SetSubCamera(orbitCam);
+	
+	//랜더타겟이 자꾸 덮어씌워져서 관련데이터 그냥 초기화 후 찍기로 함
+	renderTarget->Initialize();
 	renderTarget->Set(depthStencil->DSV(), Color(0.5f, 0.6f, 0.5f, 1.0f));
 	{
 		//위치 조정하고 한번 더해줘야 제대로 랜더됨...
@@ -211,7 +215,6 @@ void ActorManager::CreatActorButtonImage(Actor* actor)
 		tempActor->Pass(0, 1, 2);
 		tempActor->Render();
 	}
-	//TODO: 0910 데이터만 복사하게 바꿔야함.
 	actorSrvMap[actor] = renderTarget->SRV();
 
 	// 컨텍스트의 서브카메라 삭제
@@ -233,6 +236,7 @@ const bool & ActorManager::ObjectIcon()
 	bool bSelected = false;
 	for (Actor* actor: actorList)
 	{
+		ImGui::PushID(actor);
 		ImGui::Image(actorSrvMap[actor], ImVec2(80, 80));
 		//ImGui의 그룹 짝 맞추려면 끝나고 꺼야함
 		bool bBreak = false;
@@ -264,6 +268,12 @@ const bool & ActorManager::ObjectIcon()
 			}
 			ImGui::EndGroup();
 		}
+		int curclip = actor->GetCurClip();
+		int maxclip = actor->GetMaxClip()-1;
+		if(ImGui::SliderInt("ClipNum",&curclip,0,maxclip))
+			actor->SetMainClip(curclip);
+
+		ImGui::PopID();
 		if (true == bBreak)
 			break;
 	}

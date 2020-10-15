@@ -8,8 +8,11 @@
 	3. deffered용 gbuffer 와 csm
 	4. frustum용 데이터
 	5. 액터 매니저
-	
+	6. 빌보드 매니저
+
 	플레이/에딧 모드 구분
+	레벨 자체의 Save/Load는 후순위로
+	액터 구성 Save/Load도 좀 뒤로.
 
 */
 class Actor;
@@ -69,4 +72,6 @@ private:
 
 private:
 	bool bEditMode = true;
+	bool bOpenActorEditor = false;
+	bool bActorSpwan = false;
 };

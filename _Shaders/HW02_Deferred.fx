@@ -1,5 +1,4 @@
 #include "HW00_common.fx"
-#include "HW00_TerrainLod.fx"
 #include "HW00_Light.fx"
 #include "HW00_DeferredFunc.fx"
 
@@ -53,29 +52,6 @@ PS_Output PS_Seperate(MeshOutput input)
     output.Depth = float4(depth, depth, depth, 1);
     output.Emissive = Material.Emissive;
 
-    return output;
-}
-
-PS_Output PS_SeperateTerrainLod(DomainOutput_Lod input)
-{
-    PS_Output output;
-
-    float4 alpha = AlphaMap.Sample(LinearSampler, input.Uv);
-    float4 diffuse = GetTerrainLodColor(alpha, input.Uv*3.0f);
-    float3 gridColor = GetLineColor(input.wPosition);
-    float3 brushColor = GetBrushColor(input.wPosition);
-    float3 normal = normalize(input.Normal);    
-    float depth = input.Position.z / input.Position.w;
-    Texture(Material.Specular, SpecularMap, input.Uv);
-    
-    diffuse = diffuse + float4(gridColor, 1) + float4(brushColor, 1);
-    float4 SpecularColor = Material.Specular;
-
-    output.Color = float4(diffuse.rgb, SpecularColor.a);
-    output.Normal = float4(normal * 0.5f + 0.5f, 0);
-    output.Spec = float4(SpecularColor.rgb, 0);
-    output.Depth = float4(depth, depth, depth, 1);
-    output.Emissive = Material.Emissive;
     return output;
 }
 /////////////////////////////////////////////////////////////////////////////
@@ -211,15 +187,7 @@ technique11 T0
     P_DSS_Ref_VP(P0, DepthMarkDSS, 1, VS_Mesh, PS_Seperate)
     P_DSS_Ref_VP(P1, DepthMarkDSS, 1, VS_Model, PS_Seperate)
     P_DSS_Ref_VP(P2, DepthMarkDSS, 1, VS_Animation, PS_Seperate)
-    
-    pass P3
-    {
-        SetDepthStencilState(DepthMarkDSS, 1);
-        SetVertexShader(CompileShader(vs_5_0, VS()));
-        SetHullShader(CompileShader(hs_5_0, HS()));
-        SetDomainShader(CompileShader(ds_5_0, DS()));
-        SetPixelShader(CompileShader(ps_5_0, PS_SeperateTerrainLod()));
-    }
+    P_DSS_Ref_VP(P3, DepthMarkDSS, 1, VS_AnimationTest, PS_Seperate)
 }
 //1
 technique11 T1_DirLight

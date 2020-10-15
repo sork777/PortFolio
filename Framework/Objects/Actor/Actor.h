@@ -39,6 +39,10 @@ public:
 	const bool& AddInstanceData();
 	const bool& DelInstanceData(const UINT& instance);
 
+	const UINT& GetCurClip() { return root->GetAnimation()->GetCurrClip(0); }
+	const UINT& GetMaxClip() { return root->GetAnimation()->ClipCount(); }
+	void SetMainClip(const UINT& clip);
+
 public:
 	void ActorCompile(const Actor& editActor);
 	void ActorSyncBaseTransform() { root->SyncBaseTransform(); }

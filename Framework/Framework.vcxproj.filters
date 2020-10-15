@@ -283,6 +283,7 @@
     <ClCompile Include="Editor\TerrainEditor.cpp" />
     <ClCompile Include="Objects\Etc\BillBoardObj.cpp" />
     <ClCompile Include="Objects\Manager\ActorManager.cpp" />
+    <ClCompile Include="Objects\Manager\BillBoardManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Renders">
@@ -637,5 +638,6 @@
     <ClInclude Include="Objects\Etc\BillBoardObj.h" />
     <ClInclude Include="Objects\Manager\ActorManager.h" />
     <ClInclude Include="Objects\Manager\IObjectManager.h" />
+    <ClInclude Include="Objects\Manager\BillBoardManager.h" />
   </ItemGroup>
 </Project>
