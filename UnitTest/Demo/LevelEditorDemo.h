@@ -15,6 +15,8 @@
 	액터 구성 Save/Load도 좀 뒤로.
 
 */
+
+// 1015 얘가 어디서 꼬였는지 CS모델랜더가 꼬임
 class Actor;
 
 class LevelEditorDemo :public IExecute

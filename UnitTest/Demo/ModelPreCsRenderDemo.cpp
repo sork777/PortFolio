@@ -4,6 +4,7 @@
 #include "Environment/Terrain/TerrainLod.h"
 
 #include "Editor/TerrainEditor.h"
+#include "Objects/Manager/ActorManager.h"
 
 
 ModelPreCsRenderDemo::ModelPreCsRenderDemo()
@@ -48,7 +49,8 @@ void ModelPreCsRenderDemo::Initialize()
 		terrainEditor = new TerrainEditor(terrain);
 		terrainMat = new Material(terrainShader);
 	}
-
+	actorMgr = new ActorManager();
+	actorMgr->SetTerrain(terrain);
 	//ssao = new SSAO();
 	//CreateBaseModels();
 	CreateBaseActor();
@@ -57,7 +59,18 @@ void ModelPreCsRenderDemo::Initialize()
 	Texture* brdfLut = new Texture(L"MaterialPBR/ibl_brdf_lut.png");
 	shader->AsSRV("SkyCubeMap")->SetResource(cubeTex->SRV());
 	shader->AsSRV("BRDFLUT")->SetResource(brdfLut->SRV());
-	actorEditor = new ActorEditor();
+
+
+
+	float width = D3D::Width();
+	float height = D3D::Height();
+
+	renderTarget = new RenderTarget((UINT)width, (UINT)height);
+	depthStencil = new DepthStencil(width, height);
+	render2D = new Render2D();
+	render2D->GetTransform()->Position(width*0.5f,height*0.5f, 0);
+	render2D->GetTransform()->Scale(width, height, 1);
+
 
 }
 
@@ -79,68 +92,47 @@ void ModelPreCsRenderDemo::Update()
 	sky->Update();
 	//gBuffer->Update();
 	terrain->Update();
-	for (Actor* actor : actors)
-	{
-		ImGui::PushID(actor);
-		actor->Update();
-		UINT curInstSize = actor->GetInstSize();
-
-		string str = String::ToString(actor->GetName()) + "_ADD";
-		if (ImGui::Button(str.c_str()))
-		{
-			Vector3 pos = Math::RandomVec3(-100, 100);
-			pos.y = terrain->GetPickedHeight(pos);
-			actor->AddInstanceData();
-			actor->GetTransform(curInstSize)->Position(pos);
-		}
-		str = String::ToString(actor->GetName()) + "_Editor";
-		if (ImGui::Button(str.c_str()) && false == bEditMode)
-		{
-			bEditMode = true;
-			actorEditor->SetActor(actor);
-		}
-
-		UINT curInst = actorInstMap[actor];
-		if (ImGui::SliderInt("CurInst", (int*)&curInst, 0, curInstSize - 1))
-			actorInstMap[actor] = curInst;
-		int curclip = actor->GetCurClip();
-		int maxclip = actor->GetMaxClip() - 1;
-		if (ImGui::SliderInt("ClipNum", &curclip, 0, maxclip))
-			actor->SetMainClip(curclip);
-
-		ImGui::PopID();
-		ImGui::Separator();
-	}
 
 	if (true == bEditMode)
-		actorEditor->Update();
-	bEditMode = actorEditor->IsOpenedEditor();
+		actorMgr->UpdateActorEditor();
+	actorMgr->SetSpawnPosition(terrain->GetPickedPosition());
+	actorMgr->Update();
+	if (true == bActorSpwan)
+		actorMgr->ObjectSpawn();
 }
 
 void ModelPreCsRenderDemo::PreRender()
 {
+	terrain->PreRender();
 	sky->PreRender();
+
+	bEditMode = actorMgr->IsEditorOpened();
+	bActorSpwan = actorMgr->IsObjectSpawn();
+
+	renderTarget->Set(depthStencil->DSV());
+	{
+
+		sky->Render(false);
+		//gBuffer->Update();
+		terrain->Render();
+		actorMgr->Tech(1, 1, 1);
+		actorMgr->Pass(0, 1, 3);
+		actorMgr->Render();
+	}
 	if (true == bEditMode)
-		actorEditor->PreRender();
+		actorMgr->PreRenderActorEditor();
+
+	actorMgr->PreRender();
 }
 
 void ModelPreCsRenderDemo::Render()
 {
+	actorMgr->ObjectIcon();
 	if (true == bEditMode)
-		actorEditor->Render();
+		actorMgr->RenderActorEditor();
 
-	sky->Render(false);
-	//gBuffer->Update();
-	terrain->Render();
-	static bool bTestPass = false;
-	ImGui::Checkbox("TestPass", &bTestPass);
-
-	for (Actor* actor : actors)
-	{
-		actor->Tech(1,1,1);
-		actor->Pass(0,1,3);
-		actor->Render();
-	}
+	render2D->SRV(renderTarget->SRV());
+	render2D->Render();
 }
 
 void ModelPreCsRenderDemo::PostRender()
@@ -171,11 +163,11 @@ void ModelPreCsRenderDemo::CreateBaseActor()
 	transform->Position(0, 0, 0);
 	transform->Scale(0.075f, 0.075f, 0.075f);
 
-	Actor* actor = new Actor();
+	//Actor* actor = new Actor();
+	Actor* actor = actorMgr->RegistActor(new Actor());
 	actor->SetRootComponent(modelMesh);
 	actor->SetShader(shader);
-	actors.emplace_back(actor);
-	actorInstMap[actor] = 0;
+	
 	//Mutant
 	model = new Model(shader);
 	model->ReadMaterial(L"Kachujin/Mesh", L"../../_Textures/Model/");
@@ -195,11 +187,10 @@ void ModelPreCsRenderDemo::CreateBaseActor()
 	transform->Position(0, 0, 0);
 	transform->Scale(0.075f, 0.075f, 0.075f);
 
-	actor = new Actor();
+	actor = actorMgr->RegistActor(new Actor());;
+	//actor = new Actor();
 	actor->SetRootComponent(modelMesh);
 	actor->SetShader(shader);
-	actors.emplace_back(actor);
-	actorInstMap[actor] = 0;
 }
 
 void ModelPreCsRenderDemo::SetObjectTech(const UINT & mesh, const UINT & model, const UINT & anim)

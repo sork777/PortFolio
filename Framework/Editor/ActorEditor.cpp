@@ -61,6 +61,7 @@ void ActorEditor::Initialize()
 	// 에디터 모드 활성화
 	bEdit = true;
 	bPlay = false;
+	state = AnimationState::Stop;
 
 	mouseVal = Vector3(2.5f, 1.0f, 0);
 	TargetPos = Vector3(0, 5.0f, 0);

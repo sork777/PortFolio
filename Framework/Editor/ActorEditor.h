@@ -47,7 +47,7 @@ private:
 	void RenderGizmo(Transform* sTransform);
 
 private:
-	AnimationState state = AnimationState::Stop;
+	AnimationState state;
 
 private:	
 	enum class GizmoType

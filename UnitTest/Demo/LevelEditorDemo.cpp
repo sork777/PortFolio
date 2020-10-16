@@ -106,6 +106,7 @@ void LevelEditorDemo::PreRender()
 		EditModePreRender();
 	else
 		PlayModePreRender();
+	actorMgr->PreRender();
 
 	sky->Render();
 	shader->AsSRV("AtmosphereMap")->SetResource(sky->GetAtmoSRV());
@@ -114,7 +115,6 @@ void LevelEditorDemo::PreRender()
 	cubeTex->Set(skyShader);
 	sky->Render(false);
 
-	actorMgr->PreRender();
 }
 
 void LevelEditorDemo::Render()
@@ -273,8 +273,6 @@ void LevelEditorDemo::PlayModePreRender()
 
 void LevelEditorDemo::EditModePreRender()
 {
-	if (true == bOpenActorEditor)
-		actorMgr->PreRenderActorEditor();
 
 	//GBuffer
 	{
@@ -288,6 +286,9 @@ void LevelEditorDemo::EditModePreRender()
 		SetObjectPass(0, 1, 3);
 		SceneRender();
 	}
+	
+	if (true == bOpenActorEditor)
+		actorMgr->PreRenderActorEditor();
 }
 
 void LevelEditorDemo::PlayModeRender()
@@ -298,10 +299,10 @@ void LevelEditorDemo::PlayModeRender()
 
 void LevelEditorDemo::EditModeRender()
 {
+	actorMgr->ObjectIcon();
 	if (true == bOpenActorEditor)
 		actorMgr->RenderActorEditor();
 	
-	actorMgr->ObjectIcon();
 
 	gBuffer->Tech(1);
 	gBuffer->Render();

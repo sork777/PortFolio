@@ -4,7 +4,9 @@
 // CS랜더 방식 실험작, 
 // Actor 문제 없음
 // ActorEditro 문제 없음
-// 결론 시부레 ActorManager가 문제다.
+// ActorManager도 문제가 없어...?
+// LevelEditor가 문제였다고????
+
 class ModelPreCsRenderDemo :public IExecute
 {
 public:
@@ -43,12 +45,13 @@ private:
 	Material* terrainMat;
 
 	TextureCube* cubeTex;
-	bool bEditMode = true;
+	bool bEditMode = false;
+	bool bActorSpwan = false;
+	class ActorManager* actorMgr;
 
-private:
-	vector<class Actor*> actors;
-	unordered_map< class Actor*, UINT> actorInstMap;
-	ActorEditor* actorEditor;
+	RenderTarget* renderTarget;
+	DepthStencil* depthStencil;
+	Render2D* render2D;
 
 };
 
