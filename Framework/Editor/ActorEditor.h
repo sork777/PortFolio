@@ -75,6 +75,7 @@ private:
 
 private:
 	Shader*	shader;	
+	Shader*	oShader;	
 	
 	ModelAnimator*	curAnimator = NULL;
 	Model* curModel	= NULL;

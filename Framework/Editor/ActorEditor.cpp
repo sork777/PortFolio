@@ -125,7 +125,7 @@ void ActorEditor::PreRender()
 		grid->Render();
 
 		e_Actor->Tech(1, 1, 1);
-		e_Actor->Pass(0, 1, 3);
+		e_Actor->Pass(0, 1, 2);
 		e_Actor->Render();
 
 	}
@@ -230,6 +230,8 @@ void ActorEditor::PostRender()
 
 void ActorEditor::SetActor(Actor * actor)
 {
+	oShader = actor->GetShader();
+
 	this->actor = actor;
 	e_Actor = new Actor(*actor);
 	e_Actor->EditModeOn();
@@ -317,7 +319,7 @@ void ActorEditor::ActorCompile()
 	e_Actor->ActorSyncBaseTransform();
 	actor->ActorSyncBaseTransform();
 	actor->ActorCompile(*e_Actor);
-	actor->SetShader(actor->GetShader());
+	actor->SetShader(oShader);
 	actor->Update();
 	actor->ToReMakeIcon(true);
 }

@@ -38,7 +38,6 @@
     <ClCompile Include="Objects\ObjectPicker.cpp" />
     <ClCompile Include="Objects\Actor\Actor.cpp" />
     <ClCompile Include="Components\Common\MaterialPBR.cpp" />
-    <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="Effect\ModelIllusion.cpp" />
     <ClCompile Include="ImguiWidget\WidgetUtility\IconProvider.cpp" />
     <ClCompile Include="ImguiWidget\Widget_Contents.cpp" />
@@ -158,7 +157,6 @@
     <ClInclude Include="Objects\Actor\Actor.h" />
     <ClInclude Include="Components\Common\MaterialPBR.h" />
     <ClInclude Include="Components\CommonComponent.h" />
-    <ClInclude Include="Editor\AnimationEditor.h" />
     <ClInclude Include="Editor\IEditor.h" />
     <ClInclude Include="Effect\ModelIllusion.h" />
     <ClInclude Include="ImguiWidget\IWidget.h" />

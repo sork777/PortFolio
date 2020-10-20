@@ -54,8 +54,8 @@ public:
 	
 public:	
 	//CsCopy 최소화를 위한 분리
-	void ReadyforGetBoneworld(const UINT& boneIndex);
-	Matrix GetboneWorld(const UINT& instance) ;
+	//void ReadyforGetBoneworld(const UINT& boneIndex);
+	//Matrix GetboneWorld(const UINT& instance) ;
 
 public:	
 	void AddClip(const wstring& file, const wstring& directoryPath = L"../../_Models/");
@@ -84,7 +84,7 @@ private:
 	void UpdateTextureArray();
 	void CreateClipTransform(const UINT& index);
 	void CreateNoClipTransform(const UINT& index);
-	void CreateComputeDesc();
+	//void CreateComputeDesc();
 
 private:
 	struct ClipTransform
@@ -113,7 +113,6 @@ private:
 private:
 	TweenDesc tweenDesc[MAX_MODEL_INSTANCE];
 	ConstantBuffer* frameBuffer = NULL;
-	ID3DX11EffectConstantBuffer* sFrameBuffer;
 
 private:
 	Shader* shader;
@@ -127,21 +126,20 @@ private:
 	UINT maxAnimFrame = 0;
 ///////////////////////////////////////////////////////////////////////////////
 // CS 영역
-private:
-	struct CS_OutputDesc
-	{
-		Matrix Result;
-	};
-
+//private:
+//	struct CS_OutputDesc
+//	{
+//		Matrix Result;
+//	};
+//
 private:
 	Shader* computeShader;
-	StructuredBuffer* computeBuffer = NULL;
+	//StructuredBuffer* computeBuffer = NULL;
 
-	CS_OutputDesc* csOutput = NULL;
-	CS_OutputDesc* csResult = NULL;
+	//CS_OutputDesc* csOutput = NULL;
+	//CS_OutputDesc* csResult = NULL;
 	
 	ID3DX11EffectConstantBuffer* sComputeFrameBuffer;
-
 	ID3DX11EffectUnorderedAccessViewVariable* sUav;
 
 	CsTexture* testCSTex = NULL;

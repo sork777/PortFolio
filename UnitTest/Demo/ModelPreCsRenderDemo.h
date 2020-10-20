@@ -2,17 +2,11 @@
 #include "Systems\IExecute.h"
 
 // CS랜더 방식 실험작, 
-// Actor 문제 없음
-// ActorEditro 문제 없음
-// ActorManager도 문제가 없어...?
-// LevelEditor가 문제였다고????
+// 1019 해결, 애니메이터에서 쉐이더 제대로 안잡아줬었음.
 
 class ModelPreCsRenderDemo :public IExecute
 {
 public:
-	ModelPreCsRenderDemo();
-	~ModelPreCsRenderDemo();
-
 	// IExecute을(를) 통해 상속됨
 	virtual void Initialize() override;
 	virtual void Ready() override;
@@ -37,8 +31,8 @@ private:
 	Shader* shader;
 	class TerrainLod* terrain;
 	class Atmosphere* sky;
-	//GBuffer* gBuffer;
-	//class SSAO* ssao;
+	GBuffer* gBuffer;
+	class SSAO* ssao;
 	//class CSM* shadow;
 	class TerrainEditor* terrainEditor;
 

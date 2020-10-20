@@ -112,7 +112,7 @@ void LevelEditorDemo::PreRender()
 	shader->AsSRV("AtmosphereMap")->SetResource(sky->GetAtmoSRV());
 	ssao->Compute(gBuffer->GetDepthSrv(), gBuffer->GetNormalSrv());
 	shader->AsSRV("AOTexture")->SetResource(ssao->GetSSAOSRV());
-	cubeTex->Set(skyShader);
+	cubeTex->Set(shader);
 	sky->Render(false);
 
 }
@@ -131,7 +131,6 @@ void LevelEditorDemo::Render()
 		{
 			asset->CreateButtonImage();
 		}
-		//actorMgr->CreatActorButtonImage(actor);
 
 		bCreBu = true;
 	}

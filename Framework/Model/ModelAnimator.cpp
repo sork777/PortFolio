@@ -24,9 +24,7 @@ ModelAnimator::~ModelAnimator()
 {
 	SafeRelease(sComputeFrameBuffer);
 	SafeRelease(sUav);
-	SafeDelete(computeBuffer);
-	SafeDelete(csOutput);
-	//SafeDelete(computeShader);
+	SafeDelete(testCSTex);
 
 	for (ModelClip* clip : clips)
 		SafeDelete(clip);
@@ -45,12 +43,10 @@ void ModelAnimator::Initialize()
 {
 	frameBuffer = new ConstantBuffer(&tweenDesc, sizeof(TweenDesc) * MAX_MODEL_INSTANCE);
 
-	sFrameBuffer = shader->AsConstantBuffer("CB_AnimationFrame");
 	sTransformsSRV = shader->AsSRV("TransformsMap");
 
 	computeShader = SETSHADER(L"PF_AttachBone.fx");
-
-	sUav = computeShader->AsUAV("Output");
+	sUav = computeShader->AsUAV("OutputMap");
 	sComputeFrameBuffer = computeShader->AsConstantBuffer("CB_AnimationFrame");
 
 	clipTransforms = new ClipTransform[MAX_ANIMATION_CLIPS];
@@ -60,12 +56,6 @@ void ModelAnimator::Initialize()
 
 void ModelAnimator::Update()
 {
-	if (computeBuffer == NULL)
-	{
-		CreateComputeDesc();
-	}
-	
-	
 	//model->Update();	
 }
 
@@ -73,19 +63,8 @@ void ModelAnimator::Render()
 {
 	//주의, 버퍼 다 올리고 랜더하지 않으면 다른 애니메이터랑 꼬일수 있음.
 	frameBuffer->Apply();
-	if (model->GetPass() == 2)
+	
 	{
-		if (clipSrv != NULL)
-			sTransformsSRV->SetResource(clipSrv);
-		sFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
-
-	}
-	else
-	{
-		//TODO: 1006 CS 계산후 랜더방식 해결해야할 점
-		// 1. 애니메이션 꼬임 정확히는 본과 clip데이터가 엉켜서 실행
-		// 2. 왠지 메인쪽에만 랜더 안됨 디퍼드에서 안되는건가.
-		// 3. 1012 actor 매니저쪽에 이상있음을 확인
 		sComputeFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
 
 		if (model->IsAdded())
@@ -97,12 +76,13 @@ void ModelAnimator::Render()
 		UINT dispatchX = ceil((size.x / 4 * size.y) / 1024);
 		computeShader->AsScalar("TexWidth")->SetInt(size.x);
 
-		computeShader->AsSRV("TransformsMap")->SetResource(clipSrv);
+		if (clipSrv != NULL)
+			computeShader->AsSRV("TransformsMap")->SetResource(clipSrv);
 		computeShader->AsSRV("AnimEditTransformMap")->SetResource(model->GetEditSrv());
-		computeShader->AsUAV("OutputMap")->SetUnorderedAccessView(testCSTex->UAV());
+		sUav->SetUnorderedAccessView(testCSTex->UAV());
 
 		computeShader->Dispatch(0, 1, dispatchX, 1, 1);
-		shader->AsSRV("AnimTransformTestMap")->SetResource(testCSTex->SRV());
+		sTransformsSRV->SetResource(testCSTex->SRV());
 	}
 	
 	//model->Render();	
@@ -111,8 +91,8 @@ void ModelAnimator::Render()
 void ModelAnimator::SetShader(Shader * shader)
 {
 	model->SetShader(shader);
+	this->shader = shader;
 
-	sFrameBuffer = shader->AsConstantBuffer("CB_AnimationFrame");
 	sTransformsSRV = shader->AsSRV("TransformsMap");
 }
 
@@ -138,35 +118,6 @@ void ModelAnimator::CloneClips(const vector<ModelClip*>& oClips)
 		maxAnimFrame = maxAnimFrame > clip->frameCount ? maxAnimFrame : clip->frameCount;
 		UpdateTextureArray();
 	}
-}
-
-void ModelAnimator::ReadyforGetBoneworld(const UINT & boneIndex)
-{
-	if (computeBuffer != NULL)
-	{
-		sComputeFrameBuffer->SetConstantBuffer(frameBuffer->Buffer());
-
-		// 본인덱스를 통해 모델의 트랜스폼 맵에서 필요한 부분만 빼옴.
-		computeShader->AsScalar("BoneIndex")->SetInt(boneIndex);
-		computeShader->AsSRV("TransformsMap")->SetResource(clipSrv);
-		computeShader->AsSRV("AnimEditTransformMap")->SetResource(model->GetEditSrv());
-		sUav->SetUnorderedAccessView(computeBuffer->UAV());
-
-		computeShader->Dispatch(0, 0, 1, 1, 1);
-		computeBuffer->Copy(csOutput, sizeof(CS_OutputDesc) * MAX_MODEL_INSTANCE);
-	}
-}
-Matrix ModelAnimator::GetboneWorld(const UINT& instance)
-{
-	if (csOutput == NULL)
-	{
-		Matrix temp;
-		D3DXMatrixIdentity(&temp);
-
-		return temp;
-	}
-
-	return csOutput[instance].Result;
 }
 
 #pragma region 데이터 추가
@@ -592,27 +543,6 @@ void ModelAnimator::CreateNoClipTransform(const UINT& index)
 {
 	for (UINT y = 0; y < maxAnimFrame; y++)
 		memcpy(clipTransforms[index].Transform[y], clipTransforms[0].Transform[0], model->BoneCount() * sizeof(Matrix)); //복사
-}
-
-void ModelAnimator::CreateComputeDesc()
-{
-	UINT outSize = MAX_MODEL_INSTANCE;
-
-	computeBuffer = new StructuredBuffer
-	(
-		NULL,
-		sizeof(CS_OutputDesc), outSize,
-		true
-	);
-	csResult = new CS_OutputDesc[outSize];
-
-	if (csOutput == NULL)
-	{
-		csOutput = new CS_OutputDesc[outSize];
-
-		for (UINT i = 0; i < outSize; i++)
-			D3DXMatrixIdentity(&csOutput[i].Result);
-	}
 }
 
 #pragma endregion

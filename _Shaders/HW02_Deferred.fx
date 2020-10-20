@@ -94,7 +94,7 @@ float4 DirLightPS(VS_OUTPUT input) : SV_TARGET
     float3 wPos = CalcWorldPos(input.cpPos, gbd.LinearDepth);
         
     float ao=AOTexture.Sample(LinearSampler, input.Uv);
-    ao = lerp(ao, 1, UseAO);
+    ao = lerp(1, ao, UseAO);
 
     //Calculate the ambient color
     float3 finalColor = 0;//    CalcAmbient(mat.normal, mat.diffuseColor.rgb);
@@ -187,7 +187,6 @@ technique11 T0
     P_DSS_Ref_VP(P0, DepthMarkDSS, 1, VS_Mesh, PS_Seperate)
     P_DSS_Ref_VP(P1, DepthMarkDSS, 1, VS_Model, PS_Seperate)
     P_DSS_Ref_VP(P2, DepthMarkDSS, 1, VS_Animation, PS_Seperate)
-    P_DSS_Ref_VP(P3, DepthMarkDSS, 1, VS_AnimationTest, PS_Seperate)
 }
 //1
 technique11 T1_DirLight

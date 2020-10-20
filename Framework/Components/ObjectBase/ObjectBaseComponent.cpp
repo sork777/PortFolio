@@ -131,36 +131,36 @@ void ObjectBaseComponent::Update()
 	// 모델 메시 아니면 소켓이 필요 없음.
 	// 매번 위치 바꿔줄 필요도 없음.
 
-	else if (parent->GetType() == ObjectBaseComponentType::ModelMesh)
-	{
+	//else if (parent->GetType() == ObjectBaseComponentType::ModelMesh)
+	//{
 
-		//부모를 다이나믹 형변환해서 컴포넌트 추출
-		ModelMeshComponent* modelMesh = dynamic_cast<ModelMeshComponent*>(parent);
-		// 모델과 애니메이터 추출
-		ModelAnimator* animator = modelMesh->GetAnimation();
-		
-		// 소켓 이름만 받았을시, 설정으로 하면 알아서 챙겨짐.
-		if (parentSocket < 0 && parentSocketName.compare(L"None") !=0)
-		{
-			Model* model = modelMesh->GetMesh();
-			parentSocket = model->BoneByName(parentSocketName)->Index();
-		}
-		if (NULL!= animator && parentSocket >= 0)
-		{
-			// 인스턴스만큼 위치 업뎃.
-			// 에딧중이면 첫번째 인스턴스만.
-			animator->ReadyforGetBoneworld(parentSocket);
-			UINT instCount = modelMesh->GetInstSize();
-			for (UINT i = 0; i < instCount; i++)
-			{
-				Matrix world = modelMesh->GetTransform(i)->World();
-				Matrix attach = animator->GetboneWorld(i);
-				attach *= world;
+	//	//부모를 다이나믹 형변환해서 컴포넌트 추출
+	//	ModelMeshComponent* modelMesh = dynamic_cast<ModelMeshComponent*>(parent);
+	//	// 모델과 애니메이터 추출
+	//	ModelAnimator* animator = modelMesh->GetAnimation();
+	//	
+	//	// 소켓 이름만 받았을시, 설정으로 하면 알아서 챙겨짐.
+	//	if (parentSocket < 0 && parentSocketName.compare(L"None") !=0)
+	//	{
+	//		Model* model = modelMesh->GetMesh();
+	//		parentSocket = model->BoneByName(parentSocketName)->Index();
+	//	}
+	//	if (NULL!= animator && parentSocket >= 0)
+	//	{
+	//		// 인스턴스만큼 위치 업뎃.
+	//		// 에딧중이면 첫번째 인스턴스만.
+	//		animator->ReadyforGetBoneworld(parentSocket);
+	//		UINT instCount = modelMesh->GetInstSize();
+	//		for (UINT i = 0; i < instCount; i++)
+	//		{
+	//			Matrix world = modelMesh->GetTransform(i)->World();
+	//			Matrix attach = animator->GetboneWorld(i);
+	//			attach *= world;
 
-				this->GetTransform(i)->Parent(attach);
-			}
-		}
-	}
+	//			this->GetTransform(i)->Parent(attach);
+	//		}
+	//	}
+	//}
 
 	//루트만 업데이트 호출하면 자식 자동 호출하게
 	for (ObjectBaseComponent* child : children)

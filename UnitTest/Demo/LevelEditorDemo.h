@@ -17,6 +17,7 @@
 */
 
 // 1015 얘가 어디서 꼬였는지 CS모델랜더가 꼬임
+// 1016 디퍼드랑 뭔상관이길래 디퍼드 쓰면 꼬이지;
 class Actor;
 
 class LevelEditorDemo :public IExecute

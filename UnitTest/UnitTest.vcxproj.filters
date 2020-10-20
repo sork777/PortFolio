@@ -6,7 +6,6 @@
     <ClInclude Include="Demo\TerrainLodDemo.h">
       <Filter>Demo</Filter>
     </ClInclude>
-    <ClInclude Include="Demo\AnimEditorDemo.h" />
     <ClInclude Include="Demo\CSDemo.h" />
     <ClInclude Include="Demo\FogDemo.h" />
     <ClInclude Include="Demo\ColliderTestDemo.h" />
@@ -18,7 +17,6 @@
     <ClCompile Include="Demo\TerrainLodDemo.cpp">
       <Filter>Demo</Filter>
     </ClCompile>
-    <ClCompile Include="Demo\AnimEditorDemo.cpp" />
     <ClCompile Include="Demo\CSDemo.cpp" />
     <ClCompile Include="Demo\FogDemo.cpp" />
     <ClCompile Include="Demo\ColliderTestDemo.cpp" />

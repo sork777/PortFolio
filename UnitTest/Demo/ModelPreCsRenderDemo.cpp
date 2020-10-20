@@ -7,25 +7,16 @@
 #include "Objects/Manager/ActorManager.h"
 
 
-ModelPreCsRenderDemo::ModelPreCsRenderDemo()
-{
-}
-
-
-ModelPreCsRenderDemo::~ModelPreCsRenderDemo()
-{
-}
-
 void ModelPreCsRenderDemo::Initialize()
 {
 	Context::Get()->GetCamera()->RotationDegree(23, 0, 0);
 	Context::Get()->GetCamera()->Position(0, 46, -85);
-	shader = SETSHADER(L"027_Animation.fx");
-	//shader = SETSHADER(L"HW02_Deferred.fx");
+	//shader = SETSHADER(L"027_Animation.fx");
+	shader = SETSHADER(L"HW02_Deferred.fx");
 	//Deffered Cascade shadow
 	{
 		//shadow = new CSM(shader);
-		//gBuffer = new GBuffer(shader);
+		gBuffer = new GBuffer(shader);
 	}
 	//Sky
 	{
@@ -51,8 +42,8 @@ void ModelPreCsRenderDemo::Initialize()
 	}
 	actorMgr = new ActorManager();
 	actorMgr->SetTerrain(terrain);
-	//ssao = new SSAO();
-	//CreateBaseModels();
+	ssao = new SSAO();
+	
 	CreateBaseActor();
 	//PBR°ü·Ã
 	cubeTex = new TextureCube((Vector3&)Vector3(0, 0, 0), 512, 512);
@@ -64,7 +55,7 @@ void ModelPreCsRenderDemo::Initialize()
 
 	float width = D3D::Width();
 	float height = D3D::Height();
-
+	
 	renderTarget = new RenderTarget((UINT)width, (UINT)height);
 	depthStencil = new DepthStencil(width, height);
 	render2D = new Render2D();
@@ -81,7 +72,7 @@ void ModelPreCsRenderDemo::Ready()
 void ModelPreCsRenderDemo::Destroy()
 {
 	SafeDelete(cubeTex);
-	//SafeDelete(ssao);
+	SafeDelete(ssao);
 	SafeDelete(terrainEditor);
 	SafeDelete(terrain);
 }
@@ -90,11 +81,27 @@ void ModelPreCsRenderDemo::Update()
 {
 	Context::Get()->ShowContextInfo();
 	sky->Update();
-	//gBuffer->Update();
+	gBuffer->Update();
 	terrain->Update();
 
 	if (true == bEditMode)
 		actorMgr->UpdateActorEditor();
+
+	ImGui::Begin("SSAO Controller", &bEditMode);
+	{
+		static float radius = 5.0f;
+		static int SSAOSampleRadius = 5;
+		static bool bAO = false;
+		ImGui::SliderFloat("Radius", &radius, 1, 10);
+		ImGui::SliderInt("SSAOSampleRadius", &SSAOSampleRadius, 3, 10);
+		ImGui::Checkbox("UseAO", &bAO);
+		shader->AsScalar("UseAO")->SetInt(bAO ? 1 : 0);
+
+		ssao->SetParameters(SSAOSampleRadius, radius);
+		ImGui::End();
+	}
+
+
 	actorMgr->SetSpawnPosition(terrain->GetPickedPosition());
 	actorMgr->Update();
 	if (true == bActorSpwan)
@@ -109,20 +116,31 @@ void ModelPreCsRenderDemo::PreRender()
 	bEditMode = actorMgr->IsEditorOpened();
 	bActorSpwan = actorMgr->IsObjectSpawn();
 
-	renderTarget->Set(depthStencil->DSV());
+	//renderTarget->Set(depthStencil->DSV());
+	gBuffer->SetRTVs();
 	{
-
 		sky->Render(false);
-		//gBuffer->Update();
+
+		terrainMat->Render();
+		terrain->Tech(1);
 		terrain->Render();
-		actorMgr->Tech(1, 1, 1);
-		actorMgr->Pass(0, 1, 3);
+		actorMgr->Tech(0, 0, 0);
+		//actorMgr->Tech(1, 1, 1);
+		actorMgr->Pass(0, 1, 2);
 		actorMgr->Render();
 	}
 	if (true == bEditMode)
 		actorMgr->PreRenderActorEditor();
 
 	actorMgr->PreRender();
+
+	sky->Render();
+	shader->AsSRV("AtmosphereMap")->SetResource(sky->GetAtmoSRV());
+	ssao->Compute(gBuffer->GetDepthSrv(), gBuffer->GetNormalSrv());
+	shader->AsSRV("AOTexture")->SetResource(ssao->GetSSAOSRV());
+	
+	cubeTex->Set(shader);
+	sky->Render(false);
 }
 
 void ModelPreCsRenderDemo::Render()
@@ -131,8 +149,11 @@ void ModelPreCsRenderDemo::Render()
 	if (true == bEditMode)
 		actorMgr->RenderActorEditor();
 
-	render2D->SRV(renderTarget->SRV());
-	render2D->Render();
+	gBuffer->Tech(1);
+	gBuffer->Render();
+	gBuffer->RenderGBuffers();
+	//render2D->SRV(renderTarget->SRV());
+	//render2D->Render();
 }
 
 void ModelPreCsRenderDemo::PostRender()

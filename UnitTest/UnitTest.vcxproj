@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Demo\AnimEditorDemo.h" />
     <ClInclude Include="Demo\ColliderTestDemo.h" />
     <ClInclude Include="Demo\CSDemo.h" />
     <ClInclude Include="Demo\LevelEditorDemo.h" />
@@ -30,7 +29,6 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Demo\AnimEditorDemo.cpp" />
     <ClCompile Include="Demo\ColliderTestDemo.cpp" />
     <ClCompile Include="Demo\CSDemo.cpp" />
     <ClCompile Include="Demo\LevelEditorDemo.cpp" />

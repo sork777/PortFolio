@@ -11,6 +11,7 @@ Actor::Actor(Model & model)
 {
 	root = new ModelMeshComponent(&model);
 	Initailize();
+	Object_Name += root->GetMesh()->Name();
 }
 
 Actor::Actor(const Actor& actor)
@@ -19,6 +20,8 @@ Actor::Actor(const Actor& actor)
 	root->AddInstanceData();
 
 	Initailize();
+	Object_Name += root->GetMesh()->Name();
+
 }
 
 

@@ -232,7 +232,6 @@
       <Filter>Renders</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\GUID_Generator.cpp" />
-    <ClCompile Include="Editor\AnimationEditor.cpp" />
     <ClCompile Include="ParticleSystem\ParticleEmitter.cpp" />
     <ClCompile Include="Editor\ParticleEditor.cpp" />
     <ClCompile Include="PostEffects\Fog.cpp" />
@@ -581,7 +580,6 @@
       <Filter>Renders</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\GUID_Generator.h" />
-    <ClInclude Include="Editor\AnimationEditor.h" />
     <ClInclude Include="ParticleSystem\ParticleEmitter.h" />
     <ClInclude Include="ParticleSystem\ParticleData.h" />
     <ClInclude Include="Editor\ParticleEditor.h" />
